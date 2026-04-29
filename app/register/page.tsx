@@ -21,6 +21,7 @@ export default function RegisterPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [passwordError, setPasswordError] = useState('');
     const [emailError, setEmailError] = useState('');
+    const [nricError, setNricError] = useState('');
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
     const [shakingFields, setShakingFields] = useState<string[]>([]);
     const [showPassword, setShowPassword] = useState(false);
@@ -28,6 +29,8 @@ export default function RegisterPage() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        const target = e.target as HTMLInputElement;
+        const selectionStart = target.selectionStart;
         let finalValue = value;
 
         if (name === 'nric') {
@@ -59,12 +62,21 @@ export default function RegisterPage() {
         }
 
         setFormData(newFormData);
+
+        // Restore cursor position for NRIC formatting
+        if (name === 'nric' && selectionStart !== null) {
+            setTimeout(() => {
+                const newPosition = selectionStart;
+                target.setSelectionRange(newPosition, newPosition);
+            }, 0);
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setPasswordError('');
         setEmailError('');
+        setNricError('');
         setValidationErrors([]);
         setShakingFields([]);
 
@@ -80,7 +92,7 @@ export default function RegisterPage() {
         if (!nricStatus.isValid) {
             errors.push('nric');
             shake.push('nric');
-            setEmailError(nricStatus.error || 'Invalid NRIC');
+            setNricError(nricStatus.error || 'Invalid NRIC');
         }
 
         if (!formData.email.toLowerCase().endsWith('@unikl.edu.my')) {
@@ -203,7 +215,7 @@ export default function RegisterPage() {
                                                 placeholder="XXXXXX-XX-XXXX"
                                                 required
                                                 maxLength={14}
-                                                className={`block w-full pl-10 pr-3 py-2.5 bg-[#f8fafc] dark:bg-[#0f172a] border rounded-xl text-xs focus:ring-2 focus:ring-[#F26C22]/30 focus:border-[#F26C22] dark:text-white transition-all outline-none font-medium ${validationErrors.includes('nric') ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} ${shakingFields.includes('nric') ? 'animate-shake' : ''}`}
+                                                className={`block w-full pl-10 pr-3 py-2.5 bg-[#f8fafc] dark:bg-[#0f172a] border rounded-xl text-xs focus:ring-2 focus:ring-[#F26C22]/30 focus:border-[#F26C22] dark:text-white transition-all outline-none font-medium ${nricError ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} ${shakingFields.includes('nric') ? 'animate-shake' : ''}`}
                                                 value={formData.nric}
                                                 onChange={handleChange}
                                             />
@@ -291,8 +303,9 @@ export default function RegisterPage() {
                                         {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </button>
                                 </div>
-                                {passwordError && <p className="text-[10px] font-bold text-red-500 mt-1">{passwordError}</p>}
+                                {nricError && <p className="text-[10px] font-bold text-red-500 mt-1">{nricError}</p>}
                                 {emailError && <p className="text-[10px] font-bold text-red-500 mt-1">{emailError}</p>}
+                                {passwordError && <p className="text-[10px] font-bold text-red-500 mt-1">{passwordError}</p>}
                             </div>
 
                             <button
