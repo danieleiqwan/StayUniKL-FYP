@@ -22,7 +22,10 @@ export default function MockPaymentGateway() {
         }
     }, [user, router]);
 
+    const isAlreadyPaid = myApplication?.paymentStatus === 'Paid';
+
     const handlePayment = async () => {
+        if (isAlreadyPaid) return;
         setIsProcessing(true);
 
         try {
@@ -67,9 +70,11 @@ export default function MockPaymentGateway() {
 
                 <div className="p-8">
                     <div className="mb-8 text-center">
-                        <div className="text-slate-500 dark:text-slate-400 text-sm mb-1 uppercase font-bold tracking-wider">Total Amount</div>
-                        <div className="text-4xl font-extrabold text-[#F26C22] border-b-2 border-orange-100 dark:border-orange-900/30 pb-4 inline-block">
-                            RM {amount}
+                        <div className="text-slate-500 dark:text-slate-400 text-sm mb-1 uppercase font-bold tracking-wider">
+                            {isAlreadyPaid ? 'Payment Status' : 'Total Amount'}
+                        </div>
+                        <div className={`text-4xl font-extrabold border-b-2 pb-4 inline-block ${isAlreadyPaid ? 'text-green-500 border-green-100 dark:border-green-900/30' : 'text-[#F26C22] border-orange-100 dark:border-orange-900/30'}`}>
+                            {isAlreadyPaid ? 'PAID' : `RM ${amount}`}
                         </div>
                     </div>
 
@@ -88,36 +93,47 @@ export default function MockPaymentGateway() {
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 mb-8">
+                    <div className={`${isAlreadyPaid ? 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800'} p-4 rounded-xl border mb-8 transition-colors`}>
                         <div className="flex items-center gap-3">
-                            <div className="bg-white dark:bg-slate-800 p-2 rounded shadow-sm">
-                                <CreditCard className="h-5 w-5 text-[#F26C22] dark:text-orange-400" />
+                            <div className={`${isAlreadyPaid ? 'bg-green-500' : 'bg-white dark:bg-slate-800'} p-2 rounded shadow-sm`}>
+                                <CreditCard className={`h-5 w-5 ${isAlreadyPaid ? 'text-white' : 'text-[#F26C22] dark:text-orange-400'}`} />
                             </div>
                             <div className="text-xs text-slate-600 dark:text-slate-300">
-                                <div className="font-bold text-slate-900 dark:text-white">Credit / Debit Card</div>
-                                <div>Visa / Mastercard / AMEX (Mock)</div>
+                                <div className={`font-bold ${isAlreadyPaid ? 'text-green-700 dark:text-green-400' : 'text-slate-900 dark:text-white'}`}>
+                                    {isAlreadyPaid ? 'Transaction Verified' : 'Credit / Debit Card'}
+                                </div>
+                                <div>{isAlreadyPaid ? 'Your payment has been successfully processed.' : 'Visa / Mastercard / AMEX (Mock)'}</div>
                             </div>
                         </div>
                     </div>
 
-                    <button
-                        onClick={handlePayment}
-                        disabled={isProcessing}
-                        className={`w-full py-4 rounded-xl font-bold text-white transition-all shadow-lg ${isProcessing
-                            ? 'bg-slate-400 dark:bg-slate-700 cursor-not-allowed'
-                            : 'bg-[#F26C22] hover:bg-[#d65a16] active:scale-95 shadow-orange-500/20'
-                            }`}
-                    >
-                        {isProcessing ? (
-                            <div className="flex items-center justify-center gap-2">
-                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span>Processing...</span>
-                            </div>
-                        ) : 'Pay Now'}
-                    </button>
+                    {isAlreadyPaid ? (
+                        <button
+                            onClick={() => router.push('/dashboard')}
+                            className="w-full py-4 rounded-xl font-bold text-white bg-green-500 hover:bg-green-600 transition-all shadow-lg shadow-green-500/20 active:scale-95"
+                        >
+                            Return to Dashboard
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handlePayment}
+                            disabled={isProcessing}
+                            className={`w-full py-4 rounded-xl font-bold text-white transition-all shadow-lg ${isProcessing
+                                ? 'bg-slate-400 dark:bg-slate-700 cursor-not-allowed'
+                                : 'bg-[#F26C22] hover:bg-[#d65a16] active:scale-95 shadow-orange-500/20'
+                                }`}
+                        >
+                            {isProcessing ? (
+                                <div className="flex items-center justify-center gap-2">
+                                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Processing...</span>
+                                </div>
+                            ) : 'Pay Now'}
+                        </button>
+                    )}
 
                     <p className="mt-4 text-center text-[10px] text-slate-400 dark:text-slate-500">
                         This is a simulated payment gateway for development purposes. No real money will be charged.
