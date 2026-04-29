@@ -71,6 +71,7 @@ export async function GET(request: Request) {
             totalPrice: row.total_price,
             status: row.status,
             previousStatus: row.previous_status,
+            paymentStatus: row.payment_status,
             date: row.date,
         }));
 
