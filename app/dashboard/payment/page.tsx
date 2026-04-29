@@ -22,7 +22,7 @@ export default function MockPaymentGateway() {
         }
     }, [user, router]);
 
-    const isAlreadyPaid = myApplication?.paymentStatus === 'Paid';
+    const isAlreadyPaid = myApplication?.paymentStatus === 'Paid' || (myApplication as any)?.payment_status === 'Paid';
 
     const handlePayment = async () => {
         if (isAlreadyPaid) return;
