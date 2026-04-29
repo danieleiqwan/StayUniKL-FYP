@@ -36,13 +36,22 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: nricStatus.error }, { status: 400 });
         }
 
-        // Check if user exists (Check email, ID, or NRIC)
-        const [existing]: any = await pool.query(
-            'SELECT id FROM users WHERE email = ? OR id = ? OR nric = ?', 
-            [email, studentId, nric]
-        );
-        if (existing.length > 0) {
-            return NextResponse.json({ error: 'User already exists' }, { status: 409 });
+        // Check if Email exists
+        const [existingEmail]: any = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+        if (existingEmail.length > 0) {
+            return NextResponse.json({ error: 'Email address is already in use' }, { status: 409 });
+        }
+
+        // Check if Student ID exists
+        const [existingId]: any = await pool.query('SELECT id FROM users WHERE id = ?', [studentId]);
+        if (existingId.length > 0) {
+            return NextResponse.json({ error: 'Student ID has already been registered' }, { status: 409 });
+        }
+
+        // Check if NRIC exists
+        const [existingNric]: any = await pool.query('SELECT id FROM users WHERE nric = ?', [nric]);
+        if (existingNric.length > 0) {
+            return NextResponse.json({ error: 'NRIC number has already been registered' }, { status: 409 });
         }
 
         const defaultPassword = 'password123';
