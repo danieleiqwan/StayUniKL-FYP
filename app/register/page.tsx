@@ -61,12 +61,21 @@ export default function RegisterPage() {
             }
         }
 
+        const oldLength = formData[name as keyof typeof formData]?.toString().length || 0;
         setFormData(newFormData);
 
         // Restore cursor position for NRIC formatting
         if (name === 'nric' && selectionStart !== null) {
             setTimeout(() => {
-                const newPosition = selectionStart;
+                const newLength = finalValue.length;
+                const lengthDiff = newLength - oldLength;
+                
+                // If we added a hyphen, push the cursor forward
+                let newPosition = selectionStart;
+                if (lengthDiff > 0 && finalValue[selectionStart - 1] === '-') {
+                    newPosition += 1;
+                }
+                
                 target.setSelectionRange(newPosition, newPosition);
             }, 0);
         }
