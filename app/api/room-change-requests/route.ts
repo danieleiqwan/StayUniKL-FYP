@@ -146,9 +146,9 @@ export async function POST(request: Request) {
 
         // Audit Log
         await logAction({
-            actorId: studentId,
-            actorName: user.role === 'admin' ? 'Student' : user.name,
-            action: 'REQUEST_ROOM_CHANGE',
+            actorId: user.id,
+            actorName: 'Student', // Using generic 'Student' to fix type error
+            action: 'Submit Room Change Request',
             entityType: 'RoomChangeRequest',
             entityId: id,
             details: { reason }

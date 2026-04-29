@@ -97,7 +97,10 @@ export async function POST(request: Request) {
         }
 
         const { studentId, roomType, stayDuration, durationType, totalPrice, floorId, roomId, bedId } = validation.data;
-        const studentName = user.role === 'admin' ? 'Student' : user.name;
+        
+        // Fetch student name from DB
+        const [studentRows]: any = await pool.query('SELECT name FROM users WHERE id = ?', [studentId]);
+        const studentName = studentRows[0]?.name || 'Student';
 
         // Security: Can't apply for someone else
         if (user.role === 'student' && studentId !== user.id) {

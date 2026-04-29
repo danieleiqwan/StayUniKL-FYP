@@ -89,7 +89,10 @@ export async function POST(request: Request) {
         }
 
         const { studentId, title, description, imagePaths } = validation.data;
-        const studentName = user.role === 'admin' ? 'Admin' : user.name;
+
+        // Fetch student name from DB
+        const [studentRows]: any = await pool.query('SELECT name FROM users WHERE id = ?', [studentId]);
+        const studentName = studentRows[0]?.name || 'Student';
 
         // Security check: Student can only create complaints for themselves
         if (user.role !== 'admin' && user.id !== studentId) {
