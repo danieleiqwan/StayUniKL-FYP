@@ -46,7 +46,7 @@ export default function RegisterPage() {
         }
 
         if (name === 'studentId') {
-            finalValue = value.replace(/\D/g, '').slice(0, 10);
+            finalValue = value.replace(/\D/g, '').slice(0, 11);
         }
 
         const newFormData = { ...formData, [name]: finalValue };
