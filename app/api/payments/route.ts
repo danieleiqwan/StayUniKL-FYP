@@ -46,10 +46,17 @@ export async function POST(request: Request) {
             await pool.query('UPDATE invoices SET status = "Paid" WHERE id = ?', [invoiceId]);
         }
 
-        // Auto-approve the application if the reference ID matches an application ID
-        // (Assuming referenceId IS the application ID)
+        // Update Application Status if linked
         if (finalRef.startsWith('app_')) {
-            await pool.query('UPDATE applications SET status = "Approved" WHERE id = ?', [finalRef]);
+            // Update both the general status and a payment flag if it exists
+            await pool.query(
+                'UPDATE applications SET status = "Approved", payment_status = "Paid" WHERE id = ?', 
+                [finalRef]
+            ).catch(async (err) => {
+                // If payment_status column doesn't exist, just update the main status
+                console.log('payment_status column missing, falling back to main status update');
+                await pool.query('UPDATE applications SET status = "Approved" WHERE id = ?', [finalRef]);
+            });
         }
 
         // Fetch user name for logging
