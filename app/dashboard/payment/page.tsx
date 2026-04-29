@@ -8,13 +8,13 @@ import { CreditCard } from 'lucide-react';
 
 export default function MockPaymentGateway() {
     const { user } = useAuth();
-    const { refreshData } = useData();
+    const { myApplication, refreshData } = useData();
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const amount = searchParams.get('amount') || '500.00';
-    const referenceId = searchParams.get('ref') || 'N/A';
+    const amount = searchParams.get('amount') || myApplication?.totalPrice || '0.00';
+    const referenceId = searchParams.get('ref') || myApplication?.id || 'N/A';
 
     useEffect(() => {
         if (!user) {
