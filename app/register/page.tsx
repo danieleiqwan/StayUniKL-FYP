@@ -70,11 +70,8 @@ export default function RegisterPage() {
                 const newLength = finalValue.length;
                 const lengthDiff = newLength - oldLength;
                 
-                // If we added a hyphen, push the cursor forward
-                let newPosition = selectionStart;
-                if (lengthDiff > 0 && finalValue[selectionStart - 1] === '-') {
-                    newPosition += 1;
-                }
+                // Shift cursor based on how many characters were added (hyphens)
+                const newPosition = selectionStart + (lengthDiff > 0 ? lengthDiff : 0);
                 
                 target.setSelectionRange(newPosition, newPosition);
             }, 0);
