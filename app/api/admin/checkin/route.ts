@@ -151,9 +151,12 @@ export async function PUT(request: Request) {
         }
 
         // 5. Audit log
+        const [adminRows]: any = await pool.query('SELECT name FROM users WHERE id = ?', [admin.id]);
+        const adminName = adminRows[0]?.name || 'Admin';
+
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: adminName,
             action: 'QR Scan Check-in',
             entityType: 'Application',
             entityId: application_id,
