@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import { v2 as cloudinary } from 'cloudinary';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads', 'complaints');
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
 const MAX_FILES = 3;
+
+// Configure Cloudinary
+cloudinary.config({
+    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(request: Request) {
     try {
@@ -30,19 +38,26 @@ export async function POST(request: Request) {
             }
         }
 
-        // Ensure upload directory exists
-        await mkdir(UPLOAD_DIR, { recursive: true });
-
         const savedPaths: string[] = [];
 
         for (const file of files) {
-            const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-            const uniqueName = `complaint_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
-            const filePath = path.join(UPLOAD_DIR, uniqueName);
             const buffer = Buffer.from(await file.arrayBuffer());
-            await writeFile(filePath, buffer);
-            // Return the public URL path
-            savedPaths.push(`/uploads/complaints/${uniqueName}`);
+            
+            // Upload to Cloudinary
+            const uploadResponse = await new Promise<any>((resolve, reject) => {
+                cloudinary.uploader.upload_stream(
+                    {
+                        folder: 'stayunikl/complaints',
+                        resource_type: 'auto',
+                    },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                ).end(buffer);
+            });
+
+            savedPaths.push(uploadResponse.secure_url);
         }
 
         return NextResponse.json({ success: true, paths: savedPaths });
