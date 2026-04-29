@@ -78,7 +78,7 @@ export default function RegisterPage() {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setPasswordError('');
         setEmailError('');
@@ -121,9 +121,18 @@ export default function RegisterPage() {
         }
 
         setIsSubmitting(true);
-        setTimeout(() => {
-            register(formData.name, formData.studentId, formData.nric, formData.email, formData.gender as 'Male' | 'Female');
-        }, 800);
+        
+        const success = await register(
+            formData.name, 
+            formData.studentId, 
+            formData.nric, 
+            formData.email, 
+            formData.gender as 'Male' | 'Female'
+        );
+
+        if (!success) {
+            setIsSubmitting(false);
+        }
     };
 
     return (

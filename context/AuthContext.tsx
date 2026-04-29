@@ -21,7 +21,7 @@ interface User {
 interface AuthContextType {
     user: User | null;
     login: (role: 'student' | 'admin', email?: string, password?: string, rememberMe?: boolean) => void;
-    register: (name: string, studentId: string, nric: string, email: string, gender: 'Male' | 'Female') => void;
+    register: (name: string, studentId: string, nric: string, email: string, gender: 'Male' | 'Female') => Promise<boolean>;
     logout: () => void;
     updateProfile: (updates: Partial<User>) => void;
     isAuthenticated: boolean;
@@ -96,16 +96,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (!res.ok) {
                 alert(data.error || 'Registration failed');
-                return;
+                return false;
             }
 
             setUser(data.user);
             localStorage.setItem('stayunikl_user', JSON.stringify(data.user));
             router.push('/dashboard');
+            return true;
 
         } catch (error) {
             console.error(error);
             alert("An error occurred during registration");
+            return false;
         }
     };
 
