@@ -7,6 +7,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 CREATE TABLE IF NOT EXISTS `users` (
     `id` VARCHAR(50) PRIMARY KEY,
     `name` VARCHAR(100) NOT NULL,
+    `nric` VARCHAR(20) NOT NULL UNIQUE,
     `email` VARCHAR(100) NOT NULL UNIQUE,
     `role` ENUM('student', 'admin') NOT NULL,
     `gender` ENUM('Male', 'Female') NOT NULL,

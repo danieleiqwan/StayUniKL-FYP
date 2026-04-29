@@ -3,14 +3,16 @@
 import { useAuth } from '@/context/AuthContext';
 import { useState } from 'react';
 import Link from 'next/link';
-import { Mail, Lock, Eye, EyeOff, Building2, Hexagon, ChevronLeft, User, IdCard, UserCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Building2, Hexagon, ChevronLeft, User, IdCard, UserCircle, GraduationCap } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { validateNRIC } from '@/lib/validation';
 
 export default function RegisterPage() {
     const { register } = useAuth();
     const [formData, setFormData] = useState({
         name: '',
         studentId: '',
+        nric: '',
         email: '',
         gender: 'Male', // Default
         password: '', // Mock password (not processed)
@@ -28,7 +30,7 @@ export default function RegisterPage() {
         const { name, value } = e.target;
         let finalValue = value;
 
-        if (name === 'studentId') {
+        if (name === 'nric') {
             const cleaned = value.replace(/\D/g, '');
             const truncated = cleaned.slice(0, 12);
             if (truncated.length > 8) {
@@ -40,9 +42,13 @@ export default function RegisterPage() {
             }
         }
 
+        if (name === 'studentId') {
+            finalValue = value.replace(/\D/g, '').slice(0, 10);
+        }
+
         const newFormData = { ...formData, [name]: finalValue };
 
-        if (name === 'studentId') {
+        if (name === 'nric') {
             const cleaned = finalValue.replace(/\D/g, '');
             if (cleaned.length > 0) {
                 const lastDigit = parseInt(cleaned.slice(-1), 10);
@@ -65,10 +71,16 @@ export default function RegisterPage() {
         const errors: string[] = [];
         const shake: string[] = [];
 
-        const cleanNric = formData.studentId.replace(/\D/g, '');
-        if (cleanNric.length !== 12) {
+        if (formData.studentId.length < 8) {
             errors.push('studentId');
             shake.push('studentId');
+        }
+
+        const nricStatus = validateNRIC(formData.nric);
+        if (!nricStatus.isValid) {
+            errors.push('nric');
+            shake.push('nric');
+            setEmailError(nricStatus.error || 'Invalid NRIC');
         }
 
         if (!formData.email.toLowerCase().endsWith('@unikl.edu.my')) {
@@ -92,7 +104,7 @@ export default function RegisterPage() {
 
         setIsSubmitting(true);
         setTimeout(() => {
-            register(formData.name, formData.studentId, formData.email, formData.gender as 'Male' | 'Female');
+            register(formData.name, formData.studentId, formData.nric, formData.email, formData.gender as 'Male' | 'Female');
         }, 800);
     };
 
@@ -160,22 +172,42 @@ export default function RegisterPage() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">NRIC Number</label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#F26C22] transition-colors">
-                                            <IdCard className="h-4 w-4" />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">Student ID</label>
+                                        <div className="relative group">
+                                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#F26C22] transition-colors">
+                                                <GraduationCap className="h-4 w-4" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                name="studentId"
+                                                placeholder="5221..."
+                                                required
+                                                className={`block w-full pl-10 pr-3 py-2.5 bg-[#f8fafc] dark:bg-[#0f172a] border rounded-xl text-xs focus:ring-2 focus:ring-[#F26C22]/30 focus:border-[#F26C22] dark:text-white transition-all outline-none font-medium ${validationErrors.includes('studentId') ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} ${shakingFields.includes('studentId') ? 'animate-shake' : ''}`}
+                                                value={formData.studentId}
+                                                onChange={handleChange}
+                                            />
                                         </div>
-                                        <input
-                                            type="text"
-                                            name="studentId"
-                                            placeholder="XXXXXX-XX-XXXX"
-                                            required
-                                            maxLength={14}
-                                            className={`block w-full pl-10 pr-3 py-2.5 bg-[#f8fafc] dark:bg-[#0f172a] border rounded-xl text-xs focus:ring-2 focus:ring-[#F26C22]/30 focus:border-[#F26C22] dark:text-white transition-all outline-none font-medium ${validationErrors.includes('studentId') ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} ${shakingFields.includes('studentId') ? 'animate-shake' : ''}`}
-                                            value={formData.studentId}
-                                            onChange={handleChange}
-                                        />
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">NRIC Number</label>
+                                        <div className="relative group">
+                                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#F26C22] transition-colors">
+                                                <IdCard className="h-4 w-4" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                name="nric"
+                                                placeholder="XXXXXX-XX-XXXX"
+                                                required
+                                                maxLength={14}
+                                                className={`block w-full pl-10 pr-3 py-2.5 bg-[#f8fafc] dark:bg-[#0f172a] border rounded-xl text-xs focus:ring-2 focus:ring-[#F26C22]/30 focus:border-[#F26C22] dark:text-white transition-all outline-none font-medium ${validationErrors.includes('nric') ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} ${shakingFields.includes('nric') ? 'animate-shake' : ''}`}
+                                                value={formData.nric}
+                                                onChange={handleChange}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 

@@ -4,9 +4,12 @@ import { createToken, setTokenCookie } from '@/lib/auth';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 
+import { validateNRIC } from '@/lib/validation';
+
 const registerSchema = z.object({
     name: z.string().min(2),
     studentId: z.string().min(5),
+    nric: z.string().min(12),
     email: z.string().email().endsWith('@unikl.edu.my', { message: 'Only UniKL email addresses are allowed' }),
     gender: z.enum(['Male', 'Female']),
     role: z.enum(['student', 'admin']),
@@ -25,10 +28,19 @@ export async function POST(request: Request) {
             }, { status: 400 });
         }
 
-        const { name, studentId, email, gender, role } = validation.data;
+        const { name, studentId, nric, email, gender, role } = validation.data;
 
-        // Check if user exists
-        const [existing]: any = await pool.query('SELECT id FROM users WHERE email = ? OR id = ?', [email, studentId]);
+        // 2. NRIC Age Validation (Backend Enforcement)
+        const nricStatus = validateNRIC(nric);
+        if (!nricStatus.isValid) {
+            return NextResponse.json({ error: nricStatus.error }, { status: 400 });
+        }
+
+        // Check if user exists (Check email, ID, or NRIC)
+        const [existing]: any = await pool.query(
+            'SELECT id FROM users WHERE email = ? OR id = ? OR nric = ?', 
+            [email, studentId, nric]
+        );
         if (existing.length > 0) {
             return NextResponse.json({ error: 'User already exists' }, { status: 409 });
         }
@@ -37,8 +49,8 @@ export async function POST(request: Request) {
         const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
         await pool.query(
-            'INSERT INTO users (id, name, email, role, gender, password) VALUES (?, ?, ?, ?, ?, ?)',
-            [studentId, name, email, role, gender, hashedPassword]
+            'INSERT INTO users (id, name, nric, email, role, gender, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [studentId, name, nric, email, role, gender, hashedPassword]
         );
 
         // 1. Create a secure JWT token
