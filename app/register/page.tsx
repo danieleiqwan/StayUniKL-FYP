@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff, Building2, Hexagon, ChevronLeft, User, IdCard, UserCircle, GraduationCap, CalendarDays, CheckCircle, AlertCircle } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { validateNRIC } from '@/lib/validation';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function RegisterPage() {
     const { register } = useAuth();
@@ -178,6 +179,7 @@ export default function RegisterPage() {
 
     return (
         <div className="page-wrapper font-sans selection:bg-[#F26C22] selection:text-white dark:bg-[#0a0f1c]">
+            {isSubmitting && <LoadingSpinner fullPage message="Creating your account..." />}
             <div className="left-pattern"></div>
             
             <div className="left-side">

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Mail, Hexagon, ChevronLeft } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function ForgotPasswordPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -41,6 +42,7 @@ export default function ForgotPasswordPage() {
 
     return (
         <div className="page-wrapper font-sans selection:bg-[#F26C22] selection:text-white dark:bg-[#0a0f1c]">
+            {isLoading && <LoadingSpinner fullPage message="Processing request..." />}
             <div className="left-pattern"></div>
             
             {/* Left Side (White Area for Form) */}
