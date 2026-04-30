@@ -2,7 +2,7 @@
  * Validates a Malaysian NRIC number and calculates age.
  * Format: YYMMDD-PB-###G
  */
-export function validateNRIC(nric: string): { isValid: boolean; age?: number; error?: string } {
+export function validateNRIC(nric: string): { isValid: boolean; age?: number; error?: string; dob?: Date } {
     // Remove hyphens for processing
     const cleanNRIC = nric.replace(/-/g, '');
 
@@ -35,7 +35,7 @@ export function validateNRIC(nric: string): { isValid: boolean; age?: number; er
     // 5. Prevent Future Birth Dates
     const now = new Date();
     if (dob > now) {
-        return { isValid: false, error: 'Birth date cannot be in the future' };
+        return { isValid: false, error: 'Birth date cannot be in the future', dob };
     }
 
     // 6. Calculate Age
@@ -47,8 +47,8 @@ export function validateNRIC(nric: string): { isValid: boolean; age?: number; er
 
     // 7. Age Requirement (18+)
     if (age < 18) {
-        return { isValid: false, age, error: 'You must be at least 18 years old to register' };
+        return { isValid: false, age, error: 'You must be at least 18 years old to register', dob };
     }
 
-    return { isValid: true, age };
+    return { isValid: true, age, dob };
 }

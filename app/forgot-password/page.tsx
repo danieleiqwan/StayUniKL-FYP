@@ -98,7 +98,7 @@ export default function ForgotPasswordPage() {
                                     </div>
                                     <input
                                         type="email"
-                                        placeholder="student@unikl.edu.my"
+                                        placeholder="student@s.unikl.edu.my"
                                         required
                                         className="block w-full pl-12 pr-4 py-3.5 bg-[#f8fafc] dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-[#F26C22]/30 focus:border-[#F26C22] dark:text-white transition-all outline-none font-medium shadow-inner"
                                         value={email}

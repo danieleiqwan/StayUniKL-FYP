@@ -9,11 +9,13 @@ import { validateNRIC } from '@/lib/validation';
 const registerSchema = z.object({
     name: z.string().min(2),
     studentId: z.string().min(5),
-    nric: z.string().min(12),
-    email: z.string().email().endsWith('@unikl.edu.my', { message: 'Only UniKL email addresses are allowed' }),
+    nric: z.string().min(5), // Accepts Passport or NRIC
+    email: z.string().email().endsWith('@s.unikl.edu.my', { message: 'Only UniKL student email addresses are allowed (@s.unikl.edu.my)' }),
     gender: z.enum(['Male', 'Female']),
     role: z.enum(['student', 'admin']),
     password: z.string().min(6),
+    nationality: z.string().optional(),
+    dob: z.string().optional(),
 });
 
 export async function POST(request: Request) {
@@ -29,12 +31,27 @@ export async function POST(request: Request) {
             }, { status: 400 });
         }
 
-        const { name, studentId, nric, email, gender, role, password } = validation.data;
+        const { name, studentId, nric, email, gender, role, password, nationality, dob } = validation.data;
 
-        // 2. NRIC Age Validation (Backend Enforcement)
-        const nricStatus = validateNRIC(nric);
-        if (!nricStatus.isValid) {
-            return NextResponse.json({ error: nricStatus.error }, { status: 400 });
+        // 2. Identity Validation
+        if (nationality === 'Local') {
+            const nricStatus = validateNRIC(nric);
+            if (!nricStatus.isValid) {
+                return NextResponse.json({ error: nricStatus.error }, { status: 400 });
+            }
+        } else {
+            // International Age Check
+            if (dob) {
+                const birthDate = new Date(dob);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+                
+                if (age < 18) {
+                    return NextResponse.json({ error: 'You must be at least 18 years old to register' }, { status: 400 });
+                }
+            }
         }
 
         // Check if Email exists
@@ -49,17 +66,17 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Student ID has already been registered' }, { status: 409 });
         }
 
-        // Check if NRIC exists
+        // Check if NRIC/Passport exists
         const [existingNric]: any = await pool.query('SELECT id FROM users WHERE nric = ?', [nric]);
         if (existingNric.length > 0) {
-            return NextResponse.json({ error: 'NRIC number has already been registered' }, { status: 409 });
+            return NextResponse.json({ error: 'ID/Passport number has already been registered' }, { status: 409 });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
         await pool.query(
-            'INSERT INTO users (id, name, nric, email, role, gender, password) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [studentId, name, nric, email, role, gender, hashedPassword]
+            'INSERT INTO users (id, name, nric, email, role, gender, password, nationality, birth_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [studentId, name, nric, email, role, gender, hashedPassword, nationality || 'Local', dob || null]
         );
 
         // 1. Create a secure JWT token
