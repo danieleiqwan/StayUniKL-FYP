@@ -28,6 +28,7 @@ interface RoomAssignmentModalProps {
     studentGender: string;
     currentRoomId: string;
     preferredRoomType?: string;
+    preferredBedId?: string;
     onClose: () => void;
     onAssign: (roomId: string, bedId: string, adminNotes: string) => void;
 }
@@ -37,6 +38,7 @@ export default function RoomAssignmentModal({
     studentGender,
     currentRoomId,
     preferredRoomType,
+    preferredBedId,
     onClose,
     onAssign
 }: RoomAssignmentModalProps) {
@@ -182,12 +184,26 @@ export default function RoomAssignmentModal({
                             </p>
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                    >
-                        <X className="h-7 w-7" />
-                    </button>
+
+                    <div className="flex items-center gap-6">
+                        {preferredBedId && (
+                            <div className="hidden lg:flex items-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 px-5 py-2.5 rounded-2xl animate-in fade-in slide-in-from-right-4 duration-500">
+                                <div className="h-8 w-8 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-emerald-500 shadow-sm">
+                                    <BedIcon className="h-4 w-4" />
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest leading-none mb-1">Preferred Bed</p>
+                                    <p className="text-sm font-black text-slate-900 dark:text-white leading-none">{preferredBedId}</p>
+                                </div>
+                            </div>
+                        )}
+                        <button
+                            onClick={onClose}
+                            className="p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                        >
+                            <X className="h-7 w-7" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Main Content Area */}

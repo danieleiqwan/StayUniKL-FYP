@@ -933,6 +933,7 @@ export default function AdminDashboard() {
                     studentGender={selectedRequest.student_gender}
                     currentRoomId={selectedRequest.current_room_id}
                     preferredRoomType={selectedRequest.preferred_room_type}
+                    preferredBedId={selectedRequest.preferred_bed_id}
                     onClose={() => {
                         setAssignModalOpen(false);
                         setSelectedRequest(null);
