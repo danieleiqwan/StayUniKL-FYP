@@ -167,9 +167,9 @@ export default function StudentDashboard() {
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-xs font-black uppercase tracking-widest opacity-50 mb-1">Room Capacity</p>
+                                    <p className="text-xs font-black uppercase tracking-widest opacity-50 mb-1">Room Occupancy</p>
                                     <p className="text-sm font-bold">
-                                        {myApplication?.roomId ? `${myApplication.roomType?.includes('Single') ? '1' : myApplication.roomType?.includes('Triple') ? '3' : '2'} students` : '— none assigned —'}
+                                        {myRoom ? `${myRoom.beds.filter(b => b.status === 'Occupied').length} student${myRoom.beds.filter(b => b.status === 'Occupied').length > 1 ? 's' : ''}` : '—'}
                                     </p>
                                 </div>
                             </div>
