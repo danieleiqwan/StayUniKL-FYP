@@ -154,11 +154,6 @@ export default function RoomChangePage() {
     const handleSubmit = async () => {
         if (!selectedBed || !validateForm()) return;
 
-        if (!attachmentUrl) {
-            alert('Please upload a supporting document (Medical Certificate, etc.)');
-            return;
-        }
-
         try {
             setSubmitting(true);
 
@@ -474,7 +469,7 @@ export default function RoomChangePage() {
 
                                         <div>
                                             <label className="block text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">
-                                                Supporting Documentation <span className="text-rose-500 font-black">*</span>
+                                                Supporting Documentation <span className="text-slate-400 dark:text-slate-500 font-normal ml-1">(Optional)</span>
                                                 <span className="text-[9px] font-normal lowercase tracking-normal ml-2">(PDF, JPG, PNG up to 10MB)</span>
                                             </label>
                                             
