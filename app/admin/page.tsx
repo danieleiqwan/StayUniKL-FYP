@@ -229,6 +229,10 @@ export default function AdminDashboard() {
         }
     };
 
+    useEffect(() => {
+        loadRoomChanges();
+    }, []);
+
     if (!user || user.role !== 'admin') return <div className="p-10 text-center">Access Denied. Admins only.</div>;
 
     return (
