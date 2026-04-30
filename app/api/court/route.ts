@@ -326,9 +326,9 @@ export async function DELETE(request: Request) {
                 }, { status: 400 });
             }
 
-            // 6. Soft-delete: mark as Cancelled (slot is now released automatically on next booking check)
+            // 6. Soft-delete: mark as Cancelled (slot released automatically on next booking check)
             await connection.query(
-                'UPDATE court_bookings SET status = "Cancelled", cancelled_at = NOW() WHERE id = ?',
+                'UPDATE court_bookings SET status = "Cancelled" WHERE id = ?',
                 [id]
             );
 
