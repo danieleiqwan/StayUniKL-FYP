@@ -285,7 +285,11 @@ export default function ProfilePage() {
                                                 </div>
                                                 <div className="p-6 bg-orange-50 dark:bg-orange-900/20 rounded-3xl border border-orange-100 dark:border-orange-900/30 border-l-[6px] border-l-[#F26C22]">
                                                     <p className="text-xs font-black text-[#F26C22] dark:text-orange-400 uppercase tracking-widest mb-1">Contract Duration</p>
-                                                    <p className="text-sm font-bold text-[#F26C22] dark:text-orange-400">{myApplication.stayDuration} {myApplication.durationType === '1_semester' ? 'Semesters' : 'Months'}</p>
+                                                    <p className="text-sm font-bold text-[#F26C22] dark:text-orange-400">
+                                                        {myApplication.stayDuration === 4 ? 'Full Semester' : 
+                                                         myApplication.stayDuration === 1 ? '1 Month' : 
+                                                         `${myApplication.stayDuration} Months`}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
