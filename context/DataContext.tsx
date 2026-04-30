@@ -26,7 +26,7 @@ export interface CourtBooking {
     id: string; studentId: string; studentName: string;
     sport: 'Badminton' | 'Volleyball' | 'Basketball' | 'Football';
     date: string; timeSlot: string;
-    status: 'Pending' | 'Approved' | 'Rejected'; timestamp: string;
+    status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled'; timestamp: string;
 }
 export interface FacilitySettings {
     isOpen: boolean; openTime: string; closeTime: string; blockedSlots: string[];
@@ -64,6 +64,7 @@ interface DataContextType {
     } | undefined;
     createBooking: (sport: CourtBooking['sport'], date: string, timeSlot: string) => void;
     updateBookingStatus: (id: string, status: CourtBooking['status']) => void;
+    cancelBooking: (id: string) => Promise<{ success?: boolean; error?: string }>;
     updateFacilitySettings: (key: 'court' | 'gym' | 'laundry', settings: Partial<FacilitySettings>) => void;
     toggleSlotBlock: (facility: 'court' | 'gym' | 'laundry', date: string, time: string) => void;
 
@@ -280,6 +281,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
         } catch (e) { console.error(e); }
     };
 
+    const cancelBooking = async (id: string): Promise<{ success?: boolean; error?: string }> => {
+        try {
+            const res = await fetch('/api/court', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                // Optimistic: update local state immediately so UI is snappy
+                setCourtBookings(prev =>
+                    prev.map(b => b.id === id ? { ...b, status: 'Cancelled' as CourtBooking['status'] } : b)
+                );
+                return { success: true };
+            }
+            return { error: data.error || 'Failed to cancel booking.' };
+        } catch (e: any) {
+            console.error(e);
+            return { error: 'Network error. Please try again.' };
+        }
+    };
+
     const updateFacilitySettings = async (key: 'court' | 'gym' | 'laundry', settings: Partial<FacilitySettings>) => {
         const newSettingsForFacility = { ...facilitySettings[key], ...settings };
         setFacilitySettings(prev => ({ ...prev, [key]: newSettingsForFacility })); // Optimistic update
@@ -332,7 +355,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             getRoomsByFloor, getAvailableFloors, bookBed,
             createApplication, reapplyApplication, updateApplicationStatus,
             createComplaint, updateComplaint,
-            createBooking, updateBookingStatus, updateFacilitySettings, toggleSlotBlock,
+            createBooking, updateBookingStatus, cancelBooking, updateFacilitySettings, toggleSlotBlock,
             myApplication, myRoomChangeRequest, myComplaints,
             notifications, unreadNotificationsCount, markNotificationRead,
             payments, refreshData: fetchData

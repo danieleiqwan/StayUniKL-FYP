@@ -13,7 +13,11 @@ const bookingSchema = z.object({
 
 const statusUpdateSchema = z.object({
     id: z.string().min(1),
-    status: z.enum(['Pending', 'Approved', 'Rejected']),
+    status: z.enum(['Pending', 'Approved', 'Rejected', 'Cancelled']),
+});
+
+const cancelSchema = z.object({
+    id: z.string().min(1),
 });
 
 const settingsUpdateSchema = z.object({
@@ -204,9 +208,9 @@ export async function POST(request: Request) {
         await connection.beginTransaction();
 
         try {
-            // 2. Strict double-booking check (blocking for update)
+            // 2. Strict double-booking check (FOR UPDATE locks the row to prevent races)
             const [existing]: any = await connection.query(
-                'SELECT id FROM court_bookings WHERE DATE(date) = DATE(?) AND time_slot = ? AND status IN ("Pending", "Approved")',
+                'SELECT id FROM court_bookings WHERE DATE(date) = DATE(?) AND time_slot = ? AND status IN ("Pending", "Approved") FOR UPDATE',
                 [date, timeSlot]
             );
 
@@ -256,6 +260,102 @@ export async function POST(request: Request) {
         }
 
     } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+// DELETE: Cancel a booking (soft-delete — sets status to 'Cancelled')
+export async function DELETE(request: Request) {
+    try {
+        const user = await getAuthUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const body = await request.json();
+        const validation = cancelSchema.safeParse(body);
+        if (!validation.success) {
+            return NextResponse.json({ error: 'Invalid request. Booking ID is required.' }, { status: 400 });
+        }
+
+        const { id } = validation.data;
+        const connection = await pool.getConnection();
+        await connection.beginTransaction();
+
+        try {
+            // 1. Lock + fetch the booking row to prevent race conditions
+            const [rows]: any = await connection.query(
+                'SELECT id, student_id, sport, date, time_slot, status FROM court_bookings WHERE id = ? FOR UPDATE',
+                [id]
+            );
+
+            if (rows.length === 0) {
+                await connection.rollback();
+                return NextResponse.json({ error: 'Booking not found.' }, { status: 404 });
+            }
+
+            const booking = rows[0];
+
+            // 2. Authorization: only the owner or admin can cancel
+            if (user.role !== 'admin' && user.id !== booking.student_id) {
+                await connection.rollback();
+                return NextResponse.json({ error: 'Forbidden: You can only cancel your own bookings.' }, { status: 403 });
+            }
+
+            // 3. Guard: already cancelled or rejected
+            if (booking.status === 'Cancelled' || booking.status === 'Rejected') {
+                await connection.rollback();
+                return NextResponse.json({ error: `Booking is already ${booking.status.toLowerCase()}.` }, { status: 400 });
+            }
+
+            // 4. Business rule: cannot cancel if the booking start time is in the past
+            const bookingDate = new Date(booking.date);
+            const [slotHour, slotMin] = booking.time_slot.split(':').map(Number);
+            bookingDate.setHours(slotHour, slotMin, 0, 0);
+
+            const now = new Date();
+            if (bookingDate <= now) {
+                await connection.rollback();
+                return NextResponse.json({ error: 'Cannot cancel a booking that has already started or passed.' }, { status: 400 });
+            }
+
+            // 5. Business rule (student only): must cancel at least 2 hours before start
+            const twoHoursBefore = new Date(bookingDate.getTime() - 2 * 60 * 60 * 1000);
+            if (user.role !== 'admin' && now > twoHoursBefore) {
+                await connection.rollback();
+                return NextResponse.json({
+                    error: 'Cancellations must be made at least 2 hours before the booking start time.'
+                }, { status: 400 });
+            }
+
+            // 6. Soft-delete: mark as Cancelled (slot is now released automatically on next booking check)
+            await connection.query(
+                'UPDATE court_bookings SET status = "Cancelled", cancelled_at = NOW() WHERE id = ?',
+                [id]
+            );
+
+            await connection.commit();
+
+            // 7. Notify the student
+            const dateStr = new Date(booking.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+            await createNotification({
+                userId: booking.student_id,
+                title: 'Booking Cancelled',
+                message: `Your ${booking.sport} booking for ${dateStr} at ${booking.time_slot} has been successfully cancelled. The slot is now available for others.`,
+                type: 'info',
+                relatedEntityId: id,
+                relatedEntityType: 'CourtBooking'
+            });
+
+            return NextResponse.json({ success: true, message: 'Booking cancelled successfully. The slot is now available.' });
+
+        } catch (err) {
+            await connection.rollback();
+            throw err;
+        } finally {
+            connection.release();
+        }
+
+    } catch (error: any) {
+        console.error('[Cancel Booking Error]', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

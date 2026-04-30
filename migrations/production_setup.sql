@@ -78,10 +78,16 @@ CREATE TABLE IF NOT EXISTS `court_bookings` (
     `sport` VARCHAR(50) NOT NULL,
     `date` DATE NOT NULL,
     `time_slot` VARCHAR(10) NOT NULL,
-    `status` ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    `status` ENUM('Pending', 'Approved', 'Rejected', 'Cancelled') DEFAULT 'Pending',
+    `cancelled_at` TIMESTAMP NULL DEFAULT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- Unique constraint ensures only one active booking per slot (Cancelled/Rejected slots are excluded at app layer)
     FOREIGN KEY (`student_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Migration: Run this on existing databases to add cancellation support
+-- ALTER TABLE `court_bookings` MODIFY COLUMN `status` ENUM('Pending', 'Approved', 'Rejected', 'Cancelled') DEFAULT 'Pending';
+-- ALTER TABLE `court_bookings` ADD COLUMN `cancelled_at` TIMESTAMP NULL DEFAULT NULL AFTER `status`;
 
 -- 7. Notifications Table
 CREATE TABLE IF NOT EXISTS `notifications` (

@@ -17,15 +17,20 @@ import {
     MapPin,
     Feather,
     CircleDot,
-    Circle
+    Circle,
+    Ban,
+    AlertTriangle,
+    Info
 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function CourtBookingHistory() {
     const { user } = useAuth();
-    const { courtBookings } = useData();
+    const { courtBookings, cancelBooking } = useData();
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('All');
+    const [cancellingId, setCancellingId] = useState<string | null>(null);
+    const [confirmId, setConfirmId] = useState<string | null>(null);
 
     if (!user) return null;
 
@@ -38,11 +43,30 @@ export default function CourtBookingHistory() {
         }
     };
 
+    // Can student cancel? Must be Pending/Approved, future, and >2h before slot
+    const canCancel = (booking: any) => {
+        if (booking.status !== 'Pending' && booking.status !== 'Approved') return false;
+        const bookingDate = new Date(booking.date);
+        const [h, m] = booking.timeSlot.split(':').map(Number);
+        bookingDate.setHours(h, m, 0, 0);
+        const twoHoursBefore = new Date(bookingDate.getTime() - 2 * 60 * 60 * 1000);
+        return new Date() < twoHoursBefore;
+    };
+
+    const handleCancelConfirm = async (id: string) => {
+        setConfirmId(null);
+        setCancellingId(id);
+        const result = await cancelBooking(id);
+        setCancellingId(null);
+        if (result.error) {
+            alert(`Cancellation failed: ${result.error}`);
+        }
+    };
+
     // Filter bookings for this student
     const myBookings = courtBookings.filter(b => b.studentId === user.id)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    // Apply search and status filters
     const filteredBookings = myBookings.filter(b => {
         const matchesSearch = b.sport.toLowerCase().includes(searchQuery.toLowerCase()) || 
                              b.timeSlot.includes(searchQuery);
@@ -55,12 +79,52 @@ export default function CourtBookingHistory() {
             case 'Approved': return { bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-700 dark:text-emerald-400', border: 'border-emerald-100 dark:border-emerald-900/30', icon: CheckCircle2 };
             case 'Pending': return { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-700 dark:text-amber-400', border: 'border-amber-100 dark:border-amber-900/30', icon: Clock3 };
             case 'Rejected': return { bg: 'bg-rose-50 dark:bg-rose-900/20', text: 'text-rose-700 dark:text-rose-400', border: 'border-rose-100 dark:border-rose-900/30', icon: XCircle };
+            case 'Cancelled': return { bg: 'bg-slate-100 dark:bg-slate-800/80', text: 'text-slate-500 dark:text-slate-400', border: 'border-slate-200 dark:border-slate-700', icon: Ban };
             default: return { bg: 'bg-slate-50 dark:bg-slate-800/50', text: 'text-slate-600 dark:text-slate-400', border: 'border-slate-100 dark:border-slate-800', icon: History };
         }
     };
 
+    // Cancellation confirm dialog
+    const ConfirmDialog = ({ bookingId }: { bookingId: string }) => {
+        const booking = myBookings.find(b => b.id === bookingId);
+        if (!booking) return null;
+        return (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-8 max-w-sm w-full animate-in zoom-in-95 duration-200">
+                    <div className="flex items-center justify-center h-16 w-16 bg-rose-50 dark:bg-rose-900/20 rounded-2xl mx-auto mb-5">
+                        <AlertTriangle className="h-8 w-8 text-rose-500" />
+                    </div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white text-center mb-2">Cancel Booking?</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 text-center mb-1">
+                        {booking.sport} Court — {new Date(booking.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })} at {booking.timeSlot}
+                    </p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 text-center mb-7">
+                        This action cannot be undone. The slot will be released for others.
+                    </p>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setConfirmId(null)}
+                            className="flex-1 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                        >
+                            Keep Booking
+                        </button>
+                        <button
+                            onClick={() => handleCancelConfirm(bookingId)}
+                            className="flex-1 py-3 rounded-2xl bg-rose-500 text-white font-black text-sm hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20"
+                        >
+                            Yes, Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="max-w-[1200px] mx-auto py-8 transition-colors">
+            {/* Confirm Dialog Overlay */}
+            {confirmId && <ConfirmDialog bookingId={confirmId} />}
+
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
                 <div>
@@ -74,7 +138,7 @@ export default function CourtBookingHistory() {
                         </div>
                         <div>
                             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight transition-colors">Court Booking History</h1>
-                            <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 transition-colors">Review and track your sports facility reservations.</p>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 transition-colors">Review and manage your sports facility reservations.</p>
                         </div>
                     </div>
                 </div>
@@ -85,6 +149,14 @@ export default function CourtBookingHistory() {
                 >
                     <Plus className="h-4 w-4" /> New Booking
                 </Link>
+            </div>
+
+            {/* Cancellation Policy Banner */}
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-2xl p-4 mb-6 flex items-start gap-3">
+                <Info className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">
+                    <span className="font-black">Cancellation Policy:</span> Bookings can be cancelled up to <span className="font-black">2 hours before</span> the scheduled start time. Cancelled slots are immediately released for other students.
+                </p>
             </div>
 
             {/* Filter Bar */}
@@ -101,7 +173,7 @@ export default function CourtBookingHistory() {
                 </div>
                 <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
                     <Filter className="h-4 w-4 text-slate-300 dark:text-slate-600 mr-2 shrink-0" />
-                    {['All', 'Pending', 'Approved', 'Rejected'].map((status) => (
+                    {['All', 'Pending', 'Approved', 'Rejected', 'Cancelled'].map((status) => (
                         <button
                             key={status}
                             onClick={() => setFilterStatus(status)}
@@ -124,21 +196,34 @@ export default function CourtBookingHistory() {
                     const StatusIcon = style.icon;
                     const startHour = parseInt(booking.timeSlot.split(':')[0]);
                     const timeRange = `${booking.timeSlot} - ${(startHour + 1).toString().padStart(2, '0')}:00`;
+                    const isCancellable = canCancel(booking);
+                    const isCancelling = cancellingId === booking.id;
+                    const isCancelled = booking.status === 'Cancelled';
 
                     return (
                         <div 
                             key={booking.id} 
-                            className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-100 dark:border-slate-800 group hover:shadow-xl hover:shadow-orange-500/5 dark:hover:shadow-none hover:border-orange-100 dark:hover:border-orange-900/50 transition-all"
+                            className={`bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-100 dark:border-slate-800 group transition-all ${
+                                isCancelled 
+                                    ? 'opacity-60 hover:opacity-80' 
+                                    : 'hover:shadow-xl hover:shadow-orange-500/5 dark:hover:shadow-none hover:border-orange-100 dark:hover:border-orange-900/50'
+                            }`}
                         >
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                 <div className="flex items-center gap-6">
-                                    <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-[1.25rem] flex items-center justify-center group-hover:bg-orange-50 dark:group-hover:bg-orange-900/20 transition-colors">
-                                        {getSportIcon(booking.sport)}
+                                    <div className={`h-16 w-16 rounded-[1.25rem] flex items-center justify-center transition-colors ${isCancelled ? 'bg-slate-100 dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800 group-hover:bg-orange-50 dark:group-hover:bg-orange-900/20'}`}>
+                                        {isCancelled 
+                                            ? <Ban className="h-7 w-7 text-slate-400 dark:text-slate-600" strokeWidth={1.5} /> 
+                                            : getSportIcon(booking.sport)
+                                        }
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-3 mb-1">
-                                            <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight transition-colors">{booking.sport} Court</h3>
-                                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${style.bg} ${style.text} ${style.border} transition-colors`}>
+                                            <h3 className={`text-lg font-black uppercase tracking-tight transition-colors ${isCancelled ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-slate-900 dark:text-white'}`}>
+                                                {booking.sport} Court
+                                            </h3>
+                                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${style.bg} ${style.text} ${style.border} transition-colors flex items-center gap-1`}>
+                                                <StatusIcon className="h-3 w-3" />
                                                 {booking.status}
                                             </span>
                                         </div>
@@ -159,14 +244,33 @@ export default function CourtBookingHistory() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl transition-colors">
-                                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${style.bg} ${style.text} transition-colors`}>
-                                        <StatusIcon className="h-5 w-5" />
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl transition-colors">
+                                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${style.bg} ${style.text} transition-colors`}>
+                                            <StatusIcon className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1 transition-colors">Request ID</p>
+                                            <p className="text-xs font-black text-slate-700 dark:text-slate-300 tracking-tighter transition-colors">{booking.id}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1 transition-colors">Request ID</p>
-                                        <p className="text-xs font-black text-slate-700 dark:text-slate-300 tracking-tighter transition-colors">{booking.id}</p>
-                                    </div>
+
+                                    {/* Cancel Button */}
+                                    {isCancellable && (
+                                        <button
+                                            onClick={() => setConfirmId(booking.id)}
+                                            disabled={isCancelling}
+                                            className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 text-xs font-black uppercase tracking-widest hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            title="Cancel this booking"
+                                        >
+                                            {isCancelling ? (
+                                                <span className="h-4 w-4 border-2 border-rose-400 border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <Ban className="h-4 w-4" />
+                                            )}
+                                            {isCancelling ? 'Cancelling...' : 'Cancel'}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

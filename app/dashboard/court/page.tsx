@@ -66,15 +66,11 @@ export default function CourtBookingPage() {
         // 2. Check if blocked by admin
         if (courtSettings.blockedSlots.includes(slotKey)) return { status: 'blocked', sport: null };
         
-        // 3. Check if already booked
+        // 3. Check if already booked (exclude Cancelled — those slots are free again)
         const booking = courtBookings.find(b => {
              if (!b.date) return false;
-             
-             // Normalize both dates to YYYY-MM-DD string for strict comparison
-             // b.date might be a string "2026-04-22T00:00:00.000Z" or a Date object
-             const bDateString = new Date(b.date).toLocaleDateString('en-CA'); // 'en-CA' gives YYYY-MM-DD
-             
-             return bDateString === selectedDate && b.timeSlot === time && b.status !== 'Rejected';
+             const bDateString = new Date(b.date).toLocaleDateString('en-CA');
+             return bDateString === selectedDate && b.timeSlot === time && b.status !== 'Rejected' && b.status !== 'Cancelled';
         });
         if (booking) return { status: 'booked', sport: booking.sport };
         
@@ -162,10 +158,11 @@ export default function CourtBookingPage() {
             return 'disabled';
         }
 
+        // Only mark as 'my_booking' if it's an active (non-cancelled, non-rejected) booking
         const myB = courtBookings.some(b => {
              if (!b.date) return false;
              const bDateString = new Date(b.date).toLocaleDateString('en-CA');
-             return bDateString === testDate && b.status !== 'Rejected' && b.studentId === user.id;
+             return bDateString === testDate && b.status !== 'Rejected' && b.status !== 'Cancelled' && b.studentId === user.id;
         });
         if (myB) return 'my_booking';
 
@@ -182,7 +179,8 @@ export default function CourtBookingPage() {
                 const booking = courtBookings.find(b => {
                     if (!b.date) return false;
                     const bDateString = new Date(b.date).toLocaleDateString('en-CA');
-                    return bDateString === testDate && b.timeSlot === slot && b.status !== 'Rejected';
+                    // Cancelled slots are free — don't count them as booked
+                    return bDateString === testDate && b.timeSlot === slot && b.status !== 'Rejected' && b.status !== 'Cancelled';
                 });
                 if (!booking) availableSlots++;
             }
