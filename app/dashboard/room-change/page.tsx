@@ -41,7 +41,10 @@ export default function RoomChangePage() {
     // Form state
     const [reason, setReason] = useState('');
     const [attachmentUrl, setAttachmentUrl] = useState('');
+    const [attachmentName, setAttachmentName] = useState('');
+    const [isUploading, setIsUploading] = useState(false);
     const [errors, setErrors] = useState<any>({});
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Data for wizard
     const allowedFloors = user ? getAvailableFloors(user.gender) : [];
@@ -107,8 +110,54 @@ export default function RoomChangePage() {
         return Object.keys(newErrors).length === 0;
     };
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validation
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Only JPG, PNG, and PDF files are allowed.');
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size must be less than 10MB.');
+            return;
+        }
+
+        try {
+            setIsUploading(true);
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await fetch('/api/upload-room-change-docs', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                setAttachmentUrl(data.url);
+                setAttachmentName(data.fileName);
+            } else {
+                alert(data.error || 'Upload failed');
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('An error occurred during upload.');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const handleSubmit = async () => {
         if (!selectedBed || !validateForm()) return;
+
+        if (!attachmentUrl) {
+            alert('Please upload a supporting document (Medical Certificate, etc.)');
+            return;
+        }
 
         try {
             setSubmitting(true);
@@ -125,7 +174,7 @@ export default function RoomChangePage() {
                     preferredRoomType: selectedRoom?.roomType,
                     preferredBedId: selectedBed.id,
                     reason: reason.trim(),
-                    attachmentUrl: attachmentUrl || null
+                    attachment_url: attachmentUrl
                 })
             });
 
@@ -140,6 +189,7 @@ export default function RoomChangePage() {
                 setSelectedBed(null);
                 setReason('');
                 setAttachmentUrl('');
+                setAttachmentName('');
                 loadData();
             } else {
                 alert(`Error: ${data.error}`);
@@ -424,22 +474,67 @@ export default function RoomChangePage() {
 
                                         <div>
                                             <label className="block text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">
-                                                Attachment / Supporting Doc URL
+                                                Supporting Documentation <span className="text-rose-500 font-black">*</span>
+                                                <span className="text-[9px] font-normal lowercase tracking-normal ml-2">(PDF, JPG, PNG up to 10MB)</span>
                                             </label>
-                                            <div className="relative group">
-                                                <input
-                                                    type="url"
-                                                    value={attachmentUrl}
-                                                    onChange={(e) => setAttachmentUrl(e.target.value)}
-                                                    placeholder="https://drive.google.com/..."
-                                                    className="w-full pl-6 pr-12 py-4 rounded-[1.5rem] border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/10 transition-all text-sm font-bold dark:text-white outline-none"
-                                                />
-                                                {attachmentUrl && (
-                                                    <button onClick={() => setAttachmentUrl('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500">
+                                            
+                                            <input 
+                                                type="file" 
+                                                ref={fileInputRef} 
+                                                className="hidden" 
+                                                accept=".pdf,.jpg,.jpeg,.png"
+                                                onChange={handleFileUpload}
+                                            />
+
+                                            {!attachmentUrl ? (
+                                                <button
+                                                    type="button"
+                                                    disabled={isUploading}
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className={`w-full py-10 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center gap-3 transition-all ${
+                                                        isUploading 
+                                                        ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800' 
+                                                        : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 hover:border-[#F26C22] hover:bg-orange-50/30 dark:hover:bg-orange-900/10'
+                                                    }`}
+                                                >
+                                                    {isUploading ? (
+                                                        <>
+                                                            <div className="h-10 w-10 border-4 border-[#F26C22]/20 border-t-[#F26C22] rounded-full animate-spin"></div>
+                                                            <span className="text-xs font-bold text-slate-500 animate-pulse">Uploading Document...</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <div className="h-12 w-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-slate-400 shadow-sm">
+                                                                <Upload className="h-6 w-6" />
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Click to upload file</p>
+                                                                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Medical Certificate, Official Letter, etc.</p>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            ) : (
+                                                <div className="bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-100 dark:border-emerald-900/30 rounded-3xl p-6 flex items-center justify-between shadow-sm animate-in zoom-in-95 duration-300">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="h-12 w-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm">
+                                                            <FileText className="h-6 w-6" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-black text-slate-900 dark:text-white truncate max-w-[200px]">
+                                                                {attachmentName}
+                                                            </p>
+                                                            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest mt-0.5">Ready for submission</p>
+                                                        </div>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => { setAttachmentUrl(''); setAttachmentName(''); }}
+                                                        className="h-10 w-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all border border-slate-100 dark:border-slate-800"
+                                                    >
                                                         <X className="h-5 w-5" />
                                                     </button>
-                                                )}
-                                            </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
