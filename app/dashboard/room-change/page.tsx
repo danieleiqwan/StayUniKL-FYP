@@ -344,12 +344,12 @@ export default function RoomChangePage() {
                                                 >
                                                     <div className="flex justify-between items-start mb-2">
                                                         <span className="font-bold text-lg text-slate-900 dark:text-white">{room.label}</span>
-                                                        {isCurrentRoom && <span className="text-[9px] bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-2 py-0.5 rounded font-black uppercase tracking-tighter">Milik Anda</span>}
+                                                        {isCurrentRoom && <span className="text-[9px] bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-2 py-0.5 rounded font-black uppercase tracking-tighter">Your Room</span>}
                                                     </div>
                                                     <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">{room.roomType}</div>
                                                     <div className={`text-[10px] font-bold flex items-center gap-1.5 ${availableBeds === 0 ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-500 dark:text-emerald-400'}`}>
                                                         <div className={`w-1.5 h-1.5 rounded-full ${availableBeds === 0 ? 'bg-rose-500' : 'bg-emerald-500'}`}></div>
-                                                        {availableBeds} Kosong
+                                                        {availableBeds} Available
                                                     </div>
                                                 </button>
                                             );
