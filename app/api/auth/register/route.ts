@@ -13,6 +13,7 @@ const registerSchema = z.object({
     email: z.string().email().endsWith('@unikl.edu.my', { message: 'Only UniKL email addresses are allowed' }),
     gender: z.enum(['Male', 'Female']),
     role: z.enum(['student', 'admin']),
+    password: z.string().min(6),
 });
 
 export async function POST(request: Request) {
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
             }, { status: 400 });
         }
 
-        const { name, studentId, nric, email, gender, role } = validation.data;
+        const { name, studentId, nric, email, gender, role, password } = validation.data;
 
         // 2. NRIC Age Validation (Backend Enforcement)
         const nricStatus = validateNRIC(nric);
@@ -54,8 +55,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'NRIC number has already been registered' }, { status: 409 });
         }
 
-        const defaultPassword = 'password123';
-        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         await pool.query(
             'INSERT INTO users (id, name, nric, email, role, gender, password) VALUES (?, ?, ?, ?, ?, ?, ?)',

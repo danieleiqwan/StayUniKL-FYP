@@ -107,12 +107,6 @@ export default function RegisterPage() {
             shake.push('email');
         }
 
-        if (formData.password !== formData.confirmPassword) {
-            setPasswordError("Passwords do not match");
-            errors.push('confirmPassword');
-            shake.push('confirmPassword');
-        }
-
         if (errors.length > 0) {
             setValidationErrors(errors);
             setShakingFields(shake);
@@ -121,13 +115,13 @@ export default function RegisterPage() {
         }
 
         setIsSubmitting(true);
-        
         const success = await register(
-            formData.name, 
-            formData.studentId, 
-            formData.nric, 
-            formData.email, 
-            formData.gender as 'Male' | 'Female'
+            formData.name,
+            formData.studentId,
+            formData.nric,
+            formData.email,
+            formData.gender as 'Male' | 'Female',
+            formData.password
         );
 
         if (!success) {
