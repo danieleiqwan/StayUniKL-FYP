@@ -9,7 +9,11 @@ export default function BillingHistory() {
     const { payments, myApplication } = useData();
 
     const recentPayments = [...payments]
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .sort((a, b) => {
+            const dateA = a.created_at || a.createdAt;
+            const dateB = b.created_at || b.createdAt;
+            return new Date(dateB).getTime() - new Date(dateA).getTime();
+        })
         .slice(0, 5);
 
     return (
@@ -39,11 +43,13 @@ export default function BillingHistory() {
                                 </div>
                                 <div>
                                     <p className="text-xs font-black text-slate-900 dark:text-white">RM {Number(payment.amount).toFixed(2)}</p>
-                                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tight">{payment.referenceId}</p>
+                                    <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tight">{payment.reference_id || payment.referenceId}</p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">{new Date(payment.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</p>
+                                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">
+                                    {new Date(payment.created_at || payment.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                </p>
                                 <button className="text-[10px] font-black text-blue-500 hover:text-blue-600 uppercase tracking-widest mt-1 flex items-center gap-1 ml-auto">
                                     <Download className="h-3 w-3" /> Receipt
                                 </button>
