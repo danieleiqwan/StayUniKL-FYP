@@ -123,8 +123,14 @@ export default function RegisterPage() {
             }
         }
 
-        if (!formData.email.toLowerCase().endsWith('@s.unikl.edu.my')) {
-            setEmailError('Only UniKL student email addresses are allowed (@s.unikl.edu.my)');
+        let finalEmail = formData.email.trim();
+        if (finalEmail) {
+            // Strip any accidentally pasted domain parts to ensure clean formatting
+            finalEmail = finalEmail.split('@')[0] + '@s.unikl.edu.my';
+        }
+
+        if (!formData.email.trim()) {
+            setEmailError('Please enter a valid student email');
             errors.push('email');
             shake.push('email');
         }
@@ -153,7 +159,7 @@ export default function RegisterPage() {
             formData.name,
             formData.studentId,
             formData.nric,
-            formData.email,
+            finalEmail,
             formData.gender as 'Male' | 'Female',
             formData.password,
             formData.nationality,
@@ -365,20 +371,26 @@ export default function RegisterPage() {
 
                             {/* Email Address */}
                             <div className="space-y-1.5 pt-2">
-                                <label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">Email (@s.unikl.edu.my)</label>
+                                <label className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider">Student Email</label>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#F26C22] transition-colors">
                                         <Mail className="h-4 w-4" />
                                     </div>
                                     <input
-                                        type="email"
+                                        type="text"
                                         name="email"
                                         required
-                                        placeholder="e.g. name@s.unikl.edu.my"
-                                        className={`block w-full pl-10 pr-3 py-2.5 bg-[#f8fafc] dark:bg-[#0f172a] border rounded-xl text-xs focus:ring-2 focus:ring-[#F26C22]/30 focus:border-[#F26C22] dark:text-white transition-all outline-none font-medium ${emailError ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'}`}
+                                        placeholder="student123"
+                                        className={`block w-full pl-10 pr-[105px] py-2.5 bg-[#f8fafc] dark:bg-[#0f172a] border rounded-xl text-xs focus:ring-2 focus:ring-[#F26C22]/30 focus:border-[#F26C22] dark:text-white transition-all outline-none font-medium ${emailError ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'}`}
                                         value={formData.email}
-                                        onChange={handleChange}
+                                        onChange={(e) => {
+                                            const val = e.target.value.split('@')[0];
+                                            handleChange({ target: { name: 'email', value: val } } as any);
+                                        }}
                                     />
+                                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                        <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">@s.unikl.edu.my</span>
+                                    </div>
                                 </div>
                             </div>
 
