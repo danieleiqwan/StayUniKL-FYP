@@ -16,6 +16,8 @@ interface User {
     parentPhoneNumber?: string;
     password?: string;
     profileImage?: string;
+    courtNoShows?: number;
+    courtBanUntil?: string | null;
 }
 
 interface AuthContextType {

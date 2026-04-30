@@ -215,6 +215,7 @@ function GeneratorMode() {
 // SCANNER MODE
 // ----------------------------------------------------------------------
 function ScannerMode() {
+    const [scanType, setScanType] = useState<'room' | 'court'>('room');
     const [scanResult, setScanResult] = useState<{ success: boolean; message: string; student?: any } | null>(null);
     const [isScanning, setIsScanning] = useState(false);
     
@@ -246,7 +247,8 @@ function ScannerMode() {
             isProcessingRef.current = true;
             
             try {
-                const res = await fetch('/api/admin/checkin', {
+                const endpoint = scanType === 'room' ? '/api/admin/checkin' : '/api/admin/court-checkin';
+                const res = await fetch(endpoint, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token: decodedText })
@@ -286,6 +288,22 @@ function ScannerMode() {
     return (
         <div className="flex flex-col items-center">
             
+            {/* Scan Type Toggle */}
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-6 w-full max-w-sm">
+                <button
+                    onClick={() => setScanType('room')}
+                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${scanType === 'room' ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-sm' : 'text-slate-500'}`}
+                >
+                    Room Check-in
+                </button>
+                <button
+                    onClick={() => setScanType('court')}
+                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${scanType === 'court' ? 'bg-[#F26C22] text-white shadow-sm' : 'text-slate-500'}`}
+                >
+                    Court Check-in
+                </button>
+            </div>
+
             {/* Camera Preview Box */}
             <div className="w-full max-w-md relative rounded-3xl overflow-hidden border-4 border-slate-100 dark:border-slate-800 bg-black">
                 <div id="qr-reader" className="w-full" />
@@ -300,7 +318,11 @@ function ScannerMode() {
                                 </div>
                                 <h3 className="text-2xl font-black text-white mb-2">Check-in Complete!</h3>
                                 <p className="text-green-300 font-medium">{scanResult.student?.name}</p>
-                                <p className="text-green-400/70 text-sm mt-1">Room {scanResult.student?.room} • Bed {scanResult.student?.bed}</p>
+                                {scanType === 'room' ? (
+                                    <p className="text-green-400/70 text-sm mt-1">Room {scanResult.student?.room} • Bed {scanResult.student?.bed}</p>
+                                ) : (
+                                    <p className="text-green-400/70 text-sm mt-1">{scanResult.student?.sport} Court • {scanResult.student?.timeSlot}</p>
+                                )}
                             </>
                         ) : (
                             <>

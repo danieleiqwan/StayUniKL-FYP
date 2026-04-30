@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS `users` (
     `parent_phone_number` VARCHAR(20),
     `password` VARCHAR(255),
     `profile_image` VARCHAR(255) DEFAULT NULL,
+    `court_no_shows` INT DEFAULT 0,
+    `court_ban_until` DATETIME DEFAULT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -79,6 +81,7 @@ CREATE TABLE IF NOT EXISTS `court_bookings` (
     `date` DATE NOT NULL,
     `time_slot` VARCHAR(10) NOT NULL,
     `status` ENUM('Pending', 'Approved', 'Rejected', 'Cancelled') DEFAULT 'Pending',
+    `attendance_status` ENUM('Pending', 'Show', 'No-Show') DEFAULT 'Pending',
     `cancelled_at` TIMESTAMP NULL DEFAULT NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     -- Unique constraint ensures only one active booking per slot (Cancelled/Rejected slots are excluded at app layer)

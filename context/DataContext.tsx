@@ -27,6 +27,7 @@ export interface CourtBooking {
     sport: 'Badminton' | 'Volleyball' | 'Basketball' | 'Football';
     date: string; timeSlot: string;
     status: 'Pending' | 'Approved' | 'Rejected' | 'Cancelled'; timestamp: string;
+    attendanceStatus?: 'Pending' | 'Show' | 'No-Show';
 }
 export interface FacilitySettings {
     isOpen: boolean; openTime: string; closeTime: string; blockedSlots: string[];

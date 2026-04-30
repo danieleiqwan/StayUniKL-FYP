@@ -71,7 +71,8 @@ export async function GET(request: Request) {
             sport: b.sport,
             date: b.date, // might need formatting depending on driver output
             timeSlot: b.time_slot,
-            status: b.status
+            status: b.status,
+            attendanceStatus: b.attendance_status
         }));
 
         // Fetch Settings
@@ -192,6 +193,17 @@ export async function POST(request: Request) {
                     error: 'Access Denied: You must have an approved room application or active tenancy to book facilities.' 
                 }, { status: 403 });
             }
+
+            // Check for NO-SHOW bans
+            const [banRows]: any = await pool.query('SELECT court_ban_until FROM users WHERE id = ?', [studentId]);
+            if (banRows.length > 0 && banRows[0].court_ban_until) {
+                const banDate = new Date(banRows[0].court_ban_until);
+                if (banDate > new Date()) {
+                    return NextResponse.json({ 
+                        error: `Your court booking privileges are suspended until ${banDate.toLocaleDateString()} due to multiple no-shows.` 
+                    }, { status: 403 });
+                }
+            }
         }
 
         // 1. Check if the slot is in the past
@@ -282,10 +294,11 @@ export async function DELETE(request: Request) {
 
         try {
             // 1. Lock + fetch the booking row to prevent race conditions
-            const [rows]: any = await connection.query(
-                'SELECT id, student_id, sport, date, time_slot, status FROM court_bookings WHERE id = ? FOR UPDATE',
-                [id]
-            );
+            const [rows]: any = await connection.query(`
+                SELECT id, student_id, student_name, sport, date, time_slot, status, attendance_status, created_at 
+                FROM court_bookings 
+                WHERE id = ? FOR UPDATE
+            `, [id]);
 
             if (rows.length === 0) {
                 await connection.rollback();

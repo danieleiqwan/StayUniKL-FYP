@@ -20,9 +20,11 @@ import {
     Circle,
     Ban,
     AlertTriangle,
-    Info
+    Info,
+    QrCode
 } from 'lucide-react';
 import { useState } from 'react';
+import QRCode from 'react-qr-code';
 
 export default function CourtBookingHistory() {
     const { user } = useAuth();
@@ -31,6 +33,11 @@ export default function CourtBookingHistory() {
     const [filterStatus, setFilterStatus] = useState<string>('All');
     const [cancellingId, setCancellingId] = useState<string | null>(null);
     const [confirmId, setConfirmId] = useState<string | null>(null);
+    
+    // QR Code Check-in State
+    const [qrModalId, setQrModalId] = useState<string | null>(null);
+    const [qrToken, setQrToken] = useState<string | null>(null);
+    const [loadingQr, setLoadingQr] = useState(false);
 
     if (!user) return null;
 
@@ -120,10 +127,72 @@ export default function CourtBookingHistory() {
         );
     };
 
+    // QR Check-in Dialog
+    const QrDialog = ({ bookingId }: { bookingId: string }) => {
+        const booking = myBookings.find(b => b.id === bookingId);
+        if (!booking) return null;
+
+        return (
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-8 max-w-sm w-full animate-in zoom-in-95 duration-200 flex flex-col items-center text-center">
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Check-in Pass</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                        {booking.sport} Court — {new Date(booking.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })} at {booking.timeSlot}
+                    </p>
+                    
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                        {loadingQr ? (
+                            <div className="h-[200px] w-[200px] flex items-center justify-center">
+                                <span className="h-8 w-8 border-4 border-[#F26C22] border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        ) : qrToken ? (
+                            <QRCode value={qrToken} size={200} fgColor="#0F172A" />
+                        ) : (
+                            <div className="h-[200px] w-[200px] flex items-center justify-center text-rose-500 font-medium">
+                                Failed to load QR Code
+                            </div>
+                        )}
+                    </div>
+                    
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mb-6">
+                        Present this QR code to the facility warden.<br />
+                        <span className="font-bold text-[#F26C22]">Valid for 5 minutes.</span>
+                    </p>
+
+                    <button
+                        onClick={() => { setQrModalId(null); setQrToken(null); }}
+                        className="w-full py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-black text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    const handleOpenQr = async (id: string) => {
+        setQrModalId(id);
+        setLoadingQr(true);
+        try {
+            const res = await fetch(`/api/court/qr-token?bookingId=${id}`);
+            const data = await res.json();
+            if (data.success) {
+                setQrToken(data.token);
+            } else {
+                alert(data.error || 'Failed to load check-in QR');
+            }
+        } catch (e) {
+            alert('Network error');
+        } finally {
+            setLoadingQr(false);
+        }
+    };
+
     return (
         <div className="max-w-[1200px] mx-auto py-8 transition-colors">
-            {/* Confirm Dialog Overlay */}
+            {/* Dialog Overlays */}
             {confirmId && <ConfirmDialog bookingId={confirmId} />}
+            {qrModalId && <QrDialog bookingId={qrModalId} />}
 
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
@@ -245,32 +314,49 @@ export default function CourtBookingHistory() {
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl transition-colors">
-                                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${style.bg} ${style.text} transition-colors`}>
-                                            <StatusIcon className="h-5 w-5" />
+                                    <div className="flex flex-col items-end gap-2">
+                                        <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl transition-colors">
+                                            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${style.bg} ${style.text} transition-colors`}>
+                                                <StatusIcon className="h-5 w-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1 transition-colors">Request ID</p>
+                                                <p className="text-xs font-black text-slate-700 dark:text-slate-300 tracking-tighter transition-colors">{booking.id}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1 transition-colors">Request ID</p>
-                                            <p className="text-xs font-black text-slate-700 dark:text-slate-300 tracking-tighter transition-colors">{booking.id}</p>
+
+                                        {/* Actions Row */}
+                                        <div className="flex gap-2">
+                                            {/* QR Check-in Button */}
+                                            {booking.status === 'Approved' && booking.attendanceStatus === 'Pending' && (
+                                                <button
+                                                    onClick={() => handleOpenQr(booking.id)}
+                                                    className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#F26C22] text-white border border-[#F26C22]/20 text-xs font-black uppercase tracking-widest hover:bg-[#d65a16] transition-all active:scale-95 shadow-lg shadow-orange-500/20"
+                                                    title="Show Check-in QR"
+                                                >
+                                                    <QrCode className="h-4 w-4" />
+                                                    Check In
+                                                </button>
+                                            )}
+
+                                            {/* Cancel Button */}
+                                            {isCancellable && (
+                                                <button
+                                                    onClick={() => setConfirmId(booking.id)}
+                                                    disabled={isCancelling}
+                                                    className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 text-xs font-black uppercase tracking-widest hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    title="Cancel this booking"
+                                                >
+                                                    {isCancelling ? (
+                                                        <span className="h-4 w-4 border-2 border-rose-400 border-t-transparent rounded-full animate-spin" />
+                                                    ) : (
+                                                        <Ban className="h-4 w-4" />
+                                                    )}
+                                                    {isCancelling ? 'Cancelling...' : 'Cancel'}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
-
-                                    {/* Cancel Button */}
-                                    {isCancellable && (
-                                        <button
-                                            onClick={() => setConfirmId(booking.id)}
-                                            disabled={isCancelling}
-                                            className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900/30 text-xs font-black uppercase tracking-widest hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            title="Cancel this booking"
-                                        >
-                                            {isCancelling ? (
-                                                <span className="h-4 w-4 border-2 border-rose-400 border-t-transparent rounded-full animate-spin" />
-                                            ) : (
-                                                <Ban className="h-4 w-4" />
-                                            )}
-                                            {isCancelling ? 'Cancelling...' : 'Cancel'}
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         </div>
