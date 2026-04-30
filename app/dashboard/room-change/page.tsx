@@ -101,8 +101,6 @@ export default function RoomChangePage() {
 
         if (!reason.trim()) {
             newErrors.reason = 'Reason is required';
-        } else if (reason.trim().length < 20) {
-            newErrors.reason = 'Reason must be at least 20 characters';
         }
 
         setErrors(newErrors);
@@ -420,7 +418,7 @@ export default function RoomChangePage() {
                                             />
                                             <div className="flex justify-between mt-2">
                                                 {errors.reason && <p className="text-rose-500 dark:text-rose-400 text-[10px] font-black uppercase">{errors.reason}</p>}
-                                                <span className={`text-[10px] font-black ml-auto ${reason.length < 20 ? 'text-rose-400' : 'text-emerald-500 dark:text-emerald-400'}`}>{reason.length}/20 min</span>
+                                                <span className="text-[10px] font-black ml-auto text-slate-400 dark:text-slate-500">{reason.length} characters</span>
                                             </div>
                                         </div>
 

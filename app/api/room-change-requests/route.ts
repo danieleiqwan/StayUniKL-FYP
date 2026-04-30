@@ -12,7 +12,7 @@ const requestSchema = z.object({
     preferredRoomId: z.string().optional(),
     preferredRoomType: z.string().optional(),
     preferredBedId: z.string().optional(),
-    reason: z.string().min(10),
+    reason: z.string().min(1),
     attachment_url: z.string().url().optional().or(z.literal('')),
 });
 
