@@ -10,6 +10,7 @@ export default function VirtualIDCard() {
     const { user } = useAuth();
     const { myApplication } = useData();
     const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
     if (!user) return null;
 
@@ -51,8 +52,12 @@ export default function VirtualIDCard() {
                     {/* Content Grid */}
                     <div className="flex gap-6 mb-6">
                         {/* Profile Photo */}
-                        <div className="relative">
-                            <div className="h-24 w-24 rounded-2xl overflow-hidden border-2 border-white/10 bg-slate-800 shadow-xl">
+                        <button 
+                            className="relative group/photo focus:outline-none focus:ring-4 focus:ring-orange-500/50 rounded-2xl"
+                            onClick={() => setIsImageModalOpen(true)}
+                            title="Click to enlarge photo"
+                        >
+                            <div className="h-24 w-24 rounded-2xl overflow-hidden border-2 border-white/10 bg-slate-800 shadow-xl group-hover/photo:scale-105 transition-transform duration-500">
                                 {user.profileImage ? (
                                     <img src={user.profileImage} alt="Profile" className="h-full w-full object-cover" />
                                 ) : (
@@ -61,10 +66,10 @@ export default function VirtualIDCard() {
                                     </div>
                                 )}
                             </div>
-                            <div className="absolute -bottom-2 -right-2 bg-emerald-500 h-6 w-6 rounded-full border-4 border-[#1E293B] flex items-center justify-center">
+                            <div className="absolute -bottom-2 -right-2 bg-emerald-500 h-6 w-6 rounded-full border-4 border-[#1E293B] flex items-center justify-center z-10 group-hover/photo:scale-110 transition-transform duration-500">
                                 <div className="h-1.5 w-1.5 bg-white rounded-full animate-pulse"></div>
                             </div>
-                        </div>
+                        </button>
 
                         {/* Basic Info */}
                         <div className="flex-1 space-y-3">
@@ -115,7 +120,7 @@ export default function VirtualIDCard() {
 
             {/* Hint Overlay */}
             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-900 border border-white/10 px-4 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl whitespace-nowrap pointer-events-none z-10">
-                <p className="text-[9px] font-black text-white uppercase tracking-widest">Click QR to enlarge</p>
+                <p className="text-[9px] font-black text-white uppercase tracking-widest">Click Photo or QR to Enlarge</p>
             </div>
 
             {/* Enlarged QR Modal */}
@@ -145,6 +150,41 @@ export default function VirtualIDCard() {
                         <button 
                             onClick={() => setIsQrModalOpen(false)}
                             className="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest rounded-xl transition-colors"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Enlarged Image Modal */}
+            {isImageModalOpen && (
+                <div 
+                    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300"
+                    onClick={() => setIsImageModalOpen(false)}
+                >
+                    <div 
+                        className="bg-slate-900 p-2 rounded-[2rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/10 animate-in zoom-in-90 duration-300 flex flex-col items-center gap-4 max-w-sm w-full"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-full aspect-square rounded-[1.5rem] overflow-hidden bg-slate-800">
+                            {user.profileImage ? (
+                                <img src={user.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-slate-800 text-white font-black text-6xl">
+                                    {user.name?.charAt(0)}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="w-full px-4 pb-2 text-center">
+                            <h3 className="text-xl font-black text-white">{user.name}</h3>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Student Photo</p>
+                        </div>
+
+                        <button 
+                            onClick={() => setIsImageModalOpen(false)}
+                            className="w-full py-4 bg-white/10 hover:bg-white/20 text-white font-black text-sm uppercase tracking-widest rounded-xl transition-colors"
                         >
                             Close
                         </button>
