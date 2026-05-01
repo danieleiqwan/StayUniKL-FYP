@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import QRCode from 'react-qr-code';
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
@@ -9,6 +9,7 @@ import { IdCard, MapPin, ShieldCheck, User as UserIcon } from 'lucide-react';
 export default function VirtualIDCard() {
     const { user } = useAuth();
     const { myApplication } = useData();
+    const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
     if (!user) return null;
 
@@ -92,14 +93,18 @@ export default function VirtualIDCard() {
                             <p className="text-[9px] text-slate-500 font-medium italic">Scanned at Check-in Hub</p>
                         </div>
 
-                        <div className="bg-white p-2.5 rounded-2xl shadow-2xl shadow-black/50 group-hover:scale-105 transition-transform duration-500">
+                        <button 
+                            onClick={() => setIsQrModalOpen(true)}
+                            className="bg-white p-2.5 rounded-2xl shadow-2xl shadow-black/50 hover:scale-105 transition-transform duration-500 cursor-pointer focus:outline-none focus:ring-4 focus:ring-orange-500/50"
+                            title="Click to enlarge QR Code"
+                        >
                             <QRCode 
                                 value={qrData}
                                 size={64}
                                 level="H"
                                 fgColor="#0F172A"
                             />
-                        </div>
+                        </button>
                     </div>
                 </div>
 
@@ -109,9 +114,43 @@ export default function VirtualIDCard() {
             </div>
 
             {/* Hint Overlay */}
-            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-900 border border-white/10 px-4 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl whitespace-nowrap">
-                <p className="text-[9px] font-black text-white uppercase tracking-widest">Show this to warden for access</p>
+            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-900 border border-white/10 px-4 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl whitespace-nowrap pointer-events-none z-10">
+                <p className="text-[9px] font-black text-white uppercase tracking-widest">Click QR to enlarge</p>
             </div>
+
+            {/* Enlarged QR Modal */}
+            {isQrModalOpen && (
+                <div 
+                    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300"
+                    onClick={() => setIsQrModalOpen(false)}
+                >
+                    <div 
+                        className="bg-white p-8 rounded-[2rem] shadow-[0_0_100px_rgba(242,108,34,0.3)] animate-in zoom-in-90 duration-300 flex flex-col items-center gap-6"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="text-center">
+                            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Scan ID</h3>
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mt-1">Student Access</p>
+                        </div>
+
+                        <div className="p-4 bg-white rounded-2xl border-2 border-slate-100 shadow-inner">
+                            <QRCode 
+                                value={qrData}
+                                size={250}
+                                level="H"
+                                fgColor="#0F172A"
+                            />
+                        </div>
+
+                        <button 
+                            onClick={() => setIsQrModalOpen(false)}
+                            className="w-full py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest rounded-xl transition-colors"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
