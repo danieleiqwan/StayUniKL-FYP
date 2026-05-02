@@ -301,7 +301,7 @@ export default function StudentDashboard() {
                                         </div>
                                         <div className="flex items-center gap-3 shrink-0 ml-2">
                                             <span className="text-xs text-slate-400 dark:text-slate-500">
-                                                {new Date(complaint.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                                {new Date(complaint.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                                             </span>
                                             <span className={`text-xs font-black px-2.5 py-1 rounded-full ${status.cls}`}>{status.text}</span>
                                         </div>
