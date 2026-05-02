@@ -243,12 +243,45 @@ export default function CourtBookingPage() {
         </div>
     );
 
+    // Calculate Weekly Limit Remaining
+    const getWeeklyBookingsCount = () => {
+        const today = new Date();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+        startOfWeek.setHours(0, 0, 0, 0);
+
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
+        endOfWeek.setHours(23, 59, 59, 999);
+
+        return courtBookings.filter(b => {
+            if (b.studentId !== user?.id) return false;
+            if (b.status === 'Rejected' || b.status === 'Cancelled') return false;
+            const bDate = new Date(b.date);
+            return bDate >= startOfWeek && bDate <= endOfWeek;
+        }).length;
+    };
+
+    const weeklyCount = getWeeklyBookingsCount();
+    const weeklyLeft = Math.max(0, 5 - weeklyCount);
+
     return (
         <div className="space-y-6">
             <div className="mb-6 flex justify-between items-start">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1 transition-colors">Book a Court</h1>
                     <p className="text-slate-500 dark:text-slate-400 text-sm">Reserve the multi-purpose court for your activities.</p>
+                </div>
+
+                <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-2xl shadow-sm transition-all">
+                        <div className={`h-2 w-2 rounded-full ${weeklyLeft > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Weekly Quota</span>
+                        <span className={`text-sm font-black ${weeklyLeft > 0 ? 'text-slate-900 dark:text-white' : 'text-rose-500'}`}>
+                            {weeklyLeft} / 5
+                        </span>
+                    </div>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Resets every Sunday</p>
                 </div>
             </div>
 
