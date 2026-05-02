@@ -197,7 +197,13 @@ export default function StudentDashboard() {
                             <div className="grid grid-cols-3 gap-4 mb-8 pt-6 border-t border-white/10">
                                 <div>
                                     <p className="text-xs font-black uppercase tracking-widest opacity-50 mb-1">Tenancy</p>
-                                    <p className="text-sm font-bold">{myApplication?.sessionType || 'Full Academic Year'}</p>
+                                    <p className="text-sm font-bold">
+                                        {myApplication?.durationType === '1_semester' || myApplication?.stayDuration === 4
+                                            ? 'Full Academic Semester' 
+                                            : myApplication?.durationType === '1_month' || myApplication?.stayDuration === 1
+                                                ? '1 Academic Month' 
+                                                : '—'}
+                                    </p>
                                 </div>
                                 <div>
                                     <p className="text-xs font-black uppercase tracking-widest opacity-50 mb-1">Move In</p>
