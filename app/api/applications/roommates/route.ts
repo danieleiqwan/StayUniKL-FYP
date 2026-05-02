@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
         // Fetch all students in the same room from the applications table
         const [rows]: any = await pool.query(`
-            SELECT a.student_id, u.name as student_name, a.bed_id, a.status 
+            SELECT a.student_id, u.name as student_name, u.profile_image, a.bed_id, a.status 
             FROM applications a
             LEFT JOIN users u ON a.student_id = u.id
             WHERE a.room_id = ? AND a.status IN ('Approved', 'Checked in')
@@ -21,6 +21,7 @@ export async function GET(request: Request) {
         const roommates = rows.map((row: any) => ({
             studentId: row.student_id,
             studentName: row.student_name,
+            profileImage: row.profile_image,
             bedId: row.bed_id,
             status: row.status
         }));

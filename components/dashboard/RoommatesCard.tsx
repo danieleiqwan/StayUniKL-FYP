@@ -11,6 +11,7 @@ interface Roommate {
     studentName: string;
     bedId: string;
     status: string;
+    profileImage?: string;
 }
 
 export default function RoommatesCard() {
@@ -73,10 +74,14 @@ export default function RoommatesCard() {
                             <div className="flex items-center gap-3 min-w-0">
                                 <button 
                                     onClick={() => setEnlargedRoommate(roommate)}
-                                    className="h-10 w-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center text-[#F26C22] font-black text-sm shadow-sm hover:scale-105 hover:shadow-md transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-zoom-in"
+                                    className="h-10 w-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center text-[#F26C22] font-black text-sm shadow-sm hover:scale-105 hover:shadow-md transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-zoom-in overflow-hidden"
                                     title="Click to enlarge photo"
                                 >
-                                    {roommate.studentName.charAt(0)}
+                                    {roommate.profileImage ? (
+                                        <img src={roommate.profileImage} alt={roommate.studentName} className="h-full w-full object-cover" />
+                                    ) : (
+                                        roommate.studentName.charAt(0)
+                                    )}
                                 </button>
                                 <div className="min-w-0">
                                     <p className="text-xs font-black text-slate-900 dark:text-white truncate">{roommate.studentName}</p>
@@ -108,10 +113,13 @@ export default function RoommatesCard() {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="w-full aspect-square rounded-[1.5rem] overflow-hidden bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
-                            {/* Since we don't have roommate profile images easily available yet, we use a placeholder that matches the initial */}
-                            <div className="w-full h-full flex items-center justify-center bg-white dark:bg-slate-800 text-[#F26C22] font-black text-[120px]">
-                                {enlargedRoommate.studentName.charAt(0)}
-                            </div>
+                            {enlargedRoommate.profileImage ? (
+                                <img src={enlargedRoommate.profileImage} alt={enlargedRoommate.studentName} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-white dark:bg-slate-800 text-[#F26C22] font-black text-[120px]">
+                                    {enlargedRoommate.studentName.charAt(0)}
+                                </div>
+                            )}
                         </div>
 
                         <div className="w-full px-4 pb-2 text-center">
