@@ -15,6 +15,7 @@ export interface Application {
     gender?: 'Male' | 'Female';
     bedId?: string; floorId?: number; roomId?: string; stayDuration?: number; durationType?: '1_month' | '1_semester'; totalPrice?: number; date: string;
     cancellationReason?: string;
+    checkInDate?: string;
 }
 export interface Complaint {
     id: string; studentId: string; studentName: string;

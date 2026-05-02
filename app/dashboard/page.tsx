@@ -210,7 +210,7 @@ export default function StudentDashboard() {
                                     <p className="text-sm font-bold">
                                         {myApplication?.checkInDate
                                             ? new Date(myApplication.checkInDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-                                            : '—'}
+                                            : 'Pending'}
                                     </p>
                                 </div>
                                 <div>

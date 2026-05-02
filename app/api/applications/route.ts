@@ -73,6 +73,7 @@ export async function GET(request: Request) {
             previousStatus: row.previous_status,
             paymentStatus: row.payment_status,
             date: row.date,
+            checkInDate: row.check_in_date,
         }));
 
         return NextResponse.json({ applications });
