@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { 
     CheckCircle2, ChevronRight, ChevronLeft, CalendarDays, 
     Clock, Trophy, Feather, CircleDot, Circle, Volleyball,
-    Lock, Home as HomeIcon, AlertTriangle
+    Lock, Home as HomeIcon, AlertTriangle, Info
 } from 'lucide-react';
 
 export default function CourtBookingPage() {
@@ -249,6 +249,21 @@ export default function CourtBookingPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1 transition-colors">Book a Court</h1>
                     <p className="text-slate-500 dark:text-slate-400 text-sm">Reserve the multi-purpose court for your activities.</p>
+                </div>
+            </div>
+
+            {/* Booking Policy Notice */}
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl p-4 flex items-start gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="h-10 w-10 bg-white dark:bg-blue-800 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-sm">
+                    <Info className="h-5 w-5" />
+                </div>
+                <div>
+                    <h3 className="text-sm font-bold text-blue-900 dark:text-blue-300 transition-colors">Booking Policy</h3>
+                    <div className="mt-1 text-xs text-blue-700 dark:text-blue-400/80 leading-relaxed space-y-1">
+                        <p>• <strong>Daily Limit:</strong> Maximum 2 bookings per day.</p>
+                        <p>• <strong>Weekly Limit:</strong> Maximum 5 bookings per week (Sunday to Saturday).</p>
+                        <p>• <strong>Advance Booking:</strong> Slots can be reserved up to 30 days in advance.</p>
+                    </div>
                 </div>
             </div>
 

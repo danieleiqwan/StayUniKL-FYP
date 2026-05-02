@@ -234,22 +234,36 @@ export async function POST(request: Request) {
         await connection.beginTransaction();
 
         try {
-            // 2. Check daily limit (Admin exempt)
-            if (user.role !== 'admin') {
-                const [dailyCount]: any = await connection.query(
-                    'SELECT COUNT(*) as count FROM court_bookings WHERE student_id = ? AND DATE(date) = DATE(?) AND status IN ("Pending", "Approved")',
-                    [studentId, date]
-                );
+        // 2. Check daily and weekly limits (Admin exempt)
+        if (user.role !== 'admin') {
+            // Daily Limit (2)
+            const [dailyCount]: any = await connection.query(
+                'SELECT COUNT(*) as count FROM court_bookings WHERE student_id = ? AND DATE(date) = DATE(?) AND status IN ("Pending", "Approved")',
+                [studentId, date]
+            );
 
-                if (dailyCount[0].count >= 2) {
-                    await connection.rollback();
-                    return NextResponse.json({ 
-                        error: 'Daily Limit Exceeded: You can only make up to 2 court bookings per day.' 
-                    }, { status: 400 });
-                }
+            if (dailyCount[0].count >= 2) {
+                await connection.rollback();
+                return NextResponse.json({ 
+                    error: 'Daily Limit Exceeded: You can only make up to 2 court bookings per day.' 
+                }, { status: 400 });
             }
 
-            // 3. Check if blocked by admin
+            // Weekly Limit (5)
+            const [weeklyCount]: any = await connection.query(
+                'SELECT COUNT(*) as count FROM court_bookings WHERE student_id = ? AND YEARWEEK(date, 0) = YEARWEEK(?, 0) AND status IN ("Pending", "Approved")',
+                [studentId, date]
+            );
+
+            if (weeklyCount[0].count >= 5) {
+                await connection.rollback();
+                return NextResponse.json({ 
+                    error: 'Weekly Limit Exceeded: You can only make up to 5 court bookings per week (Sun-Sat).' 
+                }, { status: 400 });
+            }
+        }
+
+        // 3. Check if blocked by admin
             const [settingsRows]: any = await connection.query('SELECT setting_value FROM court_settings WHERE setting_key = "main"');
             if (settingsRows.length > 0) {
                 let settings = settingsRows[0].setting_value;
