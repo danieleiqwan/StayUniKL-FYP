@@ -31,7 +31,7 @@ import BillingHistory from '@/components/dashboard/BillingHistory';
 export default function StudentDashboard() {
     const router = useRouter();
     const { user } = useAuth();
-    const { myApplication, myComplaints, courtBookings, rooms } = useData();
+    const { myApplication, myComplaints, courtBookings, rooms, facilitySettings } = useData();
 
     if (!user) return null;
 
@@ -72,27 +72,54 @@ export default function StudentDashboard() {
         return { text: 'Pending', cls: 'bg-amber-100 text-amber-700' };
     };
 
-    // Court slot counts
+    // Dynamic Court Slot Counts
+    const courtSettings = facilitySettings?.court || { isOpen: true, openTime: '08:00', closeTime: '22:00', blockedSlots: [] };
+    const startHour = parseInt(courtSettings.openTime.split(':')[0]);
+    const endHour = parseInt(courtSettings.closeTime.split(':')[0]);
+
+    const getAvailableSlots = (targetDateStr: string, isToday: boolean) => {
+        if (!courtSettings.isOpen) return 0;
+        
+        const now = new Date();
+        const currentHour = now.getHours();
+        
+        let validSlots = 0;
+        for (let i = startHour; i < endHour; i++) {
+            // If checking today, exclude slots that have already passed or are currently active
+            if (isToday && i <= currentHour) continue;
+            
+            const timeStr = `${i.toString().padStart(2, '0')}:00`;
+            const slotKey = `${targetDateStr}T${timeStr}`;
+            
+            // Check if blocked by admin
+            if (courtSettings.blockedSlots && courtSettings.blockedSlots.includes(slotKey)) continue;
+            
+            // Check if someone has booked it
+            const isBooked = courtBookings.some(b => 
+                b.date === targetDateStr && 
+                b.timeSlot === timeStr && 
+                (b.status === 'Approved' || b.status === 'Pending')
+            );
+            
+            if (!isBooked) validSlots++;
+        }
+        return validSlots;
+    };
+
     const todayDate = new Date();
     const todayStr = todayDate.toLocaleDateString('sv-SE'); // YYYY-MM-DD
     const tomorrowStr = new Date(todayDate.getTime() + 86400000).toLocaleDateString('sv-SE');
 
-    const getOccupiedCount = (dateStr: string) => 
-        courtBookings.filter(b => b.date === dateStr && (b.status === 'Approved' || b.status === 'Pending')).length;
+    const todaySlots = getAvailableSlots(todayStr, true);
+    const tomorrowSlots = getAvailableSlots(tomorrowStr, false);
 
-    const todayBookingsCount = getOccupiedCount(todayStr);
-    const tomorrowBookingsCount = getOccupiedCount(tomorrowStr);
-
-    const todaySlots = Math.max(0, 14 - todayBookingsCount);
-    const tomorrowSlots = Math.max(0, 14 - tomorrowBookingsCount);
-
-    // Calculate This Week (Next 7 days total)
-    let totalWeekBookings = 0;
+    // Calculate This Week (Next 7 days remaining slots)
+    let weekSlots = 0;
     for (let i = 0; i < 7; i++) {
-        const d = new Date(todayDate.getTime() + i * 86400000).toLocaleDateString('sv-SE');
-        totalWeekBookings += getOccupiedCount(d);
+        const dDate = new Date(todayDate.getTime() + i * 86400000);
+        const dStr = dDate.toLocaleDateString('sv-SE');
+        weekSlots += getAvailableSlots(dStr, i === 0);
     }
-    const weekSlots = Math.max(0, (14 * 7) - totalWeekBookings);
 
     return (
         <div className="max-w-[1400px] mx-auto space-y-6">
