@@ -72,15 +72,27 @@ export default function StudentDashboard() {
         return { text: 'Pending', cls: 'bg-amber-100 text-amber-700' };
     };
 
-    // Court slot counts (mock based on date)
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    const tomorrowStr = new Date(today.getTime() + 86400000).toISOString().split('T')[0];
-    const todayBookings = courtBookings.filter(b => b.date === todayStr && b.status === 'Approved').length;
-    const tomorrowBookings = courtBookings.filter(b => b.date === tomorrowStr && b.status === 'Approved').length;
-    const todaySlots = Math.max(0, 14 - todayBookings);
-    const tomorrowSlots = Math.max(0, 14 - tomorrowBookings);
-    const weekSlots = Math.max(0, 98 - myAllBookings.length * 2); // 14 slots * 7 days = 98
+    // Court slot counts
+    const todayDate = new Date();
+    const todayStr = todayDate.toLocaleDateString('sv-SE'); // YYYY-MM-DD
+    const tomorrowStr = new Date(todayDate.getTime() + 86400000).toLocaleDateString('sv-SE');
+
+    const getOccupiedCount = (dateStr: string) => 
+        courtBookings.filter(b => b.date === dateStr && (b.status === 'Approved' || b.status === 'Pending')).length;
+
+    const todayBookingsCount = getOccupiedCount(todayStr);
+    const tomorrowBookingsCount = getOccupiedCount(tomorrowStr);
+
+    const todaySlots = Math.max(0, 14 - todayBookingsCount);
+    const tomorrowSlots = Math.max(0, 14 - tomorrowBookingsCount);
+
+    // Calculate This Week (Next 7 days total)
+    let totalWeekBookings = 0;
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(todayDate.getTime() + i * 86400000).toLocaleDateString('sv-SE');
+        totalWeekBookings += getOccupiedCount(d);
+    }
+    const weekSlots = Math.max(0, (14 * 7) - totalWeekBookings);
 
     return (
         <div className="max-w-[1400px] mx-auto space-y-6">
