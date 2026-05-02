@@ -284,7 +284,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 body: JSON.stringify({ studentId: user.id, studentName: user.name, sport, date, timeSlot })
             });
             const data = await res.json();
-            if (res.ok) fetchData();
+            if (res.ok) await fetchData();
             return data;
         } catch (e) { 
             console.error(e);
