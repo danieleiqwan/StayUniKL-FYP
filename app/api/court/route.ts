@@ -251,7 +251,7 @@ export async function POST(request: Request) {
 
             // Weekly Limit (5)
             const [weeklyCount]: any = await connection.query(
-                'SELECT COUNT(*) as count FROM court_bookings WHERE student_id = ? AND YEARWEEK(date, 0) = YEARWEEK(?, 0) AND status IN ("Pending", "Approved")',
+                'SELECT COUNT(*) as count FROM court_bookings WHERE student_id = ? AND YEARWEEK(date, 1) = YEARWEEK(?, 1) AND status IN ("Pending", "Approved")',
                 [studentId, date]
             );
 

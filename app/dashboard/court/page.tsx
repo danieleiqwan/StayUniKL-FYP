@@ -245,19 +245,26 @@ export default function CourtBookingPage() {
 
     // Calculate Weekly Limit Remaining
     const getWeeklyBookingsCount = () => {
-        const today = new Date();
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+        const now = new Date();
+        const dayOfWeek = now.getDay(); // 0 (Sun) - 6 (Sat)
+        const distanceToMonday = (dayOfWeek + 6) % 7; // Monday = 0, Tuesday = 1, ..., Sunday = 6
+        
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - distanceToMonday);
         startOfWeek.setHours(0, 0, 0, 0);
 
         const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
         endOfWeek.setHours(23, 59, 59, 999);
 
         return courtBookings.filter(b => {
             if (b.studentId !== user?.id) return false;
             if (b.status === 'Rejected' || b.status === 'Cancelled') return false;
-            const bDate = new Date(b.date);
+            
+            // b.date is YYYY-MM-DD
+            const [y, m, d] = b.date.split('-').map(Number);
+            const bDate = new Date(y, m - 1, d);
+            
             return bDate >= startOfWeek && bDate <= endOfWeek;
         }).length;
     };
@@ -281,7 +288,7 @@ export default function CourtBookingPage() {
                             {weeklyLeft} / 5
                         </span>
                     </div>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Resets every Sunday</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Resets every Monday</p>
                 </div>
             </div>
 
@@ -294,7 +301,7 @@ export default function CourtBookingPage() {
                     <h3 className="text-sm font-bold text-blue-900 dark:text-blue-300 transition-colors">Booking Policy</h3>
                     <div className="mt-1 text-xs text-blue-700 dark:text-blue-400/80 leading-relaxed space-y-1">
                         <p>• <strong>Daily Limit:</strong> Maximum 2 bookings per day.</p>
-                        <p>• <strong>Weekly Limit:</strong> Maximum 5 bookings per week (Sunday to Saturday).</p>
+                        <p>• <strong>Weekly Limit:</strong> Maximum 5 bookings per week (Monday to Sunday).</p>
                         <p>• <strong>Advance Booking:</strong> Slots can be reserved up to 30 days in advance.</p>
                     </div>
                 </div>
