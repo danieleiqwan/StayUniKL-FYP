@@ -67,19 +67,79 @@ export async function POST(request: Request) {
         // Update Settings (General for all facilities)
         if (body.action === 'update_settings') {
             const dbKey = body.key === 'court' ? 'main' : body.key;
+            const newSettings = body.settings;
+            
+            // Get previous settings to see what changed
+            const [oldSettingsRows]: any = await pool.query('SELECT setting_value FROM court_settings WHERE setting_key = ?', [dbKey]);
+            const oldSettings = oldSettingsRows.length > 0 ? JSON.parse(oldSettingsRows[0].setting_value) : {};
+
             await pool.query(
                 'INSERT INTO court_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?',
-                [dbKey, JSON.stringify(body.settings), JSON.stringify(body.settings)]
+                [dbKey, JSON.stringify(newSettings), JSON.stringify(newSettings)]
             );
 
-            // Notify all students if the facility is CLOSED
-            if (body.settings.isOpen === false) {
-                const facilityName = body.key.charAt(0).toUpperCase() + body.key.slice(1);
+            const facilityName = body.key.charAt(0).toUpperCase() + body.key.slice(1);
+
+            // Handle mass cancellations if facility is CLOSED
+            if (newSettings.isOpen === false && oldSettings.isOpen !== false) {
+                // Fetch all future bookings for this facility
+                // Court manages 'Badminton', 'Table Tennis', 'Basketball'
+                const sports = body.key === 'court' ? ['Badminton', 'Table Tennis', 'Basketball'] : [];
+                
+                if (sports.length > 0) {
+                    const [conflicts]: any = await pool.query(
+                        'SELECT id, student_id, sport, date, time_slot FROM court_bookings WHERE sport IN (?) AND date >= CURDATE() AND status IN ("Pending", "Approved")',
+                        [sports]
+                    );
+
+                    for (const booking of conflicts) {
+                        await pool.query('UPDATE court_bookings SET status = "Rejected" WHERE id = ?', [booking.id]);
+                        const dateStr = new Date(booking.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                        await createNotification({
+                            userId: booking.student_id,
+                            title: 'Booking Cancelled',
+                            message: `Your ${booking.sport} booking for ${dateStr} at ${booking.time_slot} has been cancelled because the ${facilityName} is closed for maintenance.`,
+                            type: 'error',
+                            relatedEntityId: booking.id,
+                            relatedEntityType: 'CourtBooking'
+                        });
+                    }
+                }
+
                 await createSystemNotification({
                     title: `${facilityName} Maintenance`,
                     message: `Please take note that the ${facilityName} is currently closed for maintenance until further notice.`,
                     type: 'warning'
                 });
+            } 
+            
+            // Handle specific BLOCKED SLOTS
+            else if (newSettings.blockedSlots && newSettings.blockedSlots.length > 0) {
+                // Find slots that are newly blocked
+                const newlyBlocked = newSettings.blockedSlots.filter((s: string) => !oldSettings.blockedSlots?.includes(s));
+                
+                for (const slot of newlyBlocked) {
+                    // slot format: "2024-05-20T10:00"
+                    const [datePart, timePart] = slot.split('T');
+                    
+                    const [conflicts]: any = await pool.query(
+                        'SELECT id, student_id, sport, date, time_slot FROM court_bookings WHERE date = ? AND time_slot = ? AND status IN ("Pending", "Approved")',
+                        [datePart, timePart]
+                    );
+
+                    for (const booking of conflicts) {
+                        await pool.query('UPDATE court_bookings SET status = "Rejected" WHERE id = ?', [booking.id]);
+                        const dateStr = new Date(booking.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                        await createNotification({
+                            userId: booking.student_id,
+                            title: 'Booking Cancelled (Event)',
+                            message: `Your ${booking.sport} booking for ${dateStr} at ${booking.time_slot} has been cancelled due to a hostel event/maintenance.`,
+                            type: 'error',
+                            relatedEntityId: booking.id,
+                            relatedEntityType: 'CourtBooking'
+                        });
+                    }
+                }
             }
 
             return NextResponse.json({ success: true });
