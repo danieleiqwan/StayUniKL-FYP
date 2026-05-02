@@ -25,6 +25,7 @@ export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState<'applications' | 'complaints' | 'facilities' | 'room-changes'>('applications');
     const [facilityTab, setFacilityTab] = useState<'court' | 'gym' | 'laundry'>('court');
     const [courtSubTab, setCourtSubTab] = useState<'bookings' | 'settings' | 'schedule'>('bookings');
+    const [selectedScheduleDate, setSelectedScheduleDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
     // Filtering States
@@ -652,15 +653,28 @@ export default function AdminDashboard() {
 
                                 {courtSubTab === 'schedule' && facilitySettings && (
                                     <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                                        <h3 className="mb-4 font-semibold text-slate-900 dark:text-white">Block/Unblock Slots for Today ({today})</h3>
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+                                            <h3 className="font-semibold text-slate-900 dark:text-white">
+                                                Block/Unblock Slots
+                                            </h3>
+                                            <div className="flex items-center gap-3">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Select Date:</label>
+                                                <input
+                                                    type="date"
+                                                    value={selectedScheduleDate}
+                                                    onChange={(e) => setSelectedScheduleDate(e.target.value || new Date().toISOString().split('T')[0])}
+                                                    className="rounded-lg border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#F26C22] dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                                                />
+                                            </div>
+                                        </div>
                                         <div className="grid grid-cols-4 gap-2 md:grid-cols-6 lg:grid-cols-8">
                                             {scheduleSlots.map(slot => {
-                                                const slotKey = `${today}T${slot}`;
+                                                const slotKey = `${selectedScheduleDate}T${slot}`;
                                                 const isBlocked = facilitySettings.court.blockedSlots.includes(slotKey);
                                                 return (
                                                     <button
                                                         key={slot}
-                                                        onClick={() => toggleSlotBlock('court', today, slot)}
+                                                        onClick={() => toggleSlotBlock('court', selectedScheduleDate, slot)}
                                                         className={`rounded p-2 text-center text-xs font-medium transition-colors ${isBlocked
                                                             ? 'bg-red-600 text-white hover:bg-red-700'
                                                             : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300'
