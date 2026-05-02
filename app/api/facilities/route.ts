@@ -28,7 +28,10 @@ export async function GET(request: Request) {
             studentId: b.student_id,
             studentName: b.student_name,
             sport: b.sport,
-            date: b.date,
+            // Normalize date to YYYY-MM-DD string — MySQL returns Date objects, not strings
+            date: b.date instanceof Date
+                ? b.date.toISOString().split('T')[0]
+                : String(b.date).split('T')[0],
             timeSlot: b.time_slot,
             status: b.status
         }));
