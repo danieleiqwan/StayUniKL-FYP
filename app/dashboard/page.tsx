@@ -38,12 +38,14 @@ export default function StudentDashboard() {
     // Derived States
     const isPaymentPending = myApplication?.status === 'Payment Pending';
     const myAllBookings = courtBookings.filter(b => b.studentId === user.id);
-    const activeBookingsCount = myAllBookings.filter(b => b.status === 'Approved').length;
+    const activeBookingsCount = myAllBookings.filter(b => b.status === 'Approved' || b.status === 'Pending').length;
     const pendingComplaintsCount = myComplaints.filter(c => c.status === 'Pending' || c.status === 'In Progress').length;
     const recentComplaints = myComplaints.slice(0, 3);
-    const recentBookings = [...myAllBookings]
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 2);
+    const activeBookings = myAllBookings.filter(b => b.status === 'Approved' || b.status === 'Pending');
+    const upcomingBookings = [...activeBookings]
+        .filter(b => new Date(b.date).setHours(23, 59, 59, 999) >= new Date().getTime())
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const recentBookings = upcomingBookings.slice(0, 2);
 
     const isApplied = !!myApplication;
     const appStatus = myApplication?.status;
