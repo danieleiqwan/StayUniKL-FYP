@@ -220,15 +220,19 @@ export async function POST(request: Request) {
         await connection.beginTransaction();
 
         try {
-            // 2. Strict double-booking check (FOR UPDATE locks the row to prevent races)
-            const [existing]: any = await connection.query(
-                'SELECT id FROM court_bookings WHERE DATE(date) = DATE(?) AND time_slot = ? AND status IN ("Pending", "Approved") FOR UPDATE',
-                [date, timeSlot]
-            );
+            // 2. Check daily limit (Admin exempt)
+            if (user.role !== 'admin') {
+                const [dailyCount]: any = await connection.query(
+                    'SELECT COUNT(*) as count FROM court_bookings WHERE student_id = ? AND DATE(date) = DATE(?) AND status IN ("Pending", "Approved")',
+                    [studentId, date]
+                );
 
-            if (existing.length > 0) {
-                await connection.rollback();
-                return NextResponse.json({ error: 'This time slot was just reserved by someone else. Please select another slot.' }, { status: 400 });
+                if (dailyCount[0].count >= 2) {
+                    await connection.rollback();
+                    return NextResponse.json({ 
+                        error: 'Daily Limit Exceeded: You can only make up to 2 court bookings per day.' 
+                    }, { status: 400 });
+                }
             }
 
             // 3. Check if blocked by admin
