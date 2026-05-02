@@ -18,7 +18,7 @@ import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine
 export default function AdminDashboard() {
     const { user } = useAuth();
     const {
-        applications, complaints, courtBookings, facilitySettings,
+        applications, complaints, courtBookings, facilitySettings, roomChangeRequests, refreshData,
         updateApplicationStatus, updateComplaint, updateBookingStatus, updateFacilitySettings, toggleSlotBlock
     } = useData();
     const router = useRouter();
@@ -33,9 +33,7 @@ export default function AdminDashboard() {
     const [roomChangeFilters, setRoomChangeFilters] = useState<FilterState>({ search: '', status: '', gender: '', roomType: '', startDate: '', endDate: '' });
     const [courtFilters, setCourtFilters] = useState({ search: '', status: '', date: '', sport: '' });
 
-    // Room Change Requests State
-    const [roomChangeRequests, setRoomChangeRequests] = useState<any[]>([]);
-    const [loadingRoomChanges, setLoadingRoomChanges] = useState(false);
+    // Room Change UI State
     const [assignModalOpen, setAssignModalOpen] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState<any>(null);
 
@@ -104,21 +102,7 @@ export default function AdminDashboard() {
     const scheduleSlots = generateSlots();
     const today = new Date().toISOString().split('T')[0];
 
-    // Room change request functions
-    const loadRoomChanges = async () => {
-        try {
-            setLoadingRoomChanges(true);
-            const res = await fetch('/api/room-change-requests');
-            const data = await res.json();
-            if (data.success) {
-                setRoomChangeRequests(data.requests || []);
-            }
-        } catch (error) {
-            console.error('Error loading room change requests:', error);
-        } finally {
-            setLoadingRoomChanges(false);
-        }
-    };
+
 
     const filteredRoomChanges = useMemo(() => {
         return roomChangeRequests.filter(req => {
@@ -164,7 +148,7 @@ export default function AdminDashboard() {
                 alert('Room assigned successfully!');
                 setAssignModalOpen(false);
                 setSelectedRequest(null);
-                loadRoomChanges();
+                refreshData();
             } else {
                 alert(`Error: ${data.error}`);
             }
@@ -193,7 +177,7 @@ export default function AdminDashboard() {
             const data = await res.json();
             if (data.success) {
                 alert('Request added to waitlist!');
-                loadRoomChanges();
+                refreshData();
             } else {
                 alert(`Error: ${data.error}`);
             }
@@ -220,7 +204,7 @@ export default function AdminDashboard() {
             const data = await res.json();
             if (data.success) {
                 alert('Request rejected.');
-                loadRoomChanges();
+                refreshData();
             } else {
                 alert(`Error: ${data.error}`);
             }
@@ -230,7 +214,6 @@ export default function AdminDashboard() {
     };
 
     useEffect(() => {
-        loadRoomChanges();
     }, []);
 
     if (!user || user.role !== 'admin') return <div className="p-10 text-center">Access Denied. Admins only.</div>;
@@ -269,7 +252,6 @@ export default function AdminDashboard() {
                                 key={tab}
                                 onClick={() => {
                                     setActiveTab(tab as any);
-                                    if (tab === 'room-changes') loadRoomChanges();
                                 }}
                                 className={`pb-2 px-2 text-sm font-bold transition-all capitalize whitespace-nowrap flex items-center gap-2 ${activeTab === tab
                                     ? 'border-b-2 border-[#F26C22] text-[#F26C22] dark:text-orange-400'
@@ -357,7 +339,7 @@ export default function AdminDashboard() {
                                                                                 method: 'PUT',
                                                                                 headers: { 'Content-Type': 'application/json' },
                                                                                 body: JSON.stringify({ id: app.id, bedId })
-                                                                            }).then(() => window.location.reload());
+                                                                            }).then(() => refreshData());
                                                                         }
                                                                     }} className="text-xs bg-slate-600 text-white px-2 py-1 rounded hover:bg-slate-700">Assign Bed</button>
                                                                 </>
@@ -777,7 +759,7 @@ export default function AdminDashboard() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {loadingRoomChanges ? (
+                                        {applications.length === 0 ? (
                                             Array.from({ length: 5 }).map((_, i) => (
                                                 <tr key={i}>
                                                     <td className="p-4"><div className="space-y-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-20" /></div></td>

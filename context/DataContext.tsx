@@ -69,6 +69,7 @@ interface DataContextType {
     updateFacilitySettings: (key: 'court' | 'gym' | 'laundry', settings: Partial<FacilitySettings>) => void;
     toggleSlotBlock: (facility: 'court' | 'gym' | 'laundry', date: string, time: string) => void;
 
+    roomChangeRequests: any[];
     payments: Payment[];
     refreshData: () => Promise<void>;
 }
@@ -92,6 +93,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const [roomChangeRequest, setRoomChangeRequest] = useState<any>(null);
     const [notifications, setNotifications] = useState<any[]>([]);
     const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+    const [roomChangeRequests, setRoomChangeRequests] = useState<any[]>([]);
 
     // --- Fetch Data ---
     const fetchData = useCallback(async () => {
@@ -154,6 +156,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 }
             }
 
+            // Fetch All Room Change Requests (Admin Only)
+            if (user.role === 'admin') {
+                const rcrRes = await fetch('/api/room-change-requests');
+                const rcrData = await rcrRes.json();
+                if (rcrData.success) {
+                    setRoomChangeRequests(rcrData.requests || []);
+                }
+            }
+
         } catch (error) {
             console.error("Failed to fetch data", error);
         }
@@ -161,6 +172,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         fetchData();
+
+        // Polling every 30 seconds to keep data fresh (especially for admin dashboard)
+        const interval = setInterval(() => {
+            // Only fetch if the tab is active to save resources
+            if (document.visibilityState === 'visible') {
+                fetchData();
+            }
+        }, 30000);
+
+        return () => clearInterval(interval);
     }, [fetchData]);
 
     // --- Actions: Applications ---
@@ -359,6 +380,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             createBooking, updateBookingStatus, cancelBooking, updateFacilitySettings, toggleSlotBlock,
             myApplication, myRoomChangeRequest, myComplaints,
             notifications, unreadNotificationsCount, markNotificationRead,
+            roomChangeRequests,
             payments, refreshData: fetchData
         }}>
             {children}
