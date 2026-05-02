@@ -245,27 +245,26 @@ export default function CourtBookingPage() {
 
     // Calculate Weekly Limit Remaining
     const getWeeklyBookingsCount = () => {
-        const now = new Date();
-        const dayOfWeek = now.getDay(); // 0 (Sun) - 6 (Sat)
-        const distanceToMonday = (dayOfWeek + 6) % 7; // Monday = 0, Tuesday = 1, ..., Sunday = 6
+        if (!user || !courtBookings) return 0;
         
-        const startOfWeek = new Date(now);
-        startOfWeek.setDate(now.getDate() - distanceToMonday);
-        startOfWeek.setHours(0, 0, 0, 0);
-
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-        endOfWeek.setHours(23, 59, 59, 999);
+        const now = new Date();
+        const dayOfWeek = now.getDay(); 
+        const distanceToMonday = (dayOfWeek + 6) % 7;
+        
+        const start = new Date(now);
+        start.setDate(now.getDate() - distanceToMonday);
+        
+        const weekDates = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(start);
+            d.setDate(start.getDate() + i);
+            weekDates.push(d.toLocaleDateString('sv-SE'));
+        }
 
         return courtBookings.filter(b => {
-            if (b.studentId !== user?.id) return false;
+            if (String(b.studentId) !== String(user.id)) return false;
             if (b.status === 'Rejected' || b.status === 'Cancelled') return false;
-            
-            // b.date is YYYY-MM-DD
-            const [y, m, d] = b.date.split('-').map(Number);
-            const bDate = new Date(y, m - 1, d);
-            
-            return bDate >= startOfWeek && bDate <= endOfWeek;
+            return weekDates.includes(b.date);
         }).length;
     };
 
