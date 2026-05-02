@@ -18,6 +18,7 @@ export default function RoommatesCard() {
     const { myApplication, rooms } = useData();
     const [roommates, setRoommates] = useState<Roommate[]>([]);
     const [loading, setLoading] = useState(true);
+    const [enlargedRoommate, setEnlargedRoommate] = useState<Roommate | null>(null);
 
     useEffect(() => {
         const fetchRoommates = async () => {
@@ -70,12 +71,13 @@ export default function RoommatesCard() {
                     {roommates.map((roommate) => (
                         <div key={roommate.studentId} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800/50 group hover:border-emerald-200 dark:hover:border-emerald-900/50 transition-all">
                             <div className="flex items-center gap-3 min-w-0">
-                                <Link 
-                                    href={`/dashboard/profile/${roommate.studentId}`}
-                                    className="h-10 w-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center text-[#F26C22] font-black text-sm shadow-sm hover:scale-105 hover:shadow-md transition-all active:scale-95"
+                                <button 
+                                    onClick={() => setEnlargedRoommate(roommate)}
+                                    className="h-10 w-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center text-[#F26C22] font-black text-sm shadow-sm hover:scale-105 hover:shadow-md transition-all active:scale-95 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-zoom-in"
+                                    title="Click to enlarge photo"
                                 >
                                     {roommate.studentName.charAt(0)}
-                                </Link>
+                                </button>
                                 <div className="min-w-0">
                                     <p className="text-xs font-black text-slate-900 dark:text-white truncate">{roommate.studentName}</p>
                                     <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-0.5">Bed {roommate.bedId}</p>
@@ -94,6 +96,38 @@ export default function RoommatesCard() {
             <Link href="/dashboard/about" className="mt-6 flex items-center justify-center gap-2 text-[10px] font-black text-slate-400 hover:text-emerald-500 uppercase tracking-widest transition-colors">
                 View Community Guide <ChevronRight className="h-3 w-3" />
             </Link>
+
+            {/* Enlarged Avatar Modal */}
+            {enlargedRoommate && (
+                <div 
+                    className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300"
+                    onClick={() => setEnlargedRoommate(null)}
+                >
+                    <div 
+                        className="bg-white dark:bg-slate-900 p-2 rounded-[2rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-white/10 animate-in zoom-in-90 duration-300 flex flex-col items-center gap-4 max-w-sm w-full"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="w-full aspect-square rounded-[1.5rem] overflow-hidden bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700/50">
+                            {/* Since we don't have roommate profile images easily available yet, we use a placeholder that matches the initial */}
+                            <div className="w-full h-full flex items-center justify-center bg-white dark:bg-slate-800 text-[#F26C22] font-black text-[120px]">
+                                {enlargedRoommate.studentName.charAt(0)}
+                            </div>
+                        </div>
+
+                        <div className="w-full px-4 pb-2 text-center">
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white truncate">{enlargedRoommate.studentName}</h3>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Bed {enlargedRoommate.bedId}</p>
+                        </div>
+
+                        <button 
+                            onClick={() => setEnlargedRoommate(null)}
+                            className="w-full py-4 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-white font-black text-sm uppercase tracking-widest rounded-xl transition-colors"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
