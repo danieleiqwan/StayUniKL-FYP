@@ -216,6 +216,20 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'This time slot has already passed and cannot be booked.' }, { status: 400 });
         }
 
+        // 1.1 Check if the slot is too far in the future (Limit: 30 days advance)
+        if (user.role !== 'admin') {
+            const maxAdvanceDays = 30;
+            const maxDate = new Date();
+            maxDate.setDate(maxDate.getDate() + maxAdvanceDays);
+            maxDate.setHours(23, 59, 59, 999);
+
+            if (requestDate > maxDate) {
+                return NextResponse.json({ 
+                    error: `Advance Booking Limit: You can only book courts up to ${maxAdvanceDays} days (1 month) in advance.` 
+                }, { status: 400 });
+            }
+        }
+
         const connection = await pool.getConnection();
         await connection.beginTransaction();
 
