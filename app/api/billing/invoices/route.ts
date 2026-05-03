@@ -3,6 +3,8 @@ import pool from '@/lib/db';
 import { getAuthUser, isAdmin } from '@/lib/auth';
 import { createNotification } from '@/lib/notifications';
 
+export const dynamic = 'force-dynamic';
+
 // Auto-update overdue invoices on every fetch (server-side)
 async function markOverdueInvoices() {
     try {

@@ -15,13 +15,24 @@ function PaymentGatewayContent() {
     const [isDone, setIsDone] = useState(false);
     const [selectedMethod, setSelectedMethod] = useState<'card' | 'fpx' | 'ewallet'>('card');
 
-    const amount = searchParams.get('amount') || myApplication?.totalPrice || '0.00';
+    const [amount, setAmount] = useState<string>(searchParams.get('amount') || myApplication?.totalPrice || '0.00');
     const referenceId = searchParams.get('ref') || myApplication?.id || '';
     const invoiceId = searchParams.get('invoiceId') || '';
 
     useEffect(() => {
         if (!user) router.push('/login');
-    }, [user, router]);
+        
+        // If amount is 0 but we have an invoiceId, try to fetch the invoice
+        if ((amount === '0' || amount === '0.00') && invoiceId) {
+            fetch(`/api/billing/invoices?userId=${user?.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    const inv = data.invoices?.find((i: any) => i.id === invoiceId);
+                    if (inv) setAmount(String(inv.amount));
+                })
+                .catch(err => console.error('Error fetching invoice for payment:', err));
+        }
+    }, [user, router, invoiceId, amount]);
 
     const isAlreadyPaid = myApplication?.paymentStatus === 'Paid' || (myApplication as any)?.payment_status === 'Paid';
 

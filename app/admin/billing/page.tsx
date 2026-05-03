@@ -70,10 +70,6 @@ export default function AdminBillingPage() {
         userId: '', type: 'Hostel Fee', description: '', amount: '', dueDate: ''
     });
 
-    if (!user || user.role !== 'admin') {
-        return <div className="p-10 text-center font-bold text-rose-500">Access Denied. Admins only.</div>;
-    }
-
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -81,16 +77,26 @@ export default function AdminBillingPage() {
             const invRes = await fetch('/api/billing/invoices?all=true');
             const invData = await invRes.json();
             if (invData.invoices) setInvoices(invData.invoices);
-
-            // Fetch all payments — we'll use a trick: fetch without userId for admin
-            // The existing GET requires userId, so we'll skip or reuse the endpoint creatively
-            // For now we use our own endpoint that returns all if admin
+            // Fetch payments
+            const payRes = await fetch('/api/payments?userId=admin');
+            const payData = await payRes.json();
+            if (payData.payments) setPayments(payData.payments);
+        } catch (error) {
+            console.error('Fetch error:', error);
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => { fetchData(); }, []);
+    useEffect(() => { 
+        if (user && user.role === 'admin') {
+            fetchData(); 
+        }
+    }, [user]);
+
+    if (!user || user.role !== 'admin') {
+        return <div className="p-10 text-center font-bold text-rose-500">Access Denied. Admins only.</div>;
+    }
 
     const handleRunAutoBilling = async () => {
         if (!confirm('This will scan all checked-in students and generate missing monthly invoices. Proceed?')) return;
@@ -374,14 +380,54 @@ export default function AdminBillingPage() {
 
                         {/* ─── Transaction History ─── */}
                         {activeTab === 'transactions' && (
-                            <div className="py-16 text-center">
-                                <div className="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                    <CreditCard className="h-8 w-8 text-slate-400" />
-                                </div>
-                                <h4 className="font-black text-slate-900 dark:text-white mb-1">Transaction History</h4>
-                                <p className="text-slate-500 text-sm max-w-xs mx-auto">
-                                    Payment records from students appear here after invoice settlement.
-                                </p>
+                            <div>
+                                {loading ? (
+                                    <div className="py-16 text-center">
+                                        <RefreshCw className="h-6 w-6 animate-spin text-[#F26C22] mx-auto mb-3" />
+                                        <p className="text-sm text-slate-400">Loading transactions...</p>
+                                    </div>
+                                ) : payments.length === 0 ? (
+                                    <div className="py-16 text-center">
+                                        <div className="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                            <CreditCard className="h-8 w-8 text-slate-400" />
+                                        </div>
+                                        <h4 className="font-black text-slate-900 dark:text-white mb-1">No Transactions Found</h4>
+                                        <p className="text-slate-500 text-sm max-w-xs mx-auto">
+                                            Payment records will appear here after students settle their invoices.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-800">
+                                        <table className="w-full text-sm">
+                                            <thead>
+                                                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                                    {['Transaction ID', 'Student', 'Ref / Invoice', 'Amount', 'Date', 'Method', 'Status'].map(h => (
+                                                        <th key={h} className="px-5 py-3.5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+                                                {payments.map(pay => (
+                                                    <tr key={pay.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                                        <td className="px-5 py-4 font-mono text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[120px]">{pay.id}</td>
+                                                        <td className="px-5 py-4 text-xs font-bold text-slate-800 dark:text-white">{pay.user_id}</td>
+                                                        <td className="px-5 py-4 text-[10px] font-mono text-slate-400">
+                                                            {pay.reference_id}
+                                                            {pay.invoice_id && <div className="text-blue-500 font-bold mt-0.5">INV: {pay.invoice_id}</div>}
+                                                        </td>
+                                                        <td className="px-5 py-4 font-black text-slate-900 dark:text-white">RM {Number(pay.amount).toFixed(2)}</td>
+                                                        <td className="px-6 py-4 text-[11px] text-slate-500">
+                                                            {new Date(pay.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                            <div className="text-[10px] opacity-60">{new Date(pay.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>
+                                                        </td>
+                                                        <td className="px-5 py-4 text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{pay.method}</td>
+                                                        <td className="px-5 py-4"><StatusBadge status={pay.status} /></td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
