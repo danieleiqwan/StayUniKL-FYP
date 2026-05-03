@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
 import pool from '@/lib/db';
 import { getAuthUser } from '@/lib/auth';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
             ).end(buffer);
         });
 
-        const docId = `doc_${uuidv4().replace(/-/g, '').slice(0, 16)}`;
+        const docId = `doc_${crypto.randomUUID().replace(/-/g, '').slice(0, 16)}`;
         const fileName = file.name;
         const fileUrl = uploadResponse.secure_url;
 
