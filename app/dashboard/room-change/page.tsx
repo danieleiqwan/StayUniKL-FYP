@@ -318,8 +318,14 @@ export default function RoomChangePage() {
                     </div>
                 ) : (
                     /* Wizard Steps */
-                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
-                        {/* Custom Progress Bar */}
+                    <div className="space-y-6">
+                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 px-6 py-4 rounded-2xl flex items-start sm:items-center gap-3 text-sm shadow-sm">
+                            <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5 sm:mt-0" />
+                            <p className="font-bold">Important Notice: You can only request a room change <span className="font-black underline underline-offset-2">once</span> during your residency.</p>
+                        </div>
+                        
+                        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
+                            {/* Custom Progress Bar */}
                         <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 px-10 py-8">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
@@ -567,6 +573,7 @@ export default function RoomChangePage() {
                                     {submitting ? 'LOGGING...' : 'COMMIT REQUEST'}
                                 </button>
                             )}
+                        </div>
                         </div>
                     </div>
                 )}

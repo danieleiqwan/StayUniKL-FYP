@@ -29,17 +29,15 @@ export async function POST(request: Request) {
         // It's expected if migration hasn't run.
         const [result]: any = await pool.query(
             'UPDATE users SET alert_booking = ?, alert_maintenance = ?, alert_announcement = ? WHERE id = ?',
-            [alertBooking, alertMaintenance, alertAnnouncement, user.id]
+            [alertBooking ? 1 : 0, alertMaintenance ? 1 : 0, alertAnnouncement ? 1 : 0, user.id]
         );
 
-        if (result.affectedRows === 0) {
-            return NextResponse.json({ error: 'Database update failed. User not found.' }, { status: 404 });
-        }
-
+        // If the row exists but nothing was changed, affectedRows might be 0 depending on the MySQL driver config.
+        // We assume the user exists since getAuthUser() validated the JWT.
         return NextResponse.json({ success: true });
 
     } catch (error: any) {
         console.error('Update alerts error:', error);
-        return NextResponse.json({ error: 'Could not update preferences. Did you run the database migration (/api/migrate)?' }, { status: 500 });
+        return NextResponse.json({ error: 'Update failed: ' + error.message }, { status: 500 });
     }
 }
