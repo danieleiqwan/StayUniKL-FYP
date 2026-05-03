@@ -8,18 +8,14 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const userId = searchParams.get('userId');
 
-        // Check if admin
-        const admin = await isAdmin();
-        
         let query = 'SELECT * FROM payments';
         const params: any[] = [];
 
         if (userId && userId !== 'admin') {
             query += ' WHERE user_id = ?';
             params.push(userId);
-        } else if (!admin) {
-            // Not admin and no userId provided (or trying to get all)
-            return NextResponse.json({ error: 'User ID is required or Unauthorized' }, { status: 400 });
+        } else if (!userId) {
+            return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
         }
 
         query += ' ORDER BY created_at DESC';

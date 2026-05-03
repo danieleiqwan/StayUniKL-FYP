@@ -68,6 +68,7 @@ export async function POST(request: Request) {
                 email: user.email,
                 role: user.role,
                 gender: user.gender,
+                studentId: user.student_id || null,
                 phoneNumber: user.phone_number,
                 parentPhoneNumber: user.parent_phone_number,
                 profileImage: user.profile_image,
