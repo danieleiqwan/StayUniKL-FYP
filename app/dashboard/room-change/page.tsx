@@ -24,13 +24,12 @@ interface RoomChangeRequest {
 
 export default function RoomChangePage() {
     const { user } = useAuth();
-    const { applications, getAvailableFloors, getRoomsByFloor } = useData();
+    const { applications, getAvailableFloors, getRoomsByFloor, myApplication } = useData();
     const router = useRouter();
 
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [activeRequest, setActiveRequest] = useState<RoomChangeRequest | null>(null);
-    const [currentApplication, setCurrentApplication] = useState<any>(null);
 
     // Wizard State
     const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -59,12 +58,6 @@ export default function RoomChangePage() {
     const loadData = async () => {
         try {
             setLoading(true);
-
-            // Find current checked-in application
-            const checkedInApp = applications.find(
-                (app) => app.studentId === user?.id && app.status === 'Checked in'
-            );
-            setCurrentApplication(checkedInApp);
 
             // Fetch existing requests
             const res = await fetch(`/api/room-change-requests?studentId=${user?.id}`);
@@ -163,8 +156,8 @@ export default function RoomChangePage() {
                 body: JSON.stringify({
                     studentId: user?.id,
                     studentName: user?.name,
-                    currentRoomId: currentApplication?.roomId,
-                    currentBedId: currentApplication?.bedId,
+                    currentRoomId: myApplication?.roomId,
+                    currentBedId: myApplication?.bedId,
                     preferredRoomId: selectedRoom?.id,
                     preferredRoomType: selectedRoom?.roomType,
                     preferredBedId: selectedBed.id,
@@ -222,7 +215,7 @@ export default function RoomChangePage() {
     }
 
     // Check if student is checked in
-    if (!currentApplication) {
+    if (!myApplication || myApplication.status !== 'Checked in') {
         return (
             <div className="max-w-2xl mx-auto bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 p-12 text-center mt-10 shadow-sm flex flex-col items-center transition-colors">
                 <div className="h-24 w-24 bg-orange-50 dark:bg-orange-900/20 rounded-full ring-8 ring-orange-50/50 dark:ring-orange-900/10 flex items-center justify-center mb-8">
