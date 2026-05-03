@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, BedDouble, Users, Wrench } from 'lucide-react';
+import RoomDetailModal from './RoomDetailModal';
 
 interface Bed {
     id: string;
@@ -68,17 +69,23 @@ function getRoomColor(room: Room) {
     };
 }
 
-function RoomCard({ room }: { room: Room }) {
+function RoomCard({ room, onClick }: { room: Room, onClick: () => void }) {
     const color = getRoomColor(room);
     const occupiedBeds = room.beds.filter(b => b.isOccupied).length;
     const pct = room.capacity > 0 ? (occupiedBeds / room.capacity) * 100 : 0;
 
     return (
-        <div className={`group rounded-2xl border-2 ${color.card} p-4 flex flex-col gap-3 transition-all hover:shadow-md hover:-translate-y-0.5 duration-200`}>
+        <div 
+            onClick={onClick}
+            className={`group rounded-2xl border-2 ${color.card} p-4 flex flex-col gap-3 transition-all hover:shadow-xl hover:-translate-y-1 hover:border-[#F26C22]/50 cursor-pointer duration-300 relative overflow-hidden`}
+        >
+            {/* Hover overlay highlight */}
+            <div className="absolute inset-0 bg-[#F26C22]/0 group-hover:bg-[#F26C22]/5 transition-colors duration-300" />
+            
             {/* Room header */}
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between relative z-10">
                 <div>
-                    <p className="font-black text-slate-900 dark:text-white text-sm">{room.label}</p>
+                    <p className="font-black text-slate-900 dark:text-white text-sm group-hover:text-[#F26C22] transition-colors">{room.label}</p>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider mt-0.5">
                         {room.roomType} · {room.gender}
                     </p>
@@ -89,7 +96,7 @@ function RoomCard({ room }: { room: Room }) {
             </div>
 
             {/* Occupancy bar */}
-            <div>
+            <div className="relative z-10">
                 <div className="flex justify-between items-center mb-1">
                     <span className="text-[10px] text-slate-500 font-medium">Occupancy</span>
                     <span className="text-[10px] font-black text-slate-700 dark:text-slate-300">{occupiedBeds}/{room.capacity}</span>
@@ -103,7 +110,7 @@ function RoomCard({ room }: { room: Room }) {
             </div>
 
             {/* Bed dots */}
-            <div className="flex gap-1.5 flex-wrap">
+            <div className="flex gap-1.5 flex-wrap relative z-10">
                 {room.beds.map(bed => (
                     <div
                         key={bed.id}
@@ -123,7 +130,7 @@ function RoomCard({ room }: { room: Room }) {
     );
 }
 
-function FloorAccordion({ floor, rooms, defaultOpen }: { floor: number; rooms: Room[]; defaultOpen: boolean }) {
+function FloorAccordion({ floor, rooms, defaultOpen, onRoomClick }: { floor: number; rooms: Room[]; defaultOpen: boolean; onRoomClick: (room: Room) => void }) {
     const [open, setOpen] = useState(defaultOpen);
     const totalBeds = rooms.reduce((a, r) => a + r.capacity, 0);
     const occupiedBeds = rooms.reduce((a, r) => a + r.beds.filter(b => b.isOccupied).length, 0);
@@ -166,7 +173,7 @@ function FloorAccordion({ floor, rooms, defaultOpen }: { floor: number; rooms: R
                 <div className="px-6 pb-6 pt-2 border-t border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
                         {rooms.map(room => (
-                            <RoomCard key={room.id} room={room} />
+                            <RoomCard key={room.id} room={room} onClick={() => onRoomClick(room)} />
                         ))}
                     </div>
                 </div>
@@ -176,6 +183,7 @@ function FloorAccordion({ floor, rooms, defaultOpen }: { floor: number; rooms: R
 }
 
 export default function RoomAvailabilityGrid({ rooms, selectedFloor }: RoomAvailabilityGridProps) {
+    const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
     const filteredRooms = selectedFloor === 'All' ? rooms : rooms.filter(r => r.floorId === selectedFloor);
     const floors = Array.from(new Set(filteredRooms.map(r => r.floorId))).sort((a, b) => a - b);
 
@@ -196,8 +204,15 @@ export default function RoomAvailabilityGrid({ rooms, selectedFloor }: RoomAvail
                     floor={floor}
                     rooms={filteredRooms.filter(r => r.floorId === floor)}
                     defaultOpen={idx === 0}
+                    onRoomClick={(room) => setSelectedRoom(room)}
                 />
             ))}
+
+            {/* Room Detail Modal */}
+            <RoomDetailModal 
+                room={selectedRoom as any} 
+                onClose={() => setSelectedRoom(null)} 
+            />
         </div>
     );
 }

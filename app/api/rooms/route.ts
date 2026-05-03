@@ -16,9 +16,15 @@ export async function GET() {
         // Let's stick to design: Payment Pending, Approved, Checked in.
         // Also Pending if we want to show it as "Requested".
         // For inventory V1, let's look for explicitly assigned beds.
-        // 3. Fetch Occupied Beds (Active Applications) with Student Names
+        // 3. Fetch Occupied Beds (Active Applications) with Student Details
         const [activeApps]: any = await pool.query(`
-            SELECT a.bed_id, a.student_id, u.name as student_name
+            SELECT 
+                a.bed_id, 
+                a.student_id, 
+                u.name as student_name, 
+                u.profile_image, 
+                a.check_in_date,
+                u.student_id as student_id_number
             FROM applications a
             JOIN users u ON a.student_id = u.id
             WHERE a.bed_id IS NOT NULL 
@@ -30,7 +36,10 @@ export async function GET() {
         activeApps.forEach((app: any) => {
             occupancyMap.set(app.bed_id, {
                 id: app.student_id,
-                name: app.student_name
+                name: app.student_name,
+                studentId: app.student_id_number,
+                profileImage: app.profile_image,
+                checkInDate: app.check_in_date
             });
         });
 
@@ -46,7 +55,10 @@ export async function GET() {
                         status: bed.status, // Maintenance etc
                         isOccupied: !!student,
                         occupantName: student?.name || null,
-                        occupantId: student?.id || null
+                        occupantId: student?.id || null,
+                        occupantStudentId: student?.studentId || null,
+                        occupantProfileImage: student?.profileImage || null,
+                        occupantCheckInDate: student?.checkInDate || null
                     };
                 });
 
