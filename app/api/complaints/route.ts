@@ -34,7 +34,7 @@ export async function GET(request: Request) {
         const activeId = user.role === 'admin' ? studentId : user.id;
 
         let query = `
-            SELECT c.*, u.name as student_name 
+            SELECT c.*, u.name as student_name, u.student_id as official_id
             FROM complaints c
             LEFT JOIN users u ON c.student_id = u.id
         `;
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
 
         const complaints = rows.map((row: any) => ({
             id: row.id,
-            studentId: row.student_id,
+            studentId: row.official_id || row.student_id,
             studentName: row.student_name,
             title: row.title,
             description: row.description,

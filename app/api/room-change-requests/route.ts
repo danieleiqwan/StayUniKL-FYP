@@ -49,6 +49,7 @@ export async function GET(request: Request) {
 
         let query = `
             SELECT rcr.*,
+                   COALESCE(u.student_id, rcr.student_id) as student_id,
                    u.name as student_name,
                    u.gender as student_gender,
                    curr_room.id as current_room_number,

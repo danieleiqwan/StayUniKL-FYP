@@ -50,7 +50,7 @@ export async function GET(request: Request) {
         const activeId = user.role === 'admin' ? studentId : user.id;
 
         let query = `
-            SELECT b.*, u.name as student_name 
+            SELECT b.*, u.name as student_name, u.student_id as official_id
             FROM court_bookings b
             LEFT JOIN users u ON b.student_id = u.id
         `;
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
         const [bookingsRows]: any = await pool.query(query, params);
         const bookings = bookingsRows.map((b: any) => ({
             id: b.id,
-            studentId: b.student_id,
+            studentId: b.official_id || b.student_id,
             studentName: b.student_name,
             sport: b.sport,
             date: b.date, // might need formatting depending on driver output

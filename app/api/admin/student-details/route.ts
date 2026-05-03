@@ -12,10 +12,13 @@ export async function GET(request: Request) {
 
         // 1. Fetch Profile
         const [userRows]: any = await pool.query(
-            'SELECT id, name, email, role, gender, phone_number, parent_phone_number, created_at FROM users WHERE id = ?',
-            [studentId]
+            'SELECT id, student_id, name, email, role, gender, phone_number, parent_phone_number, created_at FROM users WHERE id = ? OR student_id = ?',
+            [studentId, studentId]
         );
         const profile = userRows[0];
+        
+        // Use the actual internal ID for subsequent queries to ensure consistency
+        const internalId = profile?.id;
 
         if (!profile) {
             return NextResponse.json({ error: 'Student not found' }, { status: 404 });
@@ -24,19 +27,19 @@ export async function GET(request: Request) {
         // 2. Fetch Applications
         const [appRows]: any = await pool.query(
             'SELECT * FROM applications WHERE student_id = ? ORDER BY date DESC',
-            [studentId]
+            [internalId]
         );
 
         // 3. Fetch Payments
         const [payRows]: any = await pool.query(
             'SELECT * FROM payments WHERE user_id = ? ORDER BY created_at DESC',
-            [studentId]
+            [internalId]
         );
 
         // 4. Fetch Complaints
         const [compRows]: any = await pool.query(
             'SELECT * FROM complaints WHERE student_id = ? ORDER BY date DESC',
-            [studentId]
+            [internalId]
         );
         const parsedCompRows = compRows.map((comp: any) => ({
             ...comp,
@@ -46,7 +49,7 @@ export async function GET(request: Request) {
         // 5. Fetch Documents
         const [docRows]: any = await pool.query(
             'SELECT * FROM documents WHERE user_id = ? ORDER BY created_at DESC',
-            [studentId]
+            [internalId]
         );
 
         // 6. Fetch Room Details from active/most recent application

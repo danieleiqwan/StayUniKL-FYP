@@ -40,7 +40,7 @@ export async function GET(request: Request) {
         }
 
         let query = `
-            SELECT a.*, u.gender, u.name as student_name 
+            SELECT a.*, u.gender, u.name as student_name, u.student_id as official_id
             FROM applications a
             LEFT JOIN users u ON a.student_id = u.id
         `;
@@ -59,7 +59,7 @@ export async function GET(request: Request) {
 
         const applications = rows.map((row: any) => ({
             id: row.id,
-            studentId: row.student_id,
+            studentId: row.official_id || row.student_id,
             studentName: row.student_name,
             gender: row.gender,
             roomType: row.room_type,
