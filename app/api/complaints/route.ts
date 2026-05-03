@@ -11,6 +11,7 @@ const complaintSchema = z.object({
     studentId: z.string().min(1),
     title: z.string().min(5).max(100),
     description: z.string().min(10),
+    asset: z.string().optional(),
     imagePaths: z.array(z.string()).optional(),
 });
 
@@ -55,6 +56,7 @@ export async function GET(request: Request) {
             studentName: row.student_name,
             title: row.title,
             description: row.description,
+            asset: row.asset,
             images: row.images ? JSON.parse(row.images) : [],
             status: row.status,
             technicianAppointment: row.technician_appointment,
@@ -88,7 +90,7 @@ export async function POST(request: Request) {
             }, { status: 400 });
         }
 
-        const { studentId, title, description, imagePaths } = validation.data;
+        const { studentId, title, description, asset, imagePaths } = validation.data;
 
         // Fetch student name from DB
         const [studentRows]: any = await pool.query('SELECT name FROM users WHERE id = ?', [studentId]);
@@ -117,8 +119,8 @@ export async function POST(request: Request) {
         const imagesJson = finalImageUrls.length > 0 ? JSON.stringify(finalImageUrls) : null;
 
         await pool.query(
-            'INSERT INTO complaints (id, student_id, title, description, images) VALUES (?, ?, ?, ?, ?)',
-            [id, studentId, title, description, imagesJson]
+            'INSERT INTO complaints (id, student_id, title, description, asset, images) VALUES (?, ?, ?, ?, ?, ?)',
+            [id, studentId, title, description, asset || null, imagesJson]
         );
 
         // Audit Log
@@ -128,7 +130,7 @@ export async function POST(request: Request) {
             action: 'Reported Complaint',
             entityType: 'Complaint',
             entityId: id,
-            details: { title, description, imageCount: finalImageUrls.length }
+            details: { title, description, asset, imageCount: finalImageUrls.length }
         });
 
         // Send Notification
@@ -143,7 +145,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ 
             success: true, 
-            complaint: { id, studentId, studentName, title, description, images: finalImageUrls, status: 'Pending', date: new Date() } 
+            complaint: { id, studentId, studentName, title, description, asset, images: finalImageUrls, status: 'Pending', date: new Date() } 
         });
 
     } catch (error: any) {

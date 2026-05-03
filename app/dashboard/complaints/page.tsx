@@ -13,7 +13,7 @@ export default function ComplaintsPage() {
     const isCheckedIn = myApplication?.status === 'Checked in';
 
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [complaintForm, setComplaintForm] = useState({ title: '', description: '' });
+    const [complaintForm, setComplaintForm] = useState({ title: '', description: '', asset: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [activeFilter, setActiveFilter] = useState('All');
 
@@ -68,8 +68,8 @@ export default function ComplaintsPage() {
                 }
                 uploadedPaths = uploadData.paths;
             }
-            await createComplaint(complaintForm.title, complaintForm.description, uploadedPaths);
-            setComplaintForm({ title: '', description: '' });
+            await createComplaint(complaintForm.title, complaintForm.description, uploadedPaths, complaintForm.asset);
+            setComplaintForm({ title: '', description: '', asset: '' });
             setImageFiles([]);
             imagePreviews.forEach(p => URL.revokeObjectURL(p));
             setImagePreviews([]);
@@ -134,6 +134,26 @@ export default function ComplaintsPage() {
                                 placeholder="e.g., Broken Fan in Room 101"
                                 className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-4 py-3 text-sm focus:border-[#F26C22] dark:focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:focus:ring-orange-900/20 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600 text-slate-800 dark:text-white"
                             />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Select Affected Asset</label>
+                            <select 
+                                required
+                                value={complaintForm.asset}
+                                onChange={e => setComplaintForm({ ...complaintForm, asset: e.target.value })}
+                                className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 px-4 py-3 text-sm focus:border-[#F26C22] dark:focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:focus:ring-orange-900/20 outline-none transition-all text-slate-800 dark:text-white"
+                            >
+                                <option value="" disabled>Choose an asset...</option>
+                                <option value="Bed Frame">Bed Frame</option>
+                                <option value="Study Table">Study Table</option>
+                                <option value="Wardrobe">Wardrobe</option>
+                                <option value="Ceiling Fan">Ceiling Fan</option>
+                                <option value="LED Light / Electrical Socket">LED Light / Electrical Socket</option>
+                                <option value="Air Conditioning Unit">Air Conditioning Unit</option>
+                                <option value="Door Lock / Handle">Door Lock / Handle</option>
+                                <option value="Other">Other (General Facility)</option>
+                            </select>
                         </div>
 
                         <div>

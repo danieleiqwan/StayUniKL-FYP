@@ -60,7 +60,7 @@ interface DataContextType {
 
 
     complaints: Complaint[];
-    createComplaint: (title: string, description: string, imagePaths?: string[]) => void;
+    createComplaint: (title: string, description: string, imagePaths?: string[], asset?: string) => void;
     updateComplaint: (id: string, status: Complaint['status'], appointmentDate?: string) => void;
     myComplaints: Complaint[];
 
@@ -262,13 +262,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
 
     // --- Actions: Complaints ---
-    const createComplaint = async (title: string, description: string, imagePaths?: string[]) => {
+    const createComplaint = async (title: string, description: string, imagePaths?: string[], asset?: string) => {
         if (!user) return;
         try {
             await fetch('/api/complaints', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ studentId: user.id, studentName: user.name, title, description, imagePaths: imagePaths || [] })
+                body: JSON.stringify({ 
+                    studentId: user.id, 
+                    studentName: user.name, 
+                    title, 
+                    description, 
+                    asset,
+                    imagePaths: imagePaths || [] 
+                })
             });
             fetchData();
         } catch (e) { console.error(e); }
