@@ -60,7 +60,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function FinancialsContent() {
     const { user } = useAuth();
-    const { myApplication, refreshData } = useData();
+    const { myApplication, refreshData, payments } = useData();
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -90,7 +90,7 @@ function FinancialsContent() {
     const filtered = filter === 'All' ? invoices : invoices.filter(i => i.status === filter);
 
     // Stats
-    const totalPaid = invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + Number(i.amount), 0);
+    const totalPaid = payments.filter(p => p.status === 'Success').reduce((s, p) => s + Number(p.amount), 0);
     const totalPending = invoices.filter(i => i.status === 'Unpaid').reduce((s, i) => s + Number(i.amount), 0);
     const totalOverdue = invoices.filter(i => i.status === 'Overdue').reduce((s, i) => s + Number(i.amount), 0);
     const grandOutstanding = totalPending + totalOverdue;
