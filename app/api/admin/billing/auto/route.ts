@@ -89,6 +89,26 @@ export async function POST(request: Request) {
                 }
             } else {
                 log.push(`No missing invoices.`);
+                
+                // If they have any unpaid invoices, send a reminder
+                const [unpaidInvoices]: any = await pool.query(
+                    "SELECT id, description, amount FROM invoices WHERE user_id = ? AND status = 'Unpaid'",
+                    [app.student_id]
+                );
+                
+                if (unpaidInvoices.length > 0) {
+                    log.push(`Sending reminders for ${unpaidInvoices.length} unpaid invoices.`);
+                    for (const inv of unpaidInvoices) {
+                        await createNotification({
+                            userId: app.student_id,
+                            title: 'Unpaid Invoice Reminder',
+                            message: `You have an outstanding invoice: ${inv.description || 'Hostel Fee'} (RM ${inv.amount}). Please settle it soon.`,
+                            type: 'error',
+                            relatedEntityId: inv.id,
+                            relatedEntityType: 'Invoice'
+                        });
+                    }
+                }
             }
         }
 
