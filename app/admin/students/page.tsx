@@ -25,6 +25,7 @@ export default function StudentsDirectoryPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [residencyFilter, setResidencyFilter] = useState('All');
+    const [floorFilter, setFloorFilter] = useState('All Floors');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
@@ -67,9 +68,12 @@ export default function StudentsDirectoryPage() {
                 (residencyFilter === 'Current Staying' && s.latest_status === 'Checked in') ||
                 (residencyFilter === 'Past Staying' && s.latest_status === 'Checked out');
 
-            return matchesSearch && matchesStatus && matchesResidency;
+            const matchesFloor = floorFilter === 'All Floors' || 
+                (s.room_id && s.room_id.toString().startsWith(floorFilter.replace('Floor ', '')));
+
+            return matchesSearch && matchesStatus && matchesResidency && matchesFloor;
         });
-    }, [students, searchQuery, statusFilter, residencyFilter]);
+    }, [students, searchQuery, statusFilter, residencyFilter, floorFilter]);
 
     // Pagination Logic
     const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -172,6 +176,19 @@ export default function StudentsDirectoryPage() {
                                 <option>All</option>
                                 <option>Current Staying</option>
                                 <option>Past Staying</option>
+                            </select>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Floor</label>
+                            <select 
+                                value={floorFilter}
+                                onChange={(e) => setFloorFilter(e.target.value)}
+                                className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#F26C22] min-w-[140px]"
+                            >
+                                <option>All Floors</option>
+                                {[1, 2, 3, 4, 5, 6, 7].map(f => (
+                                    <option key={f}>Floor {f}</option>
+                                ))}
                             </select>
                         </div>
                     </div>
