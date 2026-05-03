@@ -24,8 +24,9 @@ export async function POST(request: Request) {
         for (const app of applications) {
             log.push(`Processing App ${app.id} (student: ${app.student_id})`);
             
-            // Allow auto-bill for both monthly and semester durations
-            if (app.duration_type !== '1_month' && app.duration_type !== '1_semester') {
+            // Only auto-bill students who are paying on a monthly basis ('1_month')
+            // Students who paid for '1_semester' are fully paid up front.
+            if (app.duration_type !== '1_month') {
                 log.push(`Skipping: duration_type is ${app.duration_type}`);
                 continue;
             }
