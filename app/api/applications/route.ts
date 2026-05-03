@@ -182,49 +182,72 @@ export async function PUT(request: Request) {
         query += ' WHERE id = ?';
         params.push(id);
 
-        await pool.query(query, params);
+        const connection = await pool.getConnection();
+        await connection.beginTransaction();
 
-        // --- NOTIFICATION LOGIC ---
-        // 1. Fetch application details to notify the student
-        const [appRows]: any = await pool.query('SELECT student_id, room_type FROM applications WHERE id = ?', [id]);
-        if (appRows.length > 0) {
-            const app = appRows[0];
-            const studentId = app.student_id;
-            
-            let title = 'Application Update';
-            let message = `Your hostel application status has been updated to ${status}.`;
-            let type: any = 'info';
+        try {
+            // 1. Update Application Status
+            await connection.query(query, params);
 
-            if (status === 'Payment Pending') {
-                title = 'Application Approved';
-                message = `Great news! Your application for ${app.room_type} has been approved. Please proceed to payment to confirm your room.`;
-                type = 'success';
-            } else if (status === 'Approved') {
-                title = 'Payment Confirmed';
-                message = `Your payment has been verified. Your stay in ${app.room_type} is now confirmed.`;
-                type = 'success';
-            } else if (status === 'Rejected' || status === 'Cancelled') {
-                title = 'Application Cancelled';
-                message = `Your application for ${app.room_type} has been ${status.toLowerCase()}. ${cancellationReason ? `Reason: ${cancellationReason}` : ''}`;
-                type = 'error';
-            } else if (status === 'Checked in') {
-                title = 'Welcome to StayUniKL!';
-                message = `You have successfully checked into your room. We hope you have a pleasant stay!`;
-                type = 'success';
-            } else if (status === 'Checked out') {
-                title = 'Check-out Confirmed';
-                message = `You have successfully checked out. Thank you for staying with us!`;
-                type = 'info';
+            // 2. Fetch application details for resource management and notifications
+            const [appRows]: any = await connection.query('SELECT student_id, room_type, bed_id FROM applications WHERE id = ?', [id]);
+            if (appRows.length > 0) {
+                const app = appRows[0];
+                const studentId = app.student_id;
+                const bedId = app.bed_id;
+
+                // 3. Release Bed if cancelled/rejected/checked-out
+                if (status === 'Cancelled' || status === 'Rejected' || status === 'Checked out' || status === 'No show') {
+                    if (bedId) {
+                        await connection.query('UPDATE beds SET status = "Available" WHERE id = ?', [bedId]);
+                    }
+                }
+
+                await connection.commit();
+
+                // --- NOTIFICATION LOGIC (Success Path) ---
+                let title = 'Application Update';
+                let message = `Your hostel application status has been updated to ${status}.`;
+                let type: any = 'info';
+
+                if (status === 'Payment Pending') {
+                    title = 'Application Approved';
+                    message = `Great news! Your application for ${app.room_type} has been approved. Please proceed to payment to confirm your room.`;
+                    type = 'success';
+                } else if (status === 'Approved') {
+                    title = 'Payment Confirmed';
+                    message = `Your payment has been verified. Your stay in ${app.room_type} is now confirmed.`;
+                    type = 'success';
+                } else if (status === 'Rejected' || status === 'Cancelled') {
+                    title = 'Application Cancelled';
+                    message = `Your application for ${app.room_type} has been ${status.toLowerCase()}. ${cancellationReason ? `Reason: ${cancellationReason}` : ''}`;
+                    type = 'error';
+                } else if (status === 'Checked in') {
+                    title = 'Welcome to StayUniKL!';
+                    message = `You have successfully checked into your room. We hope you have a pleasant stay!`;
+                    type = 'success';
+                } else if (status === 'Checked out') {
+                    title = 'Check-out Confirmed';
+                    message = `You have successfully checked out. Thank you for staying with us!`;
+                    type = 'info';
+                }
+
+                await createNotification({
+                    userId: studentId,
+                    title,
+                    message,
+                    type,
+                    relatedEntityId: id,
+                    relatedEntityType: 'Application'
+                });
+            } else {
+                await connection.rollback();
             }
-
-            await createNotification({
-                userId: studentId,
-                title,
-                message,
-                type,
-                relatedEntityId: id,
-                relatedEntityType: 'Application'
-            });
+        } catch (err) {
+            await connection.rollback();
+            throw err;
+        } finally {
+            connection.release();
         }
         // --------------------------
 
