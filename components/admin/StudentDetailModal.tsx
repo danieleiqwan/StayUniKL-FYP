@@ -56,12 +56,29 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
                 {/* Header */}
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
                     <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-[#F26C22] flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-                            <User className="h-6 w-6" />
+                        <div className="relative">
+                            <div className="h-16 w-16 rounded-full border-4 border-white dark:border-slate-800 bg-[#F26C22] flex items-center justify-center overflow-hidden shadow-xl ring-4 ring-orange-500/10 transition-transform hover:scale-105 duration-300">
+                                {data?.profile?.profile_image ? (
+                                    <img 
+                                        src={data.profile.profile_image} 
+                                        alt={data.profile.name} 
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : (
+                                    <span className="text-xl font-black text-white uppercase">
+                                        {data?.profile?.name?.charAt(0) || studentId?.charAt(0) || 'S'}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full shadow-sm" title="Active Account" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-slate-900 dark:text-white">Student Comprehensive Review</h2>
-                            <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">ID: {studentId}</p>
+                            <h2 className="text-xl font-black text-slate-900 dark:text-white leading-tight">
+                                {data?.profile?.name || 'Student Comprehensive Review'}
+                            </h2>
+                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1 opacity-70">
+                                Student ID: <span className="text-[#F26C22]">{data?.profile?.student_id || studentId}</span>
+                            </p>
                         </div>
                     </div>
                     <button
