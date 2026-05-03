@@ -15,13 +15,13 @@ export async function GET() {
         let rows: any = [];
         try {
             [rows] = await pool.query(
-                'SELECT id, name, email, role, gender, profile_image, alert_booking, alert_maintenance, alert_announcement FROM users WHERE id = ?',
+                'SELECT id, name, email, role, gender, student_id, profile_image, alert_booking, alert_maintenance, alert_announcement FROM users WHERE id = ?',
                 [authUser.id]
             );
         } catch (e) {
             // Fallback for when migration hasn't run
             [rows] = await pool.query(
-                'SELECT id, name, email, role, gender, profile_image FROM users WHERE id = ?',
+                'SELECT id, name, email, role, gender, student_id, profile_image FROM users WHERE id = ?',
                 [authUser.id]
             );
         }
@@ -40,6 +40,7 @@ export async function GET() {
                 email: user.email,
                 role: user.role,
                 gender: user.gender,
+                studentId: user.student_id,
                 profileImage: user.profile_image,
                 alertBooking: user.alert_booking !== undefined ? !!user.alert_booking : true,
                 alertMaintenance: user.alert_maintenance !== undefined ? !!user.alert_maintenance : true,
