@@ -8,13 +8,12 @@ import { CreditCard, CheckCircle2, Shield } from 'lucide-react';
 
 function PaymentGatewayContent() {
     const { user } = useAuth();
-    const { myApplication, refreshData } = useData();
+    const { myApplication, refreshData, invoices } = useData();
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isProcessing, setIsProcessing] = useState(false);
     const [isDone, setIsDone] = useState(false);
     const [selectedMethod, setSelectedMethod] = useState<'card' | 'fpx' | 'ewallet'>('card');
-
     const [amount, setAmount] = useState<string>(searchParams.get('amount') || myApplication?.totalPrice || '0.00');
     const referenceId = searchParams.get('ref') || myApplication?.id || '';
     const invoiceId = searchParams.get('invoiceId') || '';
@@ -34,7 +33,12 @@ function PaymentGatewayContent() {
         }
     }, [user, router, invoiceId, amount]);
 
-    const isAlreadyPaid = myApplication?.paymentStatus === 'Paid' || (myApplication as any)?.payment_status === 'Paid';
+    // Check if ALREADY PAID
+    const isAppPaid = myApplication?.paymentStatus === 'Paid' || (myApplication as any)?.payment_status === 'Paid';
+    const currentInvoice = invoices?.find(i => i.id === invoiceId);
+    const isInvPaid = currentInvoice?.status === 'Paid';
+    
+    const isAlreadyPaid = invoiceId ? isInvPaid : isAppPaid;
 
     const handlePayment = async () => {
         if (isAlreadyPaid || isDone) return;
