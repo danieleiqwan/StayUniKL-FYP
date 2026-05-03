@@ -152,7 +152,7 @@ export async function PUT(request: Request) {
         try {
             await connection.query(
                 "UPDATE applications SET status = 'Checked in', check_in_date = NOW() WHERE id = ?",
-                [application_id]
+                [applicationId]
             );
 
             // Ensure bed status is occupied
@@ -185,7 +185,7 @@ export async function PUT(request: Request) {
             actorName: adminName,
             action: 'QR Scan Check-in',
             entityType: 'Application',
-            entityId: application_id,
+            entityId: applicationId,
             details: {
                 studentId: app.student_id,
                 studentName: app.student_name,
