@@ -165,15 +165,15 @@ export default function StudentDashboard() {
                 <div className="xl:col-span-2 space-y-6">
 
                     {/* HERO: Room Assignment Card */}
-                    <div className={`relative rounded-2xl overflow-hidden text-white ${isCheckedIn ? 'bg-gradient-to-br from-[#F26C22] via-orange-500 to-amber-500' : 'bg-gradient-to-br from-slate-700 to-slate-800'}`}>
+                    <div className={`relative rounded-2xl overflow-hidden text-white ${isApproved ? 'bg-gradient-to-br from-[#F26C22] via-orange-500 to-amber-500 shadow-xl shadow-orange-500/10' : 'bg-gradient-to-br from-slate-700 to-slate-800'}`}>
                         {/* Decorative circles */}
                         <div className="absolute -top-10 -right-10 h-52 w-52 bg-white/5 rounded-full"></div>
                         <div className="absolute -bottom-12 -left-8 h-40 w-40 bg-white/5 rounded-full"></div>
 
                         <div className="relative p-8">
                             <div className="flex items-center gap-3 mb-6">
-                                <span className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full ${isCheckedIn ? 'bg-white/20' : 'bg-white/10'}`}>
-                                    {isCheckedIn ? '● Currently Staying' : '○ Not Assigned'}
+                                <span className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full ${isApproved ? 'bg-white/20' : 'bg-white/10'}`}>
+                                    {isCheckedIn ? '● Currently Staying' : isApproved ? '● Room Assigned' : '○ Not Assigned'}
                                 </span>
                                 <span className="text-xs font-bold opacity-60 uppercase tracking-widest">Current Assignment</span>
                             </div>
