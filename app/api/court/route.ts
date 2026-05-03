@@ -327,7 +327,7 @@ export async function DELETE(request: Request) {
         try {
             // 1. Lock + fetch the booking row to prevent race conditions
             const [rows]: any = await connection.query(`
-                SELECT id, student_id, student_name, sport, date, time_slot, status, attendance_status, created_at 
+                SELECT id, student_id, sport, date, time_slot, status, attendance_status, created_at 
                 FROM court_bookings 
                 WHERE id = ? FOR UPDATE
             `, [id]);
