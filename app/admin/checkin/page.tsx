@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import { useState, useEffect, useRef } from 'react';
 import QRCode from 'react-qr-code';
-import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { QrCode, ScanLine, UserCheck, Search, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function AdminCheckinPage() {
@@ -223,23 +223,27 @@ function ScannerMode() {
     const isProcessingRef = useRef(false);
 
     useEffect(() => {
-        let scanner: Html5QrcodeScanner | null = null;
+        let html5QrCode: Html5Qrcode | null = null;
+        let isCameraActive = false;
         
-        // Wait briefly for the DOM element to reliably exist
-        const timer = setTimeout(() => {
-            scanner = new Html5QrcodeScanner(
-                "qr-reader",
-                { 
-                    fps: 10, 
-                    qrbox: { width: 250, height: 250 },
-                    supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
-                },
-                /* verbose= */ false
-            );
-
-            scanner.render(onScanSuccess, onScanFailure);
-            setIsScanning(true);
-        }, 100);
+        const timer = setTimeout(async () => {
+            html5QrCode = new Html5Qrcode("qr-reader");
+            
+            try {
+                // Request camera directly and start scanning
+                await html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    onScanSuccess,
+                    onScanFailure
+                );
+                isCameraActive = true;
+                setIsScanning(true);
+            } catch (err) {
+                console.error("Camera permission denied or error:", err);
+                setScanResult({ success: false, message: "Camera access denied. Please enable camera permissions in your browser settings." });
+            }
+        }, 300);
 
         async function onScanSuccess(decodedText: string) {
             // Prevent multiple requests if we are already processing
@@ -279,8 +283,10 @@ function ScannerMode() {
 
         return () => {
             clearTimeout(timer);
-            if (scanner) {
-                scanner.clear().catch(e => console.error("Failed to clear scanner", e));
+            if (html5QrCode && isCameraActive) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode?.clear();
+                }).catch(e => console.error("Failed to stop scanner", e));
             }
         };
     }, []);
@@ -305,8 +311,15 @@ function ScannerMode() {
             </div>
 
             {/* Camera Preview Box */}
-            <div className="w-full max-w-md relative rounded-3xl overflow-hidden border-4 border-slate-100 dark:border-slate-800 bg-black">
-                <div id="qr-reader" className="w-full" />
+            <div className="w-full max-w-md relative rounded-3xl overflow-hidden border-4 border-slate-100 dark:border-slate-800 bg-slate-900 min-h-[300px] flex items-center justify-center">
+                <div id="qr-reader" className="w-full h-full" />
+                
+                {!isScanning && !scanResult && (
+                     <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400">
+                         <span className="animate-spin h-6 w-6 border-2 border-indigo-500 border-t-transparent rounded-full mb-3" />
+                         <p className="text-sm font-bold animate-pulse">Requesting Camera...</p>
+                     </div>
+                )}
                 
                 {/* Result Overlay */}
                 {scanResult && (
