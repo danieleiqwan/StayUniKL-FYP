@@ -76,7 +76,7 @@ function NavContent({
         { name: myApplication ? 'Application' : 'Apply', path: '/dashboard/apply', icon: Home },
         { name: 'Complaints', path: '/dashboard/complaints',  icon: Wrench },
         { name: 'Room Change',path: '/dashboard/room-change', icon: ArrowRightLeft },
-        { name: 'Payment',    path: '/dashboard/payment',     icon: CreditCard },
+        { name: 'Financials', path: '/dashboard/financials',  icon: CreditCard },
         { name: 'Notifications', path: '/dashboard/notifications', icon: Bell },
     ];
 

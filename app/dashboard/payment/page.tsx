@@ -3,29 +3,30 @@
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { CreditCard } from 'lucide-react';
+import { useState, useEffect, Suspense } from 'react';
+import { CreditCard, CheckCircle2, Shield } from 'lucide-react';
 
-export default function MockPaymentGateway() {
+function PaymentGatewayContent() {
     const { user } = useAuth();
     const { myApplication, refreshData } = useData();
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isDone, setIsDone] = useState(false);
+    const [selectedMethod, setSelectedMethod] = useState<'card' | 'fpx' | 'ewallet'>('card');
 
     const amount = searchParams.get('amount') || myApplication?.totalPrice || '0.00';
-    const referenceId = searchParams.get('ref') || myApplication?.id || 'N/A';
+    const referenceId = searchParams.get('ref') || myApplication?.id || '';
+    const invoiceId = searchParams.get('invoiceId') || '';
 
     useEffect(() => {
-        if (!user) {
-            router.push('/login');
-        }
+        if (!user) router.push('/login');
     }, [user, router]);
 
     const isAlreadyPaid = myApplication?.paymentStatus === 'Paid' || (myApplication as any)?.payment_status === 'Paid';
 
     const handlePayment = async () => {
-        if (isAlreadyPaid) return;
+        if (isAlreadyPaid || isDone) return;
         setIsProcessing(true);
 
         try {
@@ -34,112 +35,163 @@ export default function MockPaymentGateway() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userId: user?.id,
-                    referenceId,
-                    amount: parseFloat(amount),
-                    method: 'Credit Card (Mock)'
+                    referenceId: referenceId || invoiceId || `REF-${Date.now()}`,
+                    amount: parseFloat(String(amount)),
+                    method: selectedMethod === 'card' ? 'Credit Card' : selectedMethod === 'fpx' ? 'FPX Online Transfer' : 'E-Wallet',
+                    invoiceId: invoiceId || null,
                 })
             });
 
-            if (res.ok) {
-                // Simulate processing delay
-                setTimeout(async () => {
-                    alert('Payment Successful!');
-                    await refreshData();
-                    router.push('/dashboard');
-                }, 2000);
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                // If this is an invoice payment, mark it as Paid via PATCH
+                if (invoiceId) {
+                    await fetch('/api/billing/invoices', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ invoiceId, newStatus: 'Paid' })
+                    });
+                }
+
+                setIsDone(true);
+                await refreshData();
+                // Redirect after 2.5s
+                setTimeout(() => router.push('/dashboard/financials'), 2500);
             } else {
-                alert('Payment failed. Please try again.');
+                alert(data.error || 'Payment failed. Please try again.');
                 setIsProcessing(false);
             }
         } catch (error) {
             console.error(error);
-            alert('An error occurred.');
+            alert('An error occurred. Please try again.');
             setIsProcessing(false);
         }
     };
 
     if (!user) return null;
 
+    if (isDone) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-950 p-4 transition-colors">
+                <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-transparent dark:border-slate-800 text-center p-12">
+                    <div className="h-20 w-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+                    </div>
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Payment Successful!</h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mb-2">RM {Number(amount).toFixed(2)} has been processed.</p>
+                    <p className="text-xs text-slate-400">Redirecting to your financials...</p>
+                </div>
+            </div>
+        );
+    }
+
+    const methods = [
+        { id: 'card', label: 'Credit / Debit Card', sub: 'Visa · Mastercard · AMEX' },
+        { id: 'fpx', label: 'FPX Online Transfer', sub: 'Maybank · CIMB · RHB · more' },
+        { id: 'ewallet', label: 'E-Wallet', sub: 'Touch \'n Go · Boost · GrabPay' },
+    ] as const;
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-950 p-4 transition-colors">
             <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-transparent dark:border-slate-800">
-                <div className="bg-[#F26C22] p-6 text-white text-center shadow-lg">
-                    <h1 className="text-2xl font-bold">UniKL Secure Pay</h1>
-                    <p className="text-orange-100 text-sm opacity-80">Online Billing Portal</p>
+                {/* Header */}
+                <div className="bg-gradient-to-br from-[#F26C22] to-[#e05500] p-6 text-white">
+                    <div className="flex items-center justify-between mb-4">
+                        <h1 className="text-xl font-black tracking-tight">UniKL Secure Pay</h1>
+                        <Shield className="h-5 w-5 text-orange-200 opacity-80" />
+                    </div>
+                    <div>
+                        <p className="text-orange-200 text-[10px] uppercase font-black tracking-widest mb-1">Amount Due</p>
+                        <p className="text-4xl font-black">RM {Number(amount).toFixed(2)}</p>
+                    </div>
                 </div>
 
-                <div className="p-8">
-                    <div className="mb-8 text-center">
-                        <div className="text-slate-500 dark:text-slate-400 text-sm mb-1 uppercase font-bold tracking-wider">
-                            {isAlreadyPaid ? 'Payment Status' : 'Total Amount'}
-                        </div>
-                        <div className={`text-4xl font-extrabold border-b-2 pb-4 inline-block ${isAlreadyPaid ? 'text-green-500 border-green-100 dark:border-green-900/30' : 'text-[#F26C22] border-orange-100 dark:border-orange-900/30'}`}>
-                            {isAlreadyPaid ? 'PAID' : `RM ${amount}`}
-                        </div>
-                    </div>
-
-                    <div className="space-y-4 mb-8">
-                        <div className="flex justify-between text-sm">
+                <div className="p-6 space-y-5">
+                    {/* Details */}
+                    <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 space-y-3 text-sm">
+                        {referenceId && (
+                            <div className="flex justify-between">
+                                <span className="text-slate-500 dark:text-slate-400">Reference</span>
+                                <span className="font-mono text-[#F26C22] dark:text-orange-400 font-bold text-xs">{referenceId || invoiceId}</span>
+                            </div>
+                        )}
+                        {invoiceId && (
+                            <div className="flex justify-between">
+                                <span className="text-slate-500 dark:text-slate-400">Invoice</span>
+                                <span className="font-mono text-xs text-slate-700 dark:text-slate-300 font-bold">{invoiceId}</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between">
                             <span className="text-slate-500 dark:text-slate-400">Merchant</span>
-                            <span className="font-semibold text-slate-900 dark:text-white">StayUniKL System</span>
+                            <span className="font-bold text-slate-900 dark:text-white">StayUniKL System</span>
                         </div>
-                        <div className="flex justify-between text-sm">
-                            <span className="text-slate-500 dark:text-slate-400">Reference ID</span>
-                            <span className="font-mono text-[#F26C22] dark:text-orange-400 font-bold">{referenceId}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between">
                             <span className="text-slate-500 dark:text-slate-400">Customer</span>
-                            <span className="font-semibold text-slate-900 dark:text-white">{user.name}</span>
+                            <span className="font-bold text-slate-900 dark:text-white">{user.name}</span>
                         </div>
                     </div>
 
-                    <div className={`${isAlreadyPaid ? 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800'} p-4 rounded-xl border mb-8 transition-colors`}>
-                        <div className="flex items-center gap-3">
-                            <div className={`${isAlreadyPaid ? 'bg-green-500' : 'bg-white dark:bg-slate-800'} p-2 rounded shadow-sm`}>
-                                <CreditCard className={`h-5 w-5 ${isAlreadyPaid ? 'text-white' : 'text-[#F26C22] dark:text-orange-400'}`} />
-                            </div>
-                            <div className="text-xs text-slate-600 dark:text-slate-300">
-                                <div className={`font-bold ${isAlreadyPaid ? 'text-green-700 dark:text-green-400' : 'text-slate-900 dark:text-white'}`}>
-                                    {isAlreadyPaid ? 'Transaction Verified' : 'Credit / Debit Card'}
+                    {/* Payment method selector */}
+                    <div className="space-y-2">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Payment Method</p>
+                        {methods.map(m => (
+                            <button
+                                key={m.id}
+                                onClick={() => setSelectedMethod(m.id)}
+                                className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
+                                    selectedMethod === m.id
+                                        ? 'border-[#F26C22] bg-orange-50 dark:bg-orange-900/20'
+                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                                }`}
+                            >
+                                <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                                    selectedMethod === m.id ? 'border-[#F26C22]' : 'border-slate-300 dark:border-slate-600'
+                                }`}>
+                                    {selectedMethod === m.id && <div className="h-2 w-2 rounded-full bg-[#F26C22]" />}
                                 </div>
-                                <div>{isAlreadyPaid ? 'Your payment has been successfully processed.' : 'Visa / Mastercard / AMEX (Mock)'}</div>
-                            </div>
-                        </div>
+                                <div>
+                                    <p className="text-sm font-bold text-slate-800 dark:text-white">{m.label}</p>
+                                    <p className="text-xs text-slate-400">{m.sub}</p>
+                                </div>
+                            </button>
+                        ))}
                     </div>
 
-                    {isAlreadyPaid ? (
-                        <button
-                            onClick={() => router.push('/dashboard')}
-                            className="w-full py-4 rounded-xl font-bold text-white bg-green-500 hover:bg-green-600 transition-all shadow-lg shadow-green-500/20 active:scale-95"
-                        >
-                            Return to Dashboard
-                        </button>
-                    ) : (
-                        <button
-                            onClick={handlePayment}
-                            disabled={isProcessing}
-                            className={`w-full py-4 rounded-xl font-bold text-white transition-all shadow-lg ${isProcessing
+                    {/* Pay Button */}
+                    <button
+                        onClick={handlePayment}
+                        disabled={isProcessing || isAlreadyPaid}
+                        className={`w-full py-4 rounded-xl font-black text-white tracking-wide transition-all shadow-lg ${
+                            isProcessing || isAlreadyPaid
                                 ? 'bg-slate-400 dark:bg-slate-700 cursor-not-allowed'
                                 : 'bg-[#F26C22] hover:bg-[#d65a16] active:scale-95 shadow-orange-500/20'
-                                }`}
-                        >
-                            {isProcessing ? (
-                                <div className="flex items-center justify-center gap-2">
-                                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    <span>Processing...</span>
-                                </div>
-                            ) : 'Pay Now'}
-                        </button>
-                    )}
+                        }`}
+                    >
+                        {isProcessing ? (
+                            <div className="flex items-center justify-center gap-2">
+                                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Processing...</span>
+                            </div>
+                        ) : `Confirm & Pay RM ${Number(amount).toFixed(2)}`}
+                    </button>
 
-                    <p className="mt-4 text-center text-[10px] text-slate-400 dark:text-slate-500">
-                        This is a simulated payment gateway for development purposes. No real money will be charged.
+                    <p className="text-center text-[10px] text-slate-400 dark:text-slate-500">
+                        Simulated payment gateway. No real transaction will occur.
                     </p>
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function PaymentPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-slate-400">Loading...</div>}>
+            <PaymentGatewayContent />
+        </Suspense>
     );
 }
