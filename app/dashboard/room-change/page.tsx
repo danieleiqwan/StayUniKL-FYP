@@ -370,7 +370,7 @@ export default function RoomChangePage() {
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                         {roomsOnFloor.map(room => {
                                             const availableBeds = room.beds.filter(b => !b.isOccupied).length;
-                                            const isCurrentRoom = room.id === currentApplication.roomId;
+                                            const isCurrentRoom = room.id === myApplication.roomId;
 
                                             return (
                                                 <button
