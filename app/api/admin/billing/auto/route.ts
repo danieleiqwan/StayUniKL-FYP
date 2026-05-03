@@ -30,16 +30,16 @@ export async function POST(request: Request) {
 
             if (monthsDiff <= 0) continue; // Not yet time for next month invoice
 
-            // 2. Check how many monthly rent invoices already exist for this application
+            // 2. Check how many hostel fee invoices already exist for this application
             const [existingInvoices]: any = await pool.query(
-                "SELECT COUNT(*) as count FROM invoices WHERE application_id = ? AND type = 'Monthly Rent'",
+                "SELECT COUNT(*) as count FROM invoices WHERE application_id = ? AND type = 'Hostel Fee'",
                 [app.id]
             );
 
             const invoicesGenerated = existingInvoices[0].count;
 
             // If we have been here for 2 months (monthsDiff = 2) but only 1 invoice exists (initial), generate 1 more.
-            // Note: Initial payment is often handled at application, but let's assume 'Monthly Rent' type is for subsequent ones.
+            // Note: Initial payment is often handled at application, but let's assume 'Hostel Fee' type is for subsequent ones.
             if (invoicesGenerated < monthsDiff) {
                 const missingInvoices = monthsDiff - invoicesGenerated;
 
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
                             invoiceId, 
                             app.student_id, 
                             app.id, 
-                            'Monthly Rent', 
+                            'Hostel Fee', 
                             app.total_price || 120.00, 
                             'Unpaid', 
                             dueDate
