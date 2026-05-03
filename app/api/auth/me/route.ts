@@ -11,10 +11,20 @@ export async function GET() {
         }
 
         // Fetch full user data from DB using the ID from the token
-        const [rows]: any = await pool.query(
-            'SELECT id, name, email, role, gender, profile_image FROM users WHERE id = ?',
-            [authUser.id]
-        );
+        // Use COALESCE or try to select it. If the DB doesn't have the columns yet, we handle it.
+        let rows: any = [];
+        try {
+            [rows] = await pool.query(
+                'SELECT id, name, email, role, gender, profile_image, alert_booking, alert_maintenance, alert_announcement FROM users WHERE id = ?',
+                [authUser.id]
+            );
+        } catch (e) {
+            // Fallback for when migration hasn't run
+            [rows] = await pool.query(
+                'SELECT id, name, email, role, gender, profile_image FROM users WHERE id = ?',
+                [authUser.id]
+            );
+        }
 
         if (rows.length === 0) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
@@ -30,7 +40,10 @@ export async function GET() {
                 email: user.email,
                 role: user.role,
                 gender: user.gender,
-                profileImage: user.profile_image
+                profileImage: user.profile_image,
+                alertBooking: user.alert_booking !== undefined ? !!user.alert_booking : true,
+                alertMaintenance: user.alert_maintenance !== undefined ? !!user.alert_maintenance : true,
+                alertAnnouncement: user.alert_announcement !== undefined ? !!user.alert_announcement : true
             }
         });
 

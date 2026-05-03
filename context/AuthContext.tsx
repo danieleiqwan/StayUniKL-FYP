@@ -18,6 +18,9 @@ interface User {
     profileImage?: string;
     courtNoShows?: number;
     courtBanUntil?: string | null;
+    alertBooking?: boolean;
+    alertMaintenance?: boolean;
+    alertAnnouncement?: boolean;
 }
 
 interface AuthContextType {

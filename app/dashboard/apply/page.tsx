@@ -42,9 +42,18 @@ export default function ApplyPage() {
                     <div className="h-24 w-24 bg-orange-50 dark:bg-orange-900/20 rounded-full ring-8 ring-orange-50/50 dark:ring-orange-900/10 flex items-center justify-center mb-6">
                         <CheckCircle2 className="h-10 w-10 text-[#F26C22] dark:text-orange-400" />
                     </div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Application Logged</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                        {myApplication.status === 'Checked in' ? 'Check-in Confirmed' : 
+                         myApplication.status === 'Approved' ? 'Application Approved' :
+                         'Application Logged'}
+                    </h2>
                     <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md">
-                        We have successfully safely logged your hostel application. You will be notified once there are updates regarding your placement.
+                        {myApplication.status === 'Checked in' ? 
+                            'Welcome to your new home! Your room placement is confirmed and you are officially checked in.' :
+                         myApplication.status === 'Approved' ?
+                            'Great news! Your application has been approved. You can now prepare for your stay.' :
+                            'We have successfully safely logged your hostel application. You will be notified once there are updates regarding your placement.'
+                        }
                     </p>
 
                     <div className="w-full bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 text-left space-y-4 shadow-inner transition-colors">

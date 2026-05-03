@@ -70,7 +70,10 @@ export async function POST(request: Request) {
                 gender: user.gender,
                 phoneNumber: user.phone_number,
                 parentPhoneNumber: user.parent_phone_number,
-                profileImage: user.profile_image
+                profileImage: user.profile_image,
+                alertBooking: user.alert_booking !== undefined ? !!user.alert_booking : true,
+                alertMaintenance: user.alert_maintenance !== undefined ? !!user.alert_maintenance : true,
+                alertAnnouncement: user.alert_announcement !== undefined ? !!user.alert_announcement : true
             }
         });
 
