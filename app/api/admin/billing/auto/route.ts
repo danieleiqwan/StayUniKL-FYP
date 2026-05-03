@@ -17,19 +17,29 @@ export async function POST(request: Request) {
             "SELECT * FROM applications WHERE status = 'Checked in'"
         );
 
-        const results = [];
+        const log: string[] = [];
+        log.push(`Found ${applications.length} checked-in applications.`);
 
         for (const app of applications) {
+            log.push(`Processing App ${app.id} (student: ${app.student_id})`);
+            
             // Only auto-bill for monthly durations (or you can adjust this logic)
-            if (app.duration_type !== '1_month') continue;
+            if (app.duration_type !== '1_month') {
+                log.push(`Skipping: duration_type is ${app.duration_type}`);
+                continue;
+            }
 
             const checkInDate = new Date(app.check_in_date || app.date);
             const now = new Date();
 
             // Calculate months elapsed since check-in
             const monthsDiff = (now.getFullYear() - checkInDate.getFullYear()) * 12 + (now.getMonth() - checkInDate.getMonth());
+            log.push(`Months diff: ${monthsDiff} (Check-in: ${checkInDate.toISOString().split('T')[0]})`);
 
-            if (monthsDiff <= 0) continue; // Not yet time for next month invoice
+            if (monthsDiff <= 0) {
+                log.push(`Skipping: Not yet time for next month.`);
+                continue;
+            }
 
             // 2. Check how many hostel fee invoices already exist for this application
             const [existingInvoices]: any = await pool.query(
@@ -38,16 +48,16 @@ export async function POST(request: Request) {
             );
 
             const invoicesGenerated = existingInvoices[0].count;
+            log.push(`Existing invoices for this app: ${invoicesGenerated}`);
 
-            // If we have been here for 2 months (monthsDiff = 2) but only 1 invoice exists (initial), generate 1 more.
-            // Note: Initial payment is often handled at application, but let's assume 'Hostel Fee' type is for subsequent ones.
             if (invoicesGenerated < monthsDiff) {
                 const missingInvoices = monthsDiff - invoicesGenerated;
+                log.push(`Generating ${missingInvoices} missing invoices.`);
 
                 for (let i = 0; i < missingInvoices; i++) {
                     const invoiceId = `INV-AUTO-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
                     const dueDate = new Date();
-                    dueDate.setDate(dueDate.getDate() + 7); // Due in 7 days
+                    dueDate.setDate(dueDate.getDate() + 7); 
 
                     const description = `Monthly Rent - ${now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`;
 
@@ -65,28 +75,26 @@ export async function POST(request: Request) {
                         ]
                     );
 
-                    // 3. Notify the student
                     await createNotification({
                         userId: app.student_id,
                         title: 'New Invoice Generated',
-                        message: `A new invoice for ${description} (RM ${app.total_price || 120.00}) has been generated. Please settle it by ${dueDate.toLocaleDateString('en-GB')}.`,
+                        message: `A new invoice for ${description} (RM ${app.total_price || 120.00}) has been generated.`,
                         type: 'warning',
                         relatedEntityId: invoiceId,
                         relatedEntityType: 'Invoice'
                     });
 
-                    results.push({
-                        studentId: app.student_id,
-                        invoiceId,
-                        amount: app.total_price || 120.00
-                    });
+                    results.push({ studentId: app.student_id, invoiceId });
                 }
+            } else {
+                log.push(`No missing invoices.`);
             }
         }
 
         return NextResponse.json({ 
             success: true, 
             message: `Generated ${results.length} invoices.`,
+            log,
             details: results 
         });
 
