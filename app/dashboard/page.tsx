@@ -441,9 +441,14 @@ export default function StudentDashboard() {
                                 <p className="text-xs text-slate-400 dark:text-slate-500">Warden desk responds in ~10 min</p>
                             </div>
                         </div>
-                        <button className="shrink-0 text-xs font-black text-[#F26C22] dark:text-orange-400 border border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-900/20 px-4 py-2 rounded-xl hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-all">
+                        <a 
+                            href="https://wa.me/60123456789" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="shrink-0 text-xs font-black text-[#F26C22] dark:text-orange-400 border border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-900/20 px-4 py-2 rounded-xl hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-all inline-block text-center"
+                        >
                             Contact
-                        </button>
+                        </a>
                     </div>
 
                 </div>
