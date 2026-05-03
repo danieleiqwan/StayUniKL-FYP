@@ -145,6 +145,27 @@ export default function StudentDashboard() {
                 </div>
             )}
 
+            {/* New User Welcome / Apply Banner */}
+            {!isApplied && (
+                <div className="bg-gradient-to-r from-[#F26C22] to-orange-400 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-orange-100 animate-in fade-in slide-in-from-top-4 duration-700">
+                    <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 bg-white/20 rounded-xl flex items-center justify-center text-white shrink-0 backdrop-blur-md">
+                            <Check className="h-5 w-5" />
+                        </div>
+                        <div className="text-white">
+                            <p className="font-black text-sm">Registration Successful!</p>
+                            <p className="text-xs opacity-90">You haven't applied for a room yet. Please <span className="font-bold underline">Apply Now</span> to secure your hostel stay.</p>
+                        </div>
+                    </div>
+                    <Link
+                        href="/dashboard/apply"
+                        className="bg-white text-[#F26C22] px-6 py-2.5 rounded-xl font-black text-xs tracking-widest uppercase hover:bg-orange-50 transition-all whitespace-nowrap shrink-0"
+                    >
+                        Apply Now →
+                    </Link>
+                </div>
+            )}
+
             {/* Header */}
             <div className="flex items-end justify-between">
                 <div>
