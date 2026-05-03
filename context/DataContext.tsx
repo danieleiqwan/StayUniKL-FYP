@@ -36,6 +36,9 @@ export interface FacilitySettings {
 export interface Payment {
     id: string; userId: string; referenceId: string; amount: number; method: string; status: 'Success' | 'Failed' | 'Pending'; createdAt: string;
 }
+export interface Invoice {
+    id: string; userId: string; applicationId?: string; type: string; description?: string; amount: number; status: 'Unpaid' | 'Paid' | 'Partially Paid' | 'Overdue' | 'Cancelled'; dueDate?: string; createdAt: string;
+}
 
 interface DataContextType {
     applications: Application[];
@@ -72,6 +75,7 @@ interface DataContextType {
 
     roomChangeRequests: any[];
     payments: Payment[];
+    invoices: Invoice[];
     refreshData: () => Promise<void>;
 }
 
@@ -95,6 +99,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const [notifications, setNotifications] = useState<any[]>([]);
     const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
     const [roomChangeRequests, setRoomChangeRequests] = useState<any[]>([]);
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
 
     // --- Fetch Data ---
     const fetchData = useCallback(async () => {
@@ -129,10 +134,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 }));
             }
 
-            // Fetch Payments
+            // Fetch Payments & Invoices
             const payRes = await fetch(`/api/payments?userId=${user.id}`);
             const payData = await payRes.json();
             if (payData.payments) setPayments(payData.payments);
+
+            const invRes = await fetch(`/api/billing/invoices?userId=${user.id}`);
+            const invData = await invRes.json();
+            if (invData.invoices) setInvoices(invData.invoices);
 
             // Fetch Room Change Request (Student)
             if (user.role === 'student') {
@@ -382,7 +391,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             myApplication, myRoomChangeRequest, myComplaints,
             notifications, unreadNotificationsCount, markNotificationRead,
             roomChangeRequests,
-            payments, refreshData: fetchData
+            payments, invoices, refreshData: fetchData
         }}>
             {children}
         </DataContext.Provider>

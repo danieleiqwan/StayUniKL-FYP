@@ -10,10 +10,13 @@ import { cn } from "@/lib/utils";
 
 export default function NotificationsPage() {
     const { user } = useAuth();
-    const { notifications, markNotificationRead, refreshData, myApplication } = useData();
+    const { notifications, markNotificationRead, refreshData, myApplication, invoices } = useData();
     const [loading, setLoading] = useState(true);
 
     const isPaymentPending = myApplication?.status === 'Payment Pending';
+    const appOwed = isPaymentPending ? Number(myApplication?.totalPrice) : 0;
+    const unpaidInvoices = invoices?.filter(i => i.status === 'Unpaid') || [];
+    const outstandingTotal = unpaidInvoices.reduce((acc, curr) => acc + Number(curr.amount), 0) + appOwed;
 
     useEffect(() => {
         // Refresh when entering
@@ -107,6 +110,28 @@ export default function NotificationsPage() {
                         </a>
                     </div>
                 )}
++
++                {outstandingTotal > 0 && !isPaymentPending && (
++                    <div className="bg-rose-50 dark:bg-rose-900/20 border-2 border-rose-200 dark:border-rose-800/50 rounded-[2.5rem] p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-top-4 duration-500 transition-colors">
++                        <div className="flex items-center gap-6">
++                            <div className="h-16 w-16 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center text-rose-600 dark:text-rose-400 shadow-sm border border-rose-100 dark:border-rose-900/30">
++                                <CreditCard className="h-8 w-8" />
++                            </div>
++                            <div>
++                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1 leading-tight uppercase">Outstanding Balance</h3>
++                                <p className="text-sm text-slate-600 dark:text-slate-400 font-medium max-w-md">
++                                    You have an unpaid balance of <span className="font-bold text-slate-900 dark:text-white underline underline-offset-4">RM {outstandingTotal.toFixed(2)}</span>. Please settle it to avoid any service disruptions.
++                                </p>
++                            </div>
++                        </div>
++                        <Link 
++                            href="/dashboard/profile?tab=billing"
++                            className="bg-rose-600 text-white px-8 py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-rose-500/20 hover:bg-rose-700 transition-all active:scale-95 whitespace-nowrap"
++                        >
++                            View Financials
++                        </Link>
++                    </div>
++                )}
 
                 {notifications.length === 0 && !isPaymentPending ? (
                     <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 py-20 text-center transition-colors">
