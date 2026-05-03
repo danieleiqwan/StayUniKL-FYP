@@ -65,6 +65,14 @@ export async function POST(request: Request) {
                 console.log('payment_status column missing, falling back to main status update');
                 await pool.query('UPDATE applications SET status = "Approved" WHERE id = ?', [finalRef]);
             });
+
+            // FALLBACK: If invoiceId was missing, find it by application_id and mark as Paid
+            if (!invoiceId) {
+                await pool.query(
+                    'UPDATE invoices SET status = "Paid" WHERE application_id = ? AND status = "Unpaid"',
+                    [finalRef]
+                );
+            }
         }
 
         // Fetch user name for logging

@@ -98,6 +98,7 @@ function FinancialsContent() {
     const isPaymentPending = myApplication?.status === 'Payment Pending';
     const appOwed = isPaymentPending ? Number(myApplication?.totalPrice) : 0;
     const totalOutstandingAll = grandOutstanding + appOwed;
+    const appInvoice = invoices.find(i => i.application_id === myApplication?.id);
 
     const statCards = [
         {
@@ -170,7 +171,7 @@ function FinancialsContent() {
                         </div>
                     </div>
                     <a
-                        href={`/dashboard/payment?amount=${myApplication?.totalPrice}&ref=${myApplication?.id}`}
+                        href={`/dashboard/payment?amount=${myApplication?.totalPrice}&ref=${myApplication?.id}${appInvoice ? `&invoiceId=${appInvoice.id}` : ''}`}
                         className="bg-amber-600 text-white px-6 py-3 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-amber-700 transition-all whitespace-nowrap shadow-lg shadow-amber-500/20 active:scale-95"
                     >
                         Pay Now
