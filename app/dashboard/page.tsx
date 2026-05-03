@@ -402,7 +402,7 @@ export default function StudentDashboard() {
                             </div>
                             <div className="min-w-0">
                                 <p className="font-black text-slate-900 dark:text-white text-sm truncate">{user.name}</p>
-                                <p className="text-xs text-slate-400 dark:text-slate-500">{user.id} · 1st year</p>
+                                <p className="text-xs text-slate-400 dark:text-slate-500">{user.studentId || user.id} · 1st year</p>
                             </div>
                         </div>
 

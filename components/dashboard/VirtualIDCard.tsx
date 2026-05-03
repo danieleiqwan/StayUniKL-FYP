@@ -79,7 +79,7 @@ export default function VirtualIDCard() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Student ID</p>
-                                <p className="text-sm font-mono font-bold text-[#F26C22] tracking-wider">{user.id}</p>
+                                <p className="text-sm font-mono font-bold text-[#F26C22] tracking-wider">{user.studentId || user.id}</p>
                             </div>
                         </div>
                     </div>
