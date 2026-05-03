@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { isAdmin } from '@/lib/auth';
+import { createNotification } from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,18 +49,31 @@ export async function POST(request: Request) {
                     const dueDate = new Date();
                     dueDate.setDate(dueDate.getDate() + 7); // Due in 7 days
 
+                    const description = `Monthly Rent - ${now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`;
+
                     await pool.query(
-                        'INSERT INTO invoices (id, user_id, application_id, type, amount, status, due_date) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                        'INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                         [
                             invoiceId, 
                             app.student_id, 
                             app.id, 
                             'Hostel Fee', 
+                            description,
                             app.total_price || 120.00, 
                             'Unpaid', 
                             dueDate
                         ]
                     );
+
+                    // 3. Notify the student
+                    await createNotification({
+                        userId: app.student_id,
+                        title: 'New Invoice Generated',
+                        message: `A new invoice for ${description} (RM ${app.total_price || 120.00}) has been generated. Please settle it by ${dueDate.toLocaleDateString('en-GB')}.`,
+                        type: 'warning',
+                        relatedEntityId: invoiceId,
+                        relatedEntityType: 'Invoice'
+                    });
 
                     results.push({
                         studentId: app.student_id,
