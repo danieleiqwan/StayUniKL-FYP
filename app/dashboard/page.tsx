@@ -173,9 +173,9 @@ export default function StudentDashboard() {
                         <div className="relative p-8">
                             <div className="flex items-center gap-3 mb-6">
                                 <span className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full ${isApproved ? 'bg-white/20' : 'bg-white/10'}`}>
-                                    {isCheckedIn ? '● Currently Staying' : isApproved ? '● Room Assigned' : '○ Not Assigned'}
+                                    {isCheckedIn ? '● Currently Staying' : isApproved ? '● Room Assigned' : isApplied ? '● Application Pending' : '○ No Application Found'}
                                 </span>
-                                <span className="text-xs font-bold opacity-60 uppercase tracking-widest">Current Assignment</span>
+                                <span className="text-xs font-bold opacity-60 uppercase tracking-widest">{isApplied ? 'Current Assignment' : 'Placement Status'}</span>
                             </div>
 
                             <div className="flex items-start justify-between gap-4 mb-8">
@@ -224,11 +224,13 @@ export default function StudentDashboard() {
                             {/* CTA Buttons */}
                             <div className="flex flex-wrap gap-3">
                                 <Link href="/dashboard/apply" className="flex items-center gap-2 bg-white text-[#F26C22] px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-orange-50 transition-all">
-                                    View room details <ArrowRight className="h-3.5 w-3.5" />
+                                    {isApplied ? 'View room details' : 'Apply for Room'} <ArrowRight className="h-3.5 w-3.5" />
                                 </Link>
-                                <Link href="/dashboard/room-change" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
-                                    Request room change
-                                </Link>
+                                {isApplied && (
+                                    <Link href="/dashboard/room-change" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
+                                        Request room change
+                                    </Link>
+                                )}
                             </div>
                         </div>
                     </div>
