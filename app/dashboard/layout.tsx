@@ -120,10 +120,11 @@ function NavContent({
                             <div className="flex items-center gap-2 mb-0.5">
                                 <p className="text-[9px] font-black text-white/40 uppercase tracking-widest">Student</p>
                                 {!user.studentId && (
-                                    <span className="text-[8px] font-black text-amber-500 uppercase tracking-tight bg-amber-500/10 px-1 rounded">Pending ID</span>
+                                    <span className="text-[8px] font-black text-amber-500 uppercase tracking-tight bg-amber-500/10 px-1 rounded">Pending Official ID</span>
                                 )}
                             </div>
                             <p className="text-sm font-bold text-white truncate tracking-tight">{user.name}</p>
+                            <p className="text-[9px] font-medium text-white/50 truncate tracking-tight uppercase">ID: {user.studentId || user.id}</p>
                         </div>
                     )}
                 </div>
@@ -425,9 +426,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 {user.studentId ? (
                                     <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{user.studentId}</p>
                                 ) : (
-                                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest flex items-center justify-end gap-1">
-                                        <Clock className="h-2.5 w-2.5" /> Pending ID
-                                    </p>
+                                    <div className="flex flex-col items-end">
+                                        <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{user.id}</p>
+                                        <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-1 mt-0.5">
+                                            <Clock className="h-2 w-2" /> Pending Official ID
+                                        </p>
+                                    </div>
                                 )}
                             </div>
                             <div className="h-10 w-10 md:h-12 md:w-12 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border-2 border-white dark:border-slate-900 shadow-md">
