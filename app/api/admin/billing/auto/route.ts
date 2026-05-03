@@ -18,6 +18,7 @@ export async function POST(request: Request) {
         );
 
         const log: string[] = [];
+        const results: any[] = [];
         log.push(`Found ${applications.length} checked-in applications.`);
 
         for (const app of applications) {
