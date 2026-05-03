@@ -82,22 +82,46 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: 'Token is required' }, { status: 400 });
         }
 
-        // 1. Validate token
-        const [tokenRows]: any = await pool.query(
-            "SELECT application_id, expires_at FROM checkin_tokens WHERE token = ?",
-            [token]
-        );
+        // 1. Resolve Application ID from token
+        let applicationId = null;
 
-        if (tokenRows.length === 0) {
-            return NextResponse.json({ error: 'Invalid or expired check-in token' }, { status: 400 });
-        }
+        if (token.startsWith('{')) {
+            // Handle Virtual ID Card (JSON)
+            try {
+                const data = JSON.parse(token);
+                const studentId = data.id;
 
-        const { application_id, expires_at } = tokenRows[0];
+                // Find the latest 'Approved' application for this student
+                const [appRows]: any = await pool.query(
+                    "SELECT id FROM applications WHERE student_id = ? AND status = 'Approved' ORDER BY date DESC LIMIT 1",
+                    [studentId]
+                );
 
-        if (new Date(expires_at) < new Date()) {
-            // Delete expired token to clean up
-            await pool.query("DELETE FROM checkin_tokens WHERE token = ?", [token]);
-            return NextResponse.json({ error: 'Check-in token has expired' }, { status: 400 });
+                if (appRows.length === 0) {
+                    return NextResponse.json({ error: 'No approved application found for this ID card.' }, { status: 404 });
+                }
+                applicationId = appRows[0].id;
+            } catch (err) {
+                return NextResponse.json({ error: 'Invalid ID card data format.' }, { status: 400 });
+            }
+        } else {
+            // Handle Secure Check-in Token
+            const [tokenRows]: any = await pool.query(
+                "SELECT application_id, expires_at FROM checkin_tokens WHERE token = ?",
+                [token]
+            );
+
+            if (tokenRows.length === 0) {
+                return NextResponse.json({ error: 'Invalid or expired check-in token' }, { status: 400 });
+            }
+
+            const { application_id, expires_at } = tokenRows[0];
+
+            if (new Date(expires_at) < new Date()) {
+                await pool.query("DELETE FROM checkin_tokens WHERE token = ?", [token]);
+                return NextResponse.json({ error: 'Check-in token has expired' }, { status: 400 });
+            }
+            applicationId = application_id;
         }
 
         // 2. Fetch application info
@@ -106,7 +130,7 @@ export async function PUT(request: Request) {
              FROM applications a
              LEFT JOIN users u ON a.student_id = u.id 
              WHERE a.id = ?`,
-            [application_id]
+            [applicationId]
         );
 
         if (appRows.length === 0) {
@@ -139,8 +163,10 @@ export async function PUT(request: Request) {
                 );
             }
 
-            // 4. Delete the consumed token
-            await connection.query("DELETE FROM checkin_tokens WHERE token = ?", [token]);
+            // 4. Delete the consumed token (if it was a generated one)
+            if (!token.startsWith('{')) {
+                await connection.query("DELETE FROM checkin_tokens WHERE token = ?", [token]);
+            }
 
             await connection.commit();
         } catch (error) {
