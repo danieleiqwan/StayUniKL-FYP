@@ -248,7 +248,7 @@ export default function RoomChangePage() {
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Current Placement:</span>
                         <span className="text-sm font-black text-[#F26C22] bg-orange-50 dark:bg-orange-900/20 px-3 py-1 rounded-lg">
-                            {currentApplication.roomId} • Bed {currentApplication.bedId}
+                            {myApplication.roomId} • Bed {myApplication.bedId}
                         </span>
                     </div>
                 </div>
