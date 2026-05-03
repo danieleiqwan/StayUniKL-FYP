@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { 
     X, User, Calendar, Bed, Building, 
     Users, Wrench, AlertCircle, Plus, 
-    ShieldCheck, Clock, MapPin
+    ShieldCheck, Clock, MapPin, ExternalLink
 } from 'lucide-react';
 
 interface BedData {
@@ -33,6 +33,23 @@ interface RoomData {
 interface RoomDetailModalProps {
     room: RoomData | null;
     onClose: () => void;
+}
+
+function AssetItem({ label, count, status }: { label: string, count: number, status: 'Good' | 'Damaged' }) {
+    return (
+        <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-sm">
+            <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{label}</span>
+                <span className="text-[10px] font-black text-slate-400">({count})</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+                <span className={`h-1.5 w-1.5 rounded-full ${status === 'Good' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                <span className={`text-[10px] font-black uppercase tracking-wider ${status === 'Good' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    {status === 'Good' ? 'Good' : 'Needs Repair'}
+                </span>
+            </div>
+        </div>
+    );
 }
 
 export default function RoomDetailModal({ room, onClose }: RoomDetailModalProps) {
@@ -173,6 +190,41 @@ export default function RoomDetailModal({ room, onClose }: RoomDetailModalProps)
                             </div>
                         ))}
                     </div>
+                </div>
+
+                {/* Body 2 - Assets & Condition */}
+                <div className="px-8 pb-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
+                            Room Assets & Condition <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                        </h3>
+                        <div className="flex items-center gap-2">
+                            <Clock className="h-3.5 w-3.5 text-slate-400" />
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Last checked: 28 April 2026</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Furniture Group */}
+                        <div className="space-y-3">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Furniture</p>
+                            <AssetItem label="Bed Frames" count={room.capacity} status="Good" />
+                            <AssetItem label="Study Tables" count={room.capacity} status="Good" />
+                            <AssetItem label="Wardrobes" count={room.capacity} status="Damaged" />
+                        </div>
+                        {/* Electronics Group */}
+                        <div className="space-y-3">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Electronics</p>
+                            <AssetItem label="Ceiling Fan" count={1} status="Good" />
+                            <AssetItem label="LED Lights" count={2} status="Good" />
+                            <AssetItem label="AC Unit" count={room.roomType.includes('Single') ? 1 : 0} status="Good" />
+                        </div>
+                    </div>
+
+                    <button className="mt-6 flex items-center gap-2 text-[10px] font-black text-[#F26C22] hover:text-[#d65a16] uppercase tracking-widest transition-colors group">
+                        <ShieldCheck className="h-4 w-4" /> View Full Asset History 
+                        <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all translate-x-[-4px] group-hover:translate-x-0" />
+                    </button>
                 </div>
 
                 {/* Footer - Maintenance Control */}
