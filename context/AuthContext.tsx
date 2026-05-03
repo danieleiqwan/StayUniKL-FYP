@@ -21,6 +21,16 @@ interface User {
     alertBooking?: boolean;
     alertMaintenance?: boolean;
     alertAnnouncement?: boolean;
+    address?: string;
+    city?: string;
+    state?: string;
+    postcode?: string;
+    emergencyContact1Name?: string;
+    emergencyContact1Relation?: string;
+    emergencyContact1Phone?: string;
+    emergencyContact2Name?: string;
+    emergencyContact2Relation?: string;
+    emergencyContact2Phone?: string;
 }
 
 interface AuthContextType {

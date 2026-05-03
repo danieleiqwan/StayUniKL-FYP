@@ -34,6 +34,17 @@ export default function ProfilePage() {
     const [profileForm, setProfileForm] = useState({
         name: user?.name || '',
         email: user?.email || '',
+        phoneNumber: user?.phoneNumber || '',
+        address: user?.address || '',
+        city: user?.city || '',
+        state: user?.state || '',
+        postcode: user?.postcode || '',
+        emergencyContact1Name: user?.emergencyContact1Name || '',
+        emergencyContact1Relation: user?.emergencyContact1Relation || '',
+        emergencyContact1Phone: user?.emergencyContact1Phone || '',
+        emergencyContact2Name: user?.emergencyContact2Name || '',
+        emergencyContact2Relation: user?.emergencyContact2Relation || '',
+        emergencyContact2Phone: user?.emergencyContact2Phone || '',
     });
 
     const [passwordForm, setPasswordForm] = useState({
@@ -59,7 +70,7 @@ export default function ProfilePage() {
             });
             const data = await res.json();
             if (data.success) {
-                setUser({ ...user, name: profileForm.name, email: profileForm.email });
+                setUser({ ...user, ...profileForm });
                 setMsg({ type: 'success', text: 'Profile updated successfully!' });
             } else {
                 setMsg({ type: 'error', text: data.error || 'Failed to update.' });
@@ -207,6 +218,131 @@ export default function ProfilePage() {
                                                 <Mail className="h-4 w-4" /> {user.email}
                                             </div>
                                         </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Phone Number</label>
+                                            <input 
+                                                type="text" 
+                                                value={profileForm.phoneNumber}
+                                                onChange={(e) => setProfileForm({ ...profileForm, phoneNumber: e.target.value })}
+                                                className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
+                                                placeholder="e.g. +60123456789"
+                                            />
+                                        </div>
+                                        <div className="space-y-2 md:col-span-2">
+                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Hometown Address</label>
+                                            <textarea 
+                                                value={profileForm.address}
+                                                onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
+                                                className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all resize-none" 
+                                                rows={3}
+                                                placeholder="Street, City, State, Postcode"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">City</label>
+                                            <input 
+                                                type="text" 
+                                                value={profileForm.city}
+                                                onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
+                                                className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
+                                                placeholder="e.g. Kuala Lumpur"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Postcode</label>
+                                            <input 
+                                                type="text" 
+                                                value={profileForm.postcode}
+                                                onChange={(e) => setProfileForm({ ...profileForm, postcode: e.target.value })}
+                                                className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
+                                                placeholder="e.g. 50100"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Emergency Contact Section */}
+                                    <div className="pt-6 border-t border-slate-50 dark:border-slate-800">
+                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6">Emergency Contact (Parent/Guardian)</h3>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                            {/* Contact 1 */}
+                                            <div className="space-y-4">
+                                                <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em]">Contact #1</p>
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={profileForm.emergencyContact1Name}
+                                                        onChange={(e) => setProfileForm({ ...profileForm, emergencyContact1Name: e.target.value })}
+                                                        className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={profileForm.emergencyContact1Relation}
+                                                            onChange={(e) => setProfileForm({ ...profileForm, emergencyContact1Relation: e.target.value })}
+                                                            className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={profileForm.emergencyContact1Phone}
+                                                            onChange={(e) => setProfileForm({ ...profileForm, emergencyContact1Phone: e.target.value })}
+                                                            className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Contact 2 */}
+                                            <div className="space-y-4">
+                                                <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em]">Contact #2</p>
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={profileForm.emergencyContact2Name}
+                                                        onChange={(e) => setProfileForm({ ...profileForm, emergencyContact2Name: e.target.value })}
+                                                        className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={profileForm.emergencyContact2Relation}
+                                                            onChange={(e) => setProfileForm({ ...profileForm, emergencyContact2Relation: e.target.value })}
+                                                            className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={profileForm.emergencyContact2Phone}
+                                                            onChange={(e) => setProfileForm({ ...profileForm, emergencyContact2Phone: e.target.value })}
+                                                            className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end pt-4">
+                                        <button 
+                                            onClick={handleProfileSubmit}
+                                            disabled={isSaving}
+                                            className="bg-[#F26C22] hover:bg-[#d65a16] text-white px-10 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20 flex items-center gap-2"
+                                        >
+                                            {isSaving ? 'Saving Changes...' : <><Save className="h-4 w-4" /> Save Records</>}
+                                        </button>
                                     </div>
 
                                     <div className="p-6 bg-orange-50 dark:bg-orange-900/20 rounded-3xl border border-orange-100 dark:border-orange-900/30 flex items-center gap-4">
