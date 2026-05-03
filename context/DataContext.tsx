@@ -377,7 +377,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         fetchData();
     };
 
-    const myApplication = user ? applications.find(app => app.studentId === user.id) : undefined;
+    const myApplication = user 
+        ? (applications.find(app => ['Pending', 'Payment Pending', 'Approved', 'Checked in'].includes(app.status)) || applications[0]) 
+        : undefined;
     const myRoomChangeRequest = roomChangeRequest;
     const myComplaints = user ? complaints.filter(c => c.studentId === user.id) : [];
 

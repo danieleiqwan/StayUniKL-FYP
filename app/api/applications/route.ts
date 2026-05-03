@@ -109,6 +109,20 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized: Cannot apply for another student' }, { status: 403 });
         }
 
+        // 1. CHECK FOR EXISTING ACTIVE APPLICATIONS
+        // We block new applications if student already has one that isn't Cancelled, Rejected, or Checked out.
+        const [existing]: any = await pool.query(
+            'SELECT id FROM applications WHERE student_id = ? AND status IN ("Pending", "Payment Pending", "Approved", "Checked in")',
+            [studentId]
+        );
+
+        if (existing.length > 0) {
+            return NextResponse.json({ 
+                error: 'Active application exists', 
+                message: 'You already have an active application or stay. Please manage your existing application in the dashboard.' 
+            }, { status: 400 });
+        }
+
         const id = `app_${Date.now()}`;
         const resolvedDurationType = durationType || (stayDuration === 4 ? '1_semester' : '1_month');
 

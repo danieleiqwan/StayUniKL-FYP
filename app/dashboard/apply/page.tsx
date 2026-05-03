@@ -25,17 +25,19 @@ export default function ApplyPage() {
     const totalPrice = stayDuration * monthlyRate;
 
     if (!user) return null;
-
-    if (myApplication) {
-        const myRoom = rooms.find(r => r.id === myApplication?.roomId);
-        const myBed = myRoom?.beds.find(b => b.id === myApplication?.bedId);
-        const bedLabel = myBed?.label || myApplication?.bedId;
+    
+    const activeApplication = myApplication && ['Pending', 'Payment Pending', 'Approved', 'Checked in'].includes(myApplication.status) ? myApplication : null;
+    
+    if (activeApplication) {
+        const myRoom = rooms.find(r => r.id === activeApplication?.roomId);
+        const myBed = myRoom?.beds.find(b => b.id === activeApplication?.bedId);
+        const bedLabel = myBed?.label || activeApplication?.bedId;
 
         return (
             <div className="space-y-6">
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1 transition-colors">Application Status</h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">You have already submitted an application.</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">You have an active application or stay.</p>
                 </div>
 
                 <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 p-8 max-w-2xl mx-auto mt-10 text-center flex flex-col items-center transition-colors">
@@ -43,15 +45,15 @@ export default function ApplyPage() {
                         <CheckCircle2 className="h-10 w-10 text-[#F26C22] dark:text-orange-400" />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                        {myApplication.status === 'Checked in' ? 'Check-in Confirmed' : 
-                         myApplication.status === 'Approved' ? 'Application Approved' :
+                        {activeApplication.status === 'Checked in' ? 'Check-in Confirmed' : 
+                         activeApplication.status === 'Approved' || activeApplication.status === 'Payment Pending' ? 'Application Approved' :
                          'Application Logged'}
                     </h2>
                     <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md">
-                        {myApplication.status === 'Checked in' ? 
+                        {activeApplication.status === 'Checked in' ? 
                             'Welcome to your new home! Your room placement is confirmed and you are officially checked in.' :
-                         myApplication.status === 'Approved' ?
-                            'Great news! Your application has been approved. You can now prepare for your stay.' :
+                         activeApplication.status === 'Approved' || activeApplication.status === 'Payment Pending' ?
+                            'Great news! Your application has been approved. Please proceed to the financials tab to complete your payment.' :
                             'We have successfully safely logged your hostel application. You will be notified once there are updates regarding your placement.'
                         }
                     </p>
@@ -59,11 +61,11 @@ export default function ApplyPage() {
                     <div className="w-full bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 text-left space-y-4 shadow-inner transition-colors">
                         <div className="flex justify-between items-center pb-4 border-b border-slate-200/60 dark:border-slate-700">
                             <span className="text-slate-500 dark:text-slate-400 font-bold text-sm">Status</span>
-                            <span className="bg-[#F26C22] text-white px-3 py-1 text-[10px] font-bold rounded-lg uppercase tracking-widest">{myApplication.status}</span>
+                            <span className="bg-[#F26C22] text-white px-3 py-1 text-[10px] font-bold rounded-lg uppercase tracking-widest">{activeApplication.status}</span>
                         </div>
                         <div className="flex justify-between items-center pb-4 border-b border-slate-200/60 dark:border-slate-700">
                             <span className="text-slate-500 dark:text-slate-400 font-bold text-sm flex items-center gap-2"><Key className="h-4 w-4 text-[#F26C22] dark:text-orange-400"/> Room Block</span>
-                            <span className="text-slate-900 dark:text-white font-bold">Floor {myApplication.floorId} • Room {myApplication.roomId}</span>
+                            <span className="text-slate-900 dark:text-white font-bold">Floor {activeApplication.floorId} • Room {activeApplication.roomId}</span>
                         </div>
                         <div className="flex justify-between items-center pb-4 border-b border-slate-200/60 dark:border-slate-700">
                             <span className="text-slate-500 dark:text-slate-400 font-bold text-sm flex items-center gap-2"><BedDouble className="h-4 w-4 text-[#F26C22] dark:text-orange-400"/> Bed Selection</span>
@@ -71,13 +73,13 @@ export default function ApplyPage() {
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-slate-500 dark:text-slate-400 font-bold text-sm flex items-center gap-2"><CalendarDays className="h-4 w-4 text-[#F26C22] dark:text-orange-400" /> Valid Duration</span>
-                            <span className="text-slate-900 dark:text-white font-bold">{myApplication.stayDuration} {myApplication.stayDuration > 1 ? 'Months' : 'Month'}</span>
+                            <span className="text-slate-900 dark:text-white font-bold">{activeApplication.stayDuration} {activeApplication.stayDuration > 1 ? 'Months' : 'Month'}</span>
                         </div>
                     </div>
                 </div>
             </div>
         );
-    }
+    }   }
 
     const handleNext = () => {
         if (step === 1 && selectedFloor) setStep(2);
