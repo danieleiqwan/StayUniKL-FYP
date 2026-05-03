@@ -25,7 +25,8 @@ import {
     Clock,
     BookOpen,
     Phone,
-    Layers
+    Layers,
+    FileText
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -77,6 +78,7 @@ function NavContent({
         { name: 'Complaints', path: '/dashboard/complaints',  icon: Wrench },
         { name: 'Room Change',path: '/dashboard/room-change', icon: ArrowRightLeft },
         { name: 'Financials', path: '/dashboard/financials',  icon: CreditCard },
+        { name: 'Documents',  path: '/dashboard/documents',   icon: FileText },
         { name: 'Notifications', path: '/dashboard/notifications', icon: Bell },
     ];
 

@@ -240,6 +240,12 @@ export default function AdminDashboard() {
                         >
                             <Building2 className="h-4 w-4" /> View Room Availability
                         </button>
+                        <button
+                            onClick={() => router.push('/admin/documents')}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
+                        >
+                            <FileText className="h-4 w-4" /> Verify Documents
+                        </button>
                     </div>
                 </div>
 

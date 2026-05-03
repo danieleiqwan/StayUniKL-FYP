@@ -39,6 +39,9 @@ export interface Payment {
 export interface Invoice {
     id: string; userId: string; applicationId?: string; type: string; description?: string; amount: number; status: 'Unpaid' | 'Paid' | 'Partially Paid' | 'Overdue' | 'Cancelled'; dueDate?: string; createdAt: string;
 }
+export interface Document {
+    id: string; user_id: string; type: string; name: string; file_url: string; status: 'Pending' | 'Verified' | 'Rejected'; rejection_reason?: string; created_at: string;
+}
 
 interface DataContextType {
     applications: Application[];
@@ -76,6 +79,7 @@ interface DataContextType {
     roomChangeRequests: any[];
     payments: Payment[];
     invoices: Invoice[];
+    myDocuments: Document[];
     refreshData: () => Promise<void>;
 }
 
@@ -100,6 +104,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
     const [roomChangeRequests, setRoomChangeRequests] = useState<any[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [myDocuments, setMyDocuments] = useState<Document[]>([]);
 
     // --- Fetch Data ---
     const fetchData = useCallback(async () => {
@@ -156,6 +161,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 } else {
                     setRoomChangeRequest(null);
                 }
+
+                // Fetch student documents
+                const docRes = await fetch('/api/documents');
+                const docData = await docRes.json();
+                if (docData.documents) setMyDocuments(docData.documents);
 
                 // Fetch Notifications
                 const notifRes = await fetch(`/api/notifications?userId=${user.id}`);
@@ -393,7 +403,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             myApplication, myRoomChangeRequest, myComplaints,
             notifications, unreadNotificationsCount, markNotificationRead,
             roomChangeRequests,
-            payments, invoices, refreshData: fetchData
+            payments, invoices, myDocuments, refreshData: fetchData
         }}>
             {children}
         </DataContext.Provider>

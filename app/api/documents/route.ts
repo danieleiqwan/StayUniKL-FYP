@@ -1,80 +1,136 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { v2 as cloudinary } from 'cloudinary';
+import pool from '@/lib/db';
+import { getAuthUser } from '@/lib/auth';
+import { v4 as uuidv4 } from 'uuid';
 
-// GET: Fetch documents
-// Admin can fetch all or by status, Students fetch their own
+const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+
+// GET /api/documents - fetch documents for the user
 export async function GET(request: Request) {
     try {
-        const { searchParams } = new URL(request.url);
-        const userId = searchParams.get('userId');
-        const status = searchParams.get('status');
+        const user = await getAuthUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        let query = 'SELECT d.*, u.name as user_name FROM documents d JOIN users u ON d.user_id = u.id WHERE 1=1';
-        const params: any[] = [];
+        const [rows]: any = await pool.query(
+            'SELECT * FROM documents WHERE user_id = ? ORDER BY created_at DESC',
+            [user.id]
+        );
 
-        if (userId) {
-            query += ' AND d.user_id = ?';
-            params.push(userId);
-        }
-        if (status) {
-            query += ' AND d.status = ?';
-            params.push(status);
-        }
-
-        query += ' ORDER BY d.created_at DESC';
-
-        const [documents] = await db.query(query, params);
-        return NextResponse.json({ documents });
-    } catch (error) {
-        console.error("Error fetching documents:", error);
-        return NextResponse.json({ error: 'Failed to fetch documents' }, { status: 500 });
+        return NextResponse.json({ documents: rows });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
-// POST: Student uploads a document (or re-uploads)
+// POST /api/documents - upload a document
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
-        const { userId, type, fileUrl } = body;
+        const user = await getAuthUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        if (!userId || !type || !fileUrl) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+        const apiKey = process.env.CLOUDINARY_API_KEY;
+        const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+        if (!cloudName || !apiKey || !apiSecret) {
+            return NextResponse.json({ error: 'Cloudinary credentials are not configured' }, { status: 500 });
         }
 
-        const id = `DOC-${Date.now()}`;
+        cloudinary.config({
+            cloud_name: cloudName,
+            api_key: apiKey,
+            api_secret: apiSecret,
+        });
 
-        // If a document of this type already exists for this user and is NOT verified, we might want to update it or create new.
-        // For simplicity, let's just create a new record.
-        await db.query(
-            `INSERT INTO documents (id, user_id, type, file_url, status) VALUES (?, ?, ?, ?, 'Pending')`,
-            [id, userId, type, fileUrl]
+        const formData = await request.formData();
+        const file = formData.get('file') as File;
+        const docType = formData.get('type') as string;
+
+        if (!file || !docType) {
+            return NextResponse.json({ error: 'File and type are required' }, { status: 400 });
+        }
+
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            return NextResponse.json({ error: 'Invalid file type. Only JPG, PNG, and PDF are allowed.' }, { status: 400 });
+        }
+
+        if (file.size > MAX_SIZE) {
+            return NextResponse.json({ error: 'File exceeds the 10MB size limit.' }, { status: 400 });
+        }
+
+        const buffer = Buffer.from(await file.arrayBuffer());
+        
+        const uploadResponse = await new Promise<any>((resolve, reject) => {
+            cloudinary.uploader.upload_stream(
+                {
+                    folder: 'stayunikl/documents',
+                    resource_type: 'auto',
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            ).end(buffer);
+        });
+
+        const docId = `doc_${uuidv4().replace(/-/g, '').slice(0, 16)}`;
+        const fileName = file.name;
+        const fileUrl = uploadResponse.secure_url;
+
+        await pool.query(
+            'INSERT INTO documents (id, user_id, type, name, file_url, status) VALUES (?, ?, ?, ?, ?, ?)',
+            [docId, user.id, docType, fileName, fileUrl, 'Pending']
         );
 
-        return NextResponse.json({ success: true, id });
-    } catch (error) {
-        console.error("Error uploading document:", error);
-        return NextResponse.json({ error: 'Failed to upload document' }, { status: 500 });
+        return NextResponse.json({ 
+            success: true, 
+            document: {
+                id: docId,
+                type: docType,
+                name: fileName,
+                file_url: fileUrl,
+                status: 'Pending',
+                created_at: new Date().toISOString()
+            }
+        });
+
+    } catch (error: any) {
+        console.error('[Document Upload Error]', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
 
-// PUT: Admin reviews a document (Verify/Reject)
-export async function PUT(request: Request) {
+// DELETE /api/documents?id=...
+export async function DELETE(request: Request) {
     try {
-        const body = await request.json();
-        const { id, status, adminNotes } = body;
+        const user = await getAuthUser();
+        if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        if (!id || !status) {
-            return NextResponse.json({ error: 'Missing ID or status' }, { status: 400 });
-        }
+        const { searchParams } = new URL(request.url);
+        const docId = searchParams.get('id');
 
-        await db.query(
-            'UPDATE documents SET status = ?, admin_notes = ? WHERE id = ?',
-            [status, adminNotes || null, id]
+        if (!docId) return NextResponse.json({ error: 'Document ID required' }, { status: 400 });
+
+        // Ensure user owns the document and it is not verified
+        const [docs]: any = await pool.query(
+            'SELECT * FROM documents WHERE id = ? AND user_id = ?',
+            [docId, user.id]
         );
 
+        if (docs.length === 0) {
+            return NextResponse.json({ error: 'Document not found or unauthorized' }, { status: 404 });
+        }
+
+        if (docs[0].status === 'Verified') {
+            return NextResponse.json({ error: 'Cannot delete a verified document' }, { status: 400 });
+        }
+
+        await pool.query('DELETE FROM documents WHERE id = ?', [docId]);
+
         return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Error updating document status:", error);
-        return NextResponse.json({ error: 'Failed to update document status' }, { status: 500 });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
