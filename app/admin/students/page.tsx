@@ -8,7 +8,7 @@ import LiveClock from '@/components/admin/LiveClock';
 import StudentDetailModal from '@/components/admin/StudentDetailModal';
 import { 
     Search, Filter, User, Mail, Phone, MoreHorizontal, 
-    ChevronLeft, ChevronRight, Eye, Users, Building, FileBarChart,
+    ChevronLeft, ChevronRight, Eye, Users, Building, 
     ArrowUpDown, Download, Plus
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -127,28 +127,6 @@ export default function StudentsDirectoryPage() {
                             />
                         </div>
                     </div>
-                </div>
-
-                {/* Tab Navigation */}
-                <div className="flex items-center gap-2 mb-8 bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-100 dark:border-slate-800 w-fit shadow-sm">
-                    {[
-                        { id: 'students', label: 'Students', icon: Users },
-                        { id: 'rooms', label: 'Facility Room', icon: Building },
-                        { id: 'reports', label: 'Reports', icon: FileBarChart },
-                    ].map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-3 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                                activeTab === tab.id 
-                                ? 'bg-[#F26C22] text-white shadow-lg shadow-orange-500/30' 
-                                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-                            }`}
-                        >
-                            <tab.icon className="h-4 w-4" />
-                            {tab.label}
-                        </button>
-                    ))}
                 </div>
 
                 {/* Filter Bar */}
