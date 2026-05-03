@@ -79,7 +79,7 @@ export default function ApplyPage() {
                 </div>
             </div>
         );
-    }   }
+    }
 
     const handleNext = () => {
         if (step === 1 && selectedFloor) setStep(2);
