@@ -17,6 +17,7 @@ export default function SettingsHub() {
     const [accountForm, setAccountForm] = useState({
         name: user?.name || '',
         email: user?.email || '',
+        studentId: user?.studentId || '',
     });
 
     const [passwordForm, setPasswordForm] = useState({
@@ -45,7 +46,11 @@ export default function SettingsHub() {
             });
             const data = await res.json();
             if (data.success) {
-                updateProfile({ name: accountForm.name, email: accountForm.email });
+                updateProfile({ 
+                    name: accountForm.name, 
+                    email: accountForm.email,
+                    studentId: accountForm.studentId 
+                });
                 setMsg({ type: 'success', text: 'Account information updated!' });
             } else {
                 setMsg({ type: 'error', text: data.error || 'Update failed.' });
@@ -197,6 +202,23 @@ export default function SettingsHub() {
                                                 value={accountForm.email}
                                                 onChange={e => setAccountForm({ ...accountForm, email: e.target.value })}
                                                 className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors flex items-center justify-between">
+                                                <span>Student ID Number</span>
+                                                {!user.studentId && (
+                                                    <span className="text-[10px] text-amber-500 font-black animate-pulse flex items-center gap-1 normal-case tracking-normal">
+                                                        <AlertCircle className="h-3 w-3" /> Pending update
+                                                    </span>
+                                                )}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="Enter your official Student ID (e.g. 52213123456)"
+                                                value={accountForm.studentId}
+                                                onChange={e => setAccountForm({ ...accountForm, studentId: e.target.value.replace(/\D/g, '').slice(0, 11) })}
+                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600"
                                             />
                                         </div>
                                     </div>

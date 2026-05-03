@@ -8,8 +8,8 @@ import { validateNRIC } from '@/lib/validation';
 
 const registerSchema = z.object({
     name: z.string().min(2),
-    studentId: z.string().min(5),
-    nric: z.string().min(5), // Accepts Passport or NRIC
+    studentId: z.string().optional(), // Now optional
+    nric: z.string().min(5), // Accepts Passport or NRIC — primary unique identifier
     email: z.string().email().endsWith('@s.unikl.edu.my', { message: 'Only UniKL student email addresses are allowed (@s.unikl.edu.my)' }),
     gender: z.enum(['Male', 'Female']),
     role: z.enum(['student', 'admin']),
@@ -54,44 +54,61 @@ export async function POST(request: Request) {
             }
         }
 
-        // Check if Email exists
+        // 3. Check if Email exists
         const [existingEmail]: any = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
         if (existingEmail.length > 0) {
             return NextResponse.json({ error: 'Email address is already in use' }, { status: 409 });
         }
 
-        // Check if Student ID exists
-        const [existingId]: any = await pool.query('SELECT id FROM users WHERE id = ?', [studentId]);
-        if (existingId.length > 0) {
-            return NextResponse.json({ error: 'Student ID has already been registered' }, { status: 409 });
-        }
-
-        // Check if NRIC/Passport exists
+        // 4. Check if NRIC/Passport exists (primary unique identifier)
         const [existingNric]: any = await pool.query('SELECT id FROM users WHERE nric = ?', [nric]);
         if (existingNric.length > 0) {
             return NextResponse.json({ error: 'ID/Passport number has already been registered' }, { status: 409 });
         }
 
+        // 5. If Student ID provided, check uniqueness
+        if (studentId && studentId.trim()) {
+            const [existingStudentId]: any = await pool.query('SELECT id FROM users WHERE student_id = ?', [studentId.trim()]);
+            if (existingStudentId.length > 0) {
+                return NextResponse.json({ error: 'Student ID has already been registered' }, { status: 409 });
+            }
+        }
+
+        // 6. Generate a unique primary key: use studentId if provided, otherwise use NRIC-based ID
+        const cleanNric = nric.replace(/\D/g, '').slice(0, 12) || nric.replace(/[^A-Z0-9]/g, '').slice(0, 12);
+        const generatedId = studentId?.trim() || `STU-${cleanNric}-${Date.now().toString().slice(-4)}`;
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
         await pool.query(
-            'INSERT INTO users (id, name, nric, email, role, gender, password, nationality, birth_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [studentId, name, nric, email, role, gender, hashedPassword, nationality || 'Local', dob || null]
+            'INSERT INTO users (id, name, nric, email, role, gender, password, nationality, birth_date, student_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [
+                generatedId,
+                name,
+                nric,
+                email,
+                role,
+                gender,
+                hashedPassword,
+                nationality || 'Local',
+                dob || null,
+                studentId?.trim() || null  // null if not provided
+            ]
         );
 
-        // 1. Create a secure JWT token
+        // 7. Create a secure JWT token
         const token = await createToken({
-            id: studentId,
+            id: generatedId,
             role: role,
             email: email
         });
 
-        // 2. Set the token in an HttpOnly cookie
+        // 8. Set the token in an HttpOnly cookie
         await setTokenCookie(token);
 
         return NextResponse.json({ 
             success: true, 
-            user: { id: studentId, name, email, role, gender } 
+            user: { id: generatedId, name, email, role, gender, studentId: studentId?.trim() || null } 
         });
 
     } catch (error: any) {

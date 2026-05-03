@@ -88,10 +88,13 @@ export default function RegisterPage() {
         const errors: string[] = [];
         const shake: string[] = [];
 
-        if (formData.studentId.length < 8) {
+        // studentId is now optional
+        /*
+        if (formData.studentId && formData.studentId.length < 8) {
             errors.push('studentId');
             shake.push('studentId');
         }
+        */
 
         if (formData.nationality === 'Local') {
             const nricStatus = validateNRIC(formData.nric);
@@ -158,7 +161,7 @@ export default function RegisterPage() {
         setIsSubmitting(true);
         const success = await register(
             formData.name,
-            formData.studentId,
+            formData.studentId || undefined,
             formData.nric,
             finalEmail,
             formData.gender as 'Male' | 'Female',
@@ -267,13 +270,15 @@ export default function RegisterPage() {
                                                 <input
                                                     type="text"
                                                     name="studentId"
-                                                    placeholder="5221..."
-                                                    required
+                                                    placeholder="5221... (Optional)"
                                                     className={`block w-full pl-10 pr-3 py-2.5 bg-[#f8fafc] dark:bg-[#0f172a] border rounded-xl text-xs focus:ring-2 focus:ring-[#F26C22]/30 focus:border-[#F26C22] dark:text-white transition-all outline-none font-medium ${validationErrors.includes('studentId') ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} ${shakingFields.includes('studentId') ? 'animate-shake' : ''}`}
                                                     value={formData.studentId}
                                                     onChange={handleChange}
                                                 />
                                             </div>
+                                            <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1">
+                                                <AlertCircle className="h-2.5 w-2.5" /> Don't have one? You can add it later in settings.
+                                            </p>
                                         </div>
 
                                         <div className="space-y-1.5">

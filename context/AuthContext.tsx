@@ -26,7 +26,7 @@ interface User {
 interface AuthContextType {
     user: User | null;
     login: (role: 'student' | 'admin', email?: string, password?: string, rememberMe?: boolean) => void;
-    register: (name: string, studentId: string, nric: string, email: string, gender: 'Male' | 'Female', password: string, nationality: string, dob?: string) => Promise<boolean>;
+    register: (name: string, studentId: string | undefined, nric: string, email: string, gender: 'Male' | 'Female', password: string, nationality: string, dob?: string) => Promise<boolean>;
     logout: () => void;
     updateProfile: (updates: Partial<User>) => void;
     isAuthenticated: boolean;
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const register = async (name: string, studentId: string, nric: string, email: string, gender: 'Male' | 'Female', password: string, nationality: string, dob?: string) => {
+    const register = async (name: string, studentId: string | undefined, nric: string, email: string, gender: 'Male' | 'Female', password: string, nationality: string, dob?: string) => {
         try {
             const res = await fetch('/api/auth/register', {
                 method: 'POST',
