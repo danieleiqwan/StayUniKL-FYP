@@ -24,7 +24,7 @@ export default function StudentsDirectoryPage() {
     // Filter States
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
-    const [facultyFilter, setFacultyFilter] = useState('All');
+    const [residencyFilter, setResidencyFilter] = useState('All');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
@@ -62,10 +62,14 @@ export default function StudentsDirectoryPage() {
             const matchesStatus = statusFilter === 'All' || 
                 (statusFilter === 'Active' && s.latest_status === 'Checked in') ||
                 (statusFilter === 'Checked Out' && s.latest_status === 'Checked out');
+            
+            const matchesResidency = residencyFilter === 'All' || 
+                (residencyFilter === 'Current Staying' && s.latest_status === 'Checked in') ||
+                (residencyFilter === 'Past Staying' && s.latest_status === 'Checked out');
 
-            return matchesSearch && matchesStatus;
+            return matchesSearch && matchesStatus && matchesResidency;
         });
-    }, [students, searchQuery, statusFilter]);
+    }, [students, searchQuery, statusFilter, residencyFilter]);
 
     // Pagination Logic
     const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -159,16 +163,15 @@ export default function StudentsDirectoryPage() {
                             </select>
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Faculty</label>
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Residency History</label>
                             <select 
-                                value={facultyFilter}
-                                onChange={(e) => setFacultyFilter(e.target.value)}
+                                value={residencyFilter}
+                                onChange={(e) => setResidencyFilter(e.target.value)}
                                 className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#F26C22] min-w-[140px]"
                             >
                                 <option>All</option>
-                                <option>MIIT</option>
-                                <option>MSI</option>
-                                <option>MICET</option>
+                                <option>Current Staying</option>
+                                <option>Past Staying</option>
                             </select>
                         </div>
                     </div>
