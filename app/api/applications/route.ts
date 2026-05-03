@@ -190,7 +190,7 @@ export async function PUT(request: Request) {
             await connection.query(query, params);
 
             // 2. Fetch application details for resource management and notifications
-            const [appRows]: any = await connection.query('SELECT student_id, room_type, bed_id FROM applications WHERE id = ?', [id]);
+            const [appRows]: any = await connection.query('SELECT student_id, room_type, bed_id, total_price FROM applications WHERE id = ?', [id]);
             if (appRows.length > 0) {
                 const app = appRows[0];
                 const studentId = app.student_id;
@@ -214,6 +214,14 @@ export async function PUT(request: Request) {
                     title = 'Application Approved';
                     message = `Great news! Your application for ${app.room_type} has been approved. Please proceed to payment to confirm your room.`;
                     type = 'success';
+
+                    // Create Invoice for the application
+                    const invoiceId = `INV-APP-${Date.now()}`;
+                    await connection.query(
+                        `INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date)
+                         VALUES (?, ?, ?, 'Hostel Fee', ?, ?, 'Unpaid', DATE_ADD(NOW(), INTERVAL 7 DAY))`,
+                        [invoiceId, studentId, id, `Hostel Fee for ${app.room_type}`, app.total_price || 0]
+                    );
                 } else if (status === 'Approved') {
                     title = 'Payment Confirmed';
                     message = `Your payment has been verified. Your stay in ${app.room_type} is now confirmed.`;
