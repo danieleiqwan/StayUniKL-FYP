@@ -84,9 +84,27 @@ export default function AdminBillingPage() {
                             <div>
                                 <div className="flex justify-between items-center mb-6">
                                     <h3 className="font-bold text-slate-900 dark:text-white text-lg">Invoice Ledger</h3>
-                                    <button className="bg-[#F26C22] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#d65a16] shadow-md shadow-orange-500/20 transition-all hover:scale-105">
-                                        + Create New Invoice
-                                    </button>
+                                    <div className="flex gap-3">
+                                        <button 
+                                            onClick={async () => {
+                                                if(!confirm('This will check all active students and generate missing monthly invoices. Proceed?')) return;
+                                                const res = await fetch('/api/admin/billing/auto', { method: 'POST' });
+                                                const data = await res.json();
+                                                if(data.success) {
+                                                    alert(data.message);
+                                                    fetchData();
+                                                } else {
+                                                    alert(data.error);
+                                                }
+                                            }}
+                                            className="bg-slate-800 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-700 shadow-md transition-all"
+                                        >
+                                            ⚡ Run Auto-Billing
+                                        </button>
+                                        <button className="bg-[#F26C22] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#d65a16] shadow-md shadow-orange-500/20 transition-all hover:scale-105">
+                                            + Create New Invoice
+                                        </button>
+                                    </div>
                                 </div>
                                 <table className="w-full text-sm text-left text-slate-500">
                                     <thead className="text-[10px] text-slate-500 uppercase bg-slate-50 dark:bg-slate-800 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">

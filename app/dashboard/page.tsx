@@ -51,7 +51,7 @@ export default function StudentDashboard() {
     const appStatus = myApplication?.status;
     const isApproved = appStatus === 'Approved' || appStatus === 'Payment Pending' || appStatus === 'Checked in';
     const isCheckedIn = appStatus === 'Checked in';
-    
+
     const myRoom = rooms.find(r => r.id === myApplication?.roomId);
     const myBed = myRoom?.beds.find(b => b.id === myApplication?.bedId);
     const bedLabel = myBed?.label || myApplication?.bedId;
@@ -79,28 +79,28 @@ export default function StudentDashboard() {
 
     const getAvailableSlots = (targetDateStr: string, isToday: boolean) => {
         if (!courtSettings.isOpen) return 0;
-        
+
         const now = new Date();
         const currentHour = now.getHours();
-        
+
         let validSlots = 0;
         for (let i = startHour; i < endHour; i++) {
             // If checking today, exclude slots that have already passed or are currently active
             if (isToday && i <= currentHour) continue;
-            
+
             const timeStr = `${i.toString().padStart(2, '0')}:00`;
             const slotKey = `${targetDateStr}T${timeStr}`;
-            
+
             // Check if blocked by admin
             if (courtSettings.blockedSlots && courtSettings.blockedSlots.includes(slotKey)) continue;
-            
+
             // Check if someone has booked it
-            const isBooked = courtBookings.some(b => 
-                b.date === targetDateStr && 
-                b.timeSlot === timeStr && 
+            const isBooked = courtBookings.some(b =>
+                b.date === targetDateStr &&
+                b.timeSlot === timeStr &&
                 (b.status === 'Approved' || b.status === 'Pending')
             );
-            
+
             if (!isBooked) validSlots++;
         }
         return validSlots;
@@ -199,9 +199,9 @@ export default function StudentDashboard() {
                                     <p className="text-xs font-black uppercase tracking-widest opacity-50 mb-1">Tenancy</p>
                                     <p className="text-sm font-bold">
                                         {myApplication?.durationType === '1_semester' || myApplication?.stayDuration === 4
-                                            ? 'Full Academic Semester' 
+                                            ? 'Full Academic Semester'
                                             : myApplication?.durationType === '1_month' || myApplication?.stayDuration === 1
-                                                ? '1 Academic Month' 
+                                                ? '1 Academic Month'
                                                 : '—'}
                                     </p>
                                 </div>
@@ -269,10 +269,10 @@ export default function StudentDashboard() {
                                 {isCheckedIn
                                     ? `Application submitted. Approved. You're currently in residence.`
                                     : isApproved
-                                    ? 'Application approved. Complete payment to check in.'
-                                    : isApplied
-                                    ? 'Application submitted. Awaiting review.'
-                                    : 'No application submitted yet.'}
+                                        ? 'Application approved. Complete payment to check in.'
+                                        : isApplied
+                                            ? 'Application submitted. Awaiting review.'
+                                            : 'No application submitted yet.'}
                             </p>
                             <Link href="/dashboard/apply" className="text-xs font-black text-[#F26C22] dark:text-orange-400 hover:underline flex items-center gap-1">
                                 Track application <ArrowRight className="h-3 w-3" />
@@ -441,9 +441,9 @@ export default function StudentDashboard() {
                                 <p className="text-xs text-slate-400 dark:text-slate-500">Warden desk responds in ~10 min</p>
                             </div>
                         </div>
-                        <a 
-                            href="https://wa.me/60123456789" 
-                            target="_blank" 
+                        <a
+                            href="https://wa.me/601137593380"
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="shrink-0 text-xs font-black text-[#F26C22] dark:text-orange-400 border border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-900/20 px-4 py-2 rounded-xl hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-all inline-block text-center"
                         >
