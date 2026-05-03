@@ -126,7 +126,7 @@ export default function NotificationsPage() {
                             </div>
                         </div>
                         <Link 
-                            href="/dashboard/profile?tab=billing"
+                            href="/dashboard/financials"
                             className="bg-rose-600 text-white px-8 py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-rose-500/20 hover:bg-rose-700 transition-all active:scale-95 whitespace-nowrap"
                         >
                             View Financials

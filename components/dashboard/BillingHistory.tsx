@@ -28,7 +28,7 @@ export default function BillingHistory() {
                         <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Recent Transactions</p>
                     </div>
                 </div>
-                <Link href="/dashboard/payment" className="text-[10px] font-black text-[#F26C22] hover:underline uppercase tracking-widest">
+                <Link href="/dashboard/financials" className="text-[10px] font-black text-[#F26C22] hover:underline uppercase tracking-widest">
                     Manage Billing
                 </Link>
             </div>
@@ -70,7 +70,7 @@ export default function BillingHistory() {
                         RM {myApplication?.status === 'Payment Pending' ? Number(myApplication.totalPrice).toFixed(2) : '0.00'}
                     </p>
                 </div>
-                <Link href="/dashboard/payment" className="bg-[#F26C22] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#d65a16] shadow-lg shadow-orange-500/20 transition-all">
+                <Link href="/dashboard/financials" className="bg-[#F26C22] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#d65a16] shadow-lg shadow-orange-500/20 transition-all">
                     Make Payment
                 </Link>
             </div>
