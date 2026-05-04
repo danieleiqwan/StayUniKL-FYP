@@ -19,7 +19,9 @@ import {
     Building2,
     Users,
     Hash,
-    Layers
+    Layers,
+    MapPin,
+    Globe
 } from 'lucide-react';
 
 interface StudentDetailModalProps {
