@@ -173,8 +173,21 @@ export default function ProfilePage() {
                                             </div>
                                         </div>
 
-                                        {/* Address Records */}
+                                        {/* Other Records */}
                                         <div className="space-y-4">
+                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Other Records</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800">
+                                                    <ProfileInfoItem icon={<User className="h-4 w-4 text-purple-500" />} label="Gender" value={user.gender} />
+                                                </div>
+                                                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800">
+                                                    <ProfileInfoItem icon={<ShieldCheck className="h-4 w-4 text-rose-500" />} label="NRIC / Passport" value={user.nric || 'Pending Update'} />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Address Records */}
+                                        <div className="md:col-span-2 space-y-4">
                                             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Hometown Address</h4>
                                             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 space-y-5 border border-slate-100 dark:border-slate-800 h-full">
                                                 <div className="flex gap-4">
