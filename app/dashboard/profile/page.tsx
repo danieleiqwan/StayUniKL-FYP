@@ -109,8 +109,8 @@ export default function ProfilePage() {
 
                 {/* Content Area */}
                 <main className="flex-1 min-h-[600px]">
-                    <div className="bg-white dark:bg-slate-900 rounded-[3rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
-                        <div className="p-10 border-b border-slate-50 dark:border-slate-800">                            <div className="flex items-center gap-4 mb-2">
+                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] md:rounded-[3rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
+                        <div className="p-6 md:p-10 border-b border-slate-50 dark:border-slate-800">                            <div className="flex items-center gap-4 mb-2">
                                 <div className="h-10 w-10 bg-orange-50 dark:bg-orange-900/20 rounded-xl flex items-center justify-center text-[#F26C22] dark:text-orange-400">
                                     <ActiveIcon className="h-5 w-5" />
                                 </div>
@@ -121,13 +121,13 @@ export default function ProfilePage() {
                             <p className="text-slate-400 dark:text-slate-500 font-medium text-sm">{tabs.find(t => t.id === activeTab)?.desc}</p>
                         </div>
 
-                        <div className="p-10">
+                        <div className="p-6 md:p-10">
                             {/* Identity Section - READ ONLY */}
                             {activeTab === 'profile' && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                    <div className="flex flex-col md:flex-row items-center gap-8 pb-8 border-b border-slate-50 dark:border-slate-800">
-                                        <div className="relative group">
-                                            <div className="h-32 w-32 rounded-[2.5rem] overflow-hidden ring-4 ring-white dark:ring-slate-800 shadow-2xl relative">
+                                    <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 pb-8 border-b border-slate-50 dark:border-slate-800">
+                                        <div className="relative group shrink-0">
+                                            <div className="h-28 w-28 md:h-32 md:w-32 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden ring-4 ring-white dark:ring-slate-800 shadow-2xl relative">
                                                 <img 
                                                     src={user.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
                                                     alt="Avatar" 
@@ -149,12 +149,12 @@ export default function ProfilePage() {
                                                 onChange={handleImageUpload}
                                             />
                                         </div>
-                                        <div className="text-center md:text-left">
-                                            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-1">Official Identity</h3>
+                                        <div className="text-center md:text-left flex-1 min-w-0">
+                                            <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">Official Identity</h3>
                                             <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">Verified credentials for StayUniKL management.</p>
                                         </div>
-                                        <div className="md:ml-auto">
-                                            <Link href="/dashboard/settings" className="flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200 dark:shadow-none">
+                                        <div className="md:ml-auto w-full md:w-auto">
+                                            <Link href="/dashboard/settings" className="flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200 dark:shadow-none">
                                                 <Wrench className="h-4 w-4" /> Edit Identity
                                             </Link>
                                         </div>
@@ -176,7 +176,7 @@ export default function ProfilePage() {
                                         {/* Other Records */}
                                         <div className="space-y-4">
                                             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Other Records</h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                                                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800">
                                                     <ProfileInfoItem icon={<User className="h-4 w-4 text-purple-500" />} label="Gender" value={user.gender} />
                                                 </div>
@@ -184,7 +184,7 @@ export default function ProfilePage() {
                                                     <ProfileInfoItem icon={<ShieldCheck className="h-4 w-4 text-rose-500" />} label="NRIC / Passport" value={user.nric || 'Pending Update'} />
                                                 </div>
                                                 {/* Added Student ID Card under Gender Card */}
-                                                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800">
+                                                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 sm:col-span-2 lg:col-span-1">
                                                     <ProfileInfoItem icon={<IdCard className="h-4 w-4 text-blue-500" />} label="Student ID Card" value={user.studentId || user.id} />
                                                 </div>
                                             </div>
@@ -244,17 +244,17 @@ export default function ProfilePage() {
                                         </div>
                                     </div>
 
-                                    <div className="p-8 bg-orange-50 dark:bg-orange-900/20 rounded-[2.5rem] border border-orange-100 dark:border-orange-900/30 flex flex-col md:flex-row items-center gap-6">
+                                    <div className="p-6 md:p-8 bg-orange-50 dark:bg-orange-900/20 rounded-[2rem] md:rounded-[2.5rem] border border-orange-100 dark:border-orange-900/30 flex flex-col md:flex-row items-center gap-6">
                                         <div className="h-14 w-14 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center text-[#F26C22] shadow-sm flex-shrink-0">
                                             <AlertCircle className="h-6 w-6" />
                                         </div>
-                                        <div className="text-center md:text-left">
+                                        <div className="text-center md:text-left flex-1">
                                             <p className="text-sm font-black text-slate-900 dark:text-white mb-1">Maintaining Accuracy</p>
                                             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
                                                 Keep your records up to date to ensure official correspondence and emergency protocols are handled correctly.
                                             </p>
                                         </div>
-                                        <Link href="/dashboard/settings" className="md:ml-auto px-8 py-4 bg-[#F26C22] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#d65a16] transition-all flex items-center gap-2">
+                                        <Link href="/dashboard/settings" className="w-full md:w-auto px-8 py-4 bg-[#F26C22] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#d65a16] transition-all flex items-center justify-center gap-2">
                                             Go to Settings <ArrowRight className="h-4 w-4" />
                                         </Link>
                                     </div>
