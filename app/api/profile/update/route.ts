@@ -62,16 +62,7 @@ export async function POST(request: Request) {
             }
         }
 
-        // Check if nric is already taken
-        if (nric) {
-            const [existingNric]: any = await pool.query(
-                'SELECT id FROM users WHERE nric = ? AND id != ?',
-                [nric, user.id]
-            );
-            if (existingNric.length > 0) {
-                return NextResponse.json({ error: 'NRIC/Passport is already in use' }, { status: 400 });
-            }
-        }
+        // nric uniqueness check removed as it's not being updated here
 
         // Update user in DB
         const [result]: any = await pool.query(
