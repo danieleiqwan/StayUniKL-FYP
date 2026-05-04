@@ -244,31 +244,45 @@ export default function CourtBookingPage() {
     );
 
     // Calculate Weekly Limit Remaining
-    const getWeeklyBookingsCount = () => {
-        if (!user || !courtBookings) return 0;
+    const getWeeklyQuotaInfo = () => {
+        if (!user || !courtBookings) return { count: 0, range: '' };
         
         const now = new Date();
         const dayOfWeek = now.getDay(); 
         const distanceToMonday = (dayOfWeek + 6) % 7;
         
-        const start = new Date(now);
-        start.setDate(now.getDate() - distanceToMonday);
+        const monday = new Date(now);
+        monday.setDate(now.getDate() - distanceToMonday);
+        monday.setHours(0, 0, 0, 0);
+        
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
         
         const weekDates = [];
         for (let i = 0; i < 7; i++) {
-            const d = new Date(start);
-            d.setDate(start.getDate() + i);
-            weekDates.push(d.toLocaleDateString('sv-SE'));
+            const d = new Date(monday);
+            d.setDate(monday.getDate() + i);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            weekDates.push(`${y}-${m}-${day}`);
         }
 
-        return courtBookings.filter(b => {
+        const count = courtBookings.filter(b => {
             if (String(b.studentId) !== String(user.id)) return false;
             if (b.status === 'Rejected' || b.status === 'Cancelled') return false;
-            return weekDates.includes(b.date);
+            // Ensure b.date is in YYYY-MM-DD format
+            const bDate = b.date.includes('T') ? b.date.split('T')[0] : b.date;
+            return weekDates.includes(bDate);
         }).length;
+
+        const range = `${monday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${sunday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`;
+        
+        return { count, range };
     };
 
-    const weeklyCount = getWeeklyBookingsCount();
+    const { count: weeklyCount, range: weekRange } = getWeeklyQuotaInfo();
     const weeklyLeft = Math.max(0, 5 - weeklyCount);
 
     return (
@@ -282,12 +296,15 @@ export default function CourtBookingPage() {
                 <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-2xl shadow-sm transition-all">
                         <div className={`h-2 w-2 rounded-full ${weeklyLeft > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Weekly Quota</span>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 leading-tight">Weekly Quota</span>
+                            <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter leading-tight">{weekRange}</span>
+                        </div>
                         <span className={`text-sm font-black ${weeklyLeft > 0 ? 'text-slate-900 dark:text-white' : 'text-rose-500'}`}>
                             {weeklyLeft} / 5
                         </span>
                     </div>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Resets every Monday</p>
+                    <p className="text-[9px] font-bold text-[#F26C22] uppercase tracking-tighter">Resets every Monday</p>
                 </div>
             </div>
 
