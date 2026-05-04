@@ -55,7 +55,13 @@ export async function POST(request: Request) {
         // Fan out to all students as in-app notification if requested
         if (sendNotification) {
             const notifType = priority === 'urgent' ? 'error' : priority === 'important' ? 'warning' : 'info';
-            await createSystemNotification({ title, message, type: notifType });
+            await createSystemNotification({ 
+                title, 
+                message, 
+                type: notifType,
+                relatedEntityId: id,
+                relatedEntityType: 'Announcement'
+            });
         }
 
         return NextResponse.json({ success: true, id });
@@ -90,6 +96,18 @@ export async function DELETE(request: Request) {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
         if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
+
+        // Fetch announcement details to delete associated notifications
+        const [rows]: any = await pool.query('SELECT title, message FROM announcements WHERE id = ?', [id]);
+        if (rows.length > 0) {
+            const { title, message } = rows[0];
+            
+            // Delete notifications linked directly by ID (for future announcements)
+            await pool.query('DELETE FROM notifications WHERE related_entity_id = ?', [id]);
+            
+            // Delete notifications linked by exact title and message (for past announcements)
+            await pool.query('DELETE FROM notifications WHERE title = ? AND message = ?', [title, message]);
+        }
 
         await pool.query('DELETE FROM announcements WHERE id = ?', [id]);
         return NextResponse.json({ success: true });

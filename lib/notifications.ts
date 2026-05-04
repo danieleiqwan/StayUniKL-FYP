@@ -59,8 +59,10 @@ export async function createNotification({
 export async function createSystemNotification({
     title,
     message,
-    type = 'warning'
-}: { title: string; message: string; type?: NotificationType }) {
+    type = 'warning',
+    relatedEntityId,
+    relatedEntityType
+}: { title: string; message: string; type?: NotificationType, relatedEntityId?: string, relatedEntityType?: string }) {
     try {
         // 1. Fetch all student IDs AND their announcement preferences
         let users: any = [];
@@ -86,11 +88,13 @@ export async function createSystemNotification({
             u.id,
             title,
             message,
-            type
+            type,
+            relatedEntityId || null,
+            relatedEntityType || null
         ]);
 
         await pool.query(`
-            INSERT INTO notifications (id, user_id, title, message, type)
+            INSERT INTO notifications (id, user_id, title, message, type, related_entity_id, related_entity_type)
             VALUES ?
         `, [values]);
 
