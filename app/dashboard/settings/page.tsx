@@ -213,16 +213,6 @@ export default function SettingsHub() {
                                                 className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
                                             />
                                         </div>
-                                         <div className="space-y-2">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">NRIC / Passport</label>
-                                            <input
-                                                type="text"
-                                                placeholder="Enter NRIC or Passport Number"
-                                                value={accountForm.nric}
-                                                onChange={e => setAccountForm({ ...accountForm, nric: e.target.value })}
-                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
-                                            />
-                                        </div>
                                         <div className="space-y-2">
                                             <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Student ID</label>
                                             <input
