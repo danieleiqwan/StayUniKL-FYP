@@ -27,8 +27,8 @@ export async function createNotification({
             const [userPrefs]: any = await pool.query('SELECT alert_booking, alert_maintenance, alert_announcement FROM users WHERE id = ?', [userId]);
             if (userPrefs.length > 0) {
                 const prefs = userPrefs[0];
-                if (relatedEntityType === 'CourtBooking' && prefs.alert_booking === 0) shouldSend = false;
-                // Add similar checks for maintenance if relatedEntityType is Maintenance
+                if ((relatedEntityType === 'CourtBooking' || title.toLowerCase().includes('booking')) && prefs.alert_booking === 0) shouldSend = false;
+                if (relatedEntityType === 'Complaint' && prefs.alert_maintenance === 0) shouldSend = false;
             }
         } catch(e) {
             // If DB migration hasn't run, fallback to true
