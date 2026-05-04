@@ -21,12 +21,10 @@ export default function ProfilePage() {
 
     // Dynamic Data
     const [invoices, setInvoices] = useState<any[]>([]);
-    const [documents, setDocuments] = useState<any[]>([]);
 
     useEffect(() => {
         if (user) {
             fetch(`/api/billing/invoices?userId=${user.id}`).then(res => res.json()).then(data => { if (data.invoices) setInvoices(data.invoices); });
-            fetch(`/api/documents?userId=${user.id}`).then(res => res.json()).then(data => { if (data.documents) setDocuments(data.documents); });
         }
     }, [user]);
 
@@ -119,7 +117,6 @@ export default function ProfilePage() {
         { id: 'profile', label: 'Identity', icon: User, desc: 'Official student credentials (Contact admin to change)' },
         { id: 'billing', label: 'Financials', icon: CreditCard, desc: 'Payments, invoices & balance' },
         { id: 'hostel', label: 'My Stay', icon: Home, desc: 'Room details & hostel info' },
-        { id: 'docs', label: 'Documents', icon: FileText, desc: 'Legal records & certifications' },
     ];
 
     const ActiveIcon = tabs.find(t => t.id === activeTab)?.icon || User;
@@ -447,24 +444,7 @@ export default function ProfilePage() {
                                 </div>
                             )}
 
-                            {/* Documents Tab */}
-                            {activeTab === 'docs' && (
-                                <div className="space-y-4 animate-in fade-in duration-500">
-                                    {documents.length > 0 ? documents.map((doc, i) => (
-                                        <div key={i} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-800 rounded-2xl hover:bg-white dark:hover:bg-slate-700 border border-transparent hover:border-slate-200 dark:hover:border-slate-600 transition-all group">
-                                            <div className="flex items-center gap-4">
-                                                <FileText className="h-6 w-6 text-slate-300 dark:text-slate-600 group-hover:text-[#F26C22] dark:group-hover:text-orange-400" />
-                                                <p className="font-bold text-slate-800 dark:text-white text-sm">{doc.title}</p>
-                                            </div>
-                                            <Link href={doc.file_url} target="_blank" className="text-[#F26C22] dark:text-orange-400 hover:text-slate-900 dark:hover:text-white">
-                                                <ArrowRight className="h-5 w-5" />
-                                            </Link>
-                                        </div>
-                                    )) : (
-                                        <div className="py-20 text-center italic text-slate-400 dark:text-slate-600">No documents uploaded.</div>
-                                    )}
-                                </div>
-                            )}
+
 
                             {/* Notifications Placeholder */}
                             {activeTab === 'notifications' && (
