@@ -63,11 +63,25 @@ export async function POST(request: Request) {
             });
 
             // FALLBACK: If invoiceId was missing, find it by application_id and mark as Paid
-            if (!invoiceId) {
+            // If NO invoice exists for this application at all, CREATE ONE so it shows in history
+            const [existingInv]: any = await pool.query('SELECT id FROM invoices WHERE application_id = ?', [finalRef]);
+            
+            if (existingInv.length > 0) {
                 await pool.query(
                     'UPDATE invoices SET status = "Paid" WHERE application_id = ? AND status = "Unpaid"',
                     [finalRef]
                 );
+            } else {
+                // Create the missing invoice for history visibility
+                const invId = `INV-AUTO-${Date.now()}`;
+                await pool.query(
+                    `INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date)
+                     VALUES (?, ?, ?, 'Hostel Fee', 'Hostel Application Fee', ?, 'Paid', NOW())`,
+                    [invId, userId, finalRef, amount]
+                );
+                
+                // Link this new payment record to the newly created invoice
+                await pool.query('UPDATE payments SET invoice_id = ? WHERE id = ?', [invId, id]);
             }
         }
 
