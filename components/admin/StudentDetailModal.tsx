@@ -116,13 +116,53 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
 
                             {activeTab === 'profile' && (
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                                    {/* Core Identity */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <InfoCard label="Full Name" value={data.profile.name} icon={<User className="h-4 w-4 text-orange-500" />} />
                                         <InfoCard label="UniKL Email" value={data.profile.email} icon={<Mail className="h-4 w-4 text-blue-500" />} />
-                                        <InfoCard label="Contact Number" value={data.profile.phone_number || 'N/A'} icon={<Phone className="h-4 w-4 text-green-500" />} />
-                                        <InfoCard label="Emergency Contact (Parent)" value={data.profile.parent_phone_number || 'N/A'} icon={<Phone className="h-4 w-4 text-red-500" />} />
+                                        <InfoCard label="Phone Number" value={data.profile.phone_number || 'N/A'} icon={<Phone className="h-4 w-4 text-green-500" />} />
                                         <InfoCard label="Gender" value={data.profile.gender} icon={<Shield className="h-4 w-4 text-[#F26C22]" />} />
                                         <InfoCard label="Account Created" value={new Date(data.profile.created_at).toLocaleDateString()} icon={<Clock className="h-4 w-4 text-slate-500" />} />
+                                    </div>
+
+                                    {/* Address Details */}
+                                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-2">
+                                            <MapPin className="h-4 w-4 text-[#F26C22]" /> Hometown Address
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div className="md:col-span-3">
+                                                <InfoCard label="Street Address" value={data.profile.address || 'N/A'} icon={<Home className="h-4 w-4 text-slate-400" />} />
+                                            </div>
+                                            <InfoCard label="City" value={data.profile.city || 'N/A'} icon={<Building2 className="h-4 w-4 text-slate-400" />} />
+                                            <InfoCard label="State" value={data.profile.state || 'N/A'} icon={<Globe className="h-4 w-4 text-slate-400" />} />
+                                            <InfoCard label="Postcode" value={data.profile.postcode || 'N/A'} icon={<Hash className="h-4 w-4 text-slate-400" />} />
+                                        </div>
+                                    </div>
+
+                                    {/* Emergency Contacts */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm border-t-4 border-t-rose-500">
+                                            <h3 className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-4">Emergency Contact #1</h3>
+                                            <div className="space-y-4">
+                                                <InfoCard label="Full Name" value={data.profile.emergency_contact_1_name || 'N/A'} icon={<User className="h-3.5 w-3.5 text-slate-400" />} />
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <InfoCard label="Relation" value={data.profile.emergency_contact_1_relation || 'N/A'} icon={<Users className="h-3.5 w-3.5 text-slate-400" />} />
+                                                    <InfoCard label="Phone" value={data.profile.emergency_contact_1_phone || 'N/A'} icon={<Phone className="h-3.5 w-3.5 text-slate-400" />} />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm border-t-4 border-t-slate-300">
+                                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Emergency Contact #2</h3>
+                                            <div className="space-y-4">
+                                                <InfoCard label="Full Name" value={data.profile.emergency_contact_2_name || 'N/A'} icon={<User className="h-3.5 w-3.5 text-slate-400" />} />
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <InfoCard label="Relation" value={data.profile.emergency_contact_2_relation || 'N/A'} icon={<Users className="h-3.5 w-3.5 text-slate-400" />} />
+                                                    <InfoCard label="Phone" value={data.profile.emergency_contact_2_phone || 'N/A'} icon={<Phone className="h-3.5 w-3.5 text-slate-400" />} />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">

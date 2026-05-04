@@ -12,7 +12,14 @@ export async function GET(request: Request) {
 
         // 1. Fetch Profile
         const [userRows]: any = await pool.query(
-            'SELECT id, student_id, name, email, role, gender, phone_number, parent_phone_number, created_at FROM users WHERE id = ? OR student_id = ?',
+            `SELECT 
+                id, student_id, name, email, role, gender, phone_number, parent_phone_number, created_at,
+                address, city, state, postcode, 
+                emergency_contact_1_name, emergency_contact_1_relation, emergency_contact_1_phone,
+                emergency_contact_2_name, emergency_contact_2_relation, emergency_contact_2_phone,
+                profile_image
+            FROM users 
+            WHERE id = ? OR student_id = ?`,
             [studentId, studentId]
         );
         const profile = userRows[0];
