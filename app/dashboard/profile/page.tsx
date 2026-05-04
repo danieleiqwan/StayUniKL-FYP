@@ -274,18 +274,43 @@ export default function ProfilePage() {
                                                         className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
                                                     />
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 gap-4">
                                                     <div className="space-y-2">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship</label>
-                                                        <input 
-                                                            type="text" 
-                                                            value={profileForm.emergencyContact1Relation}
-                                                            onChange={(e) => setProfileForm({ ...profileForm, emergencyContact1Relation: e.target.value })}
-                                                            className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
-                                                        />
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship to Student</label>
+                                                        <select 
+                                                            value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(profileForm.emergencyContact1Relation) ? profileForm.emergencyContact1Relation : (profileForm.emergencyContact1Relation ? 'Other' : '')}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                setProfileForm({ ...profileForm, emergencyContact1Relation: val === 'Other' ? '' : val });
+                                                            }}
+                                                            className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all appearance-none cursor-pointer"
+                                                        >
+                                                            <option value="" disabled>Select Relationship</option>
+                                                            <option value="Father">Father</option>
+                                                            <option value="Mother">Mother</option>
+                                                            <option value="Guardian">Guardian</option>
+                                                            <option value="Sibling">Sibling</option>
+                                                            <option value="Relative">Relative</option>
+                                                            <option value="Spouse">Spouse</option>
+                                                            <option value="Other">Other (Please specify)</option>
+                                                        </select>
                                                     </div>
+
+                                                    {(!['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(profileForm.emergencyContact1Relation) || profileForm.emergencyContact1Relation === '') && (
+                                                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Specify Relationship</label>
+                                                            <input 
+                                                                type="text" 
+                                                                placeholder="e.g. Grandfather, Uncle"
+                                                                value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(profileForm.emergencyContact1Relation) ? '' : profileForm.emergencyContact1Relation}
+                                                                onChange={(e) => setProfileForm({ ...profileForm, emergencyContact1Relation: e.target.value })}
+                                                                className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all"
+                                                            />
+                                                        </div>
+                                                    )}
+
                                                     <div className="space-y-2">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone</label>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
                                                         <input 
                                                             type="text" 
                                                             value={profileForm.emergencyContact1Phone}
@@ -308,18 +333,43 @@ export default function ProfilePage() {
                                                         className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
                                                     />
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 gap-4">
                                                     <div className="space-y-2">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship</label>
-                                                        <input 
-                                                            type="text" 
-                                                            value={profileForm.emergencyContact2Relation}
-                                                            onChange={(e) => setProfileForm({ ...profileForm, emergencyContact2Relation: e.target.value })}
-                                                            className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
-                                                        />
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship to Student</label>
+                                                        <select 
+                                                            value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(profileForm.emergencyContact2Relation) ? profileForm.emergencyContact2Relation : (profileForm.emergencyContact2Relation ? 'Other' : '')}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value;
+                                                                setProfileForm({ ...profileForm, emergencyContact2Relation: val === 'Other' ? '' : val });
+                                                            }}
+                                                            className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all appearance-none cursor-pointer"
+                                                        >
+                                                            <option value="" disabled>Select Relationship</option>
+                                                            <option value="Father">Father</option>
+                                                            <option value="Mother">Mother</option>
+                                                            <option value="Guardian">Guardian</option>
+                                                            <option value="Sibling">Sibling</option>
+                                                            <option value="Relative">Relative</option>
+                                                            <option value="Spouse">Spouse</option>
+                                                            <option value="Other">Other (Please specify)</option>
+                                                        </select>
                                                     </div>
+
+                                                    {(!['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(profileForm.emergencyContact2Relation) || profileForm.emergencyContact2Relation === '') && (
+                                                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Specify Relationship</label>
+                                                            <input 
+                                                                type="text" 
+                                                                placeholder="e.g. Grandfather, Uncle"
+                                                                value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(profileForm.emergencyContact2Relation) ? '' : profileForm.emergencyContact2Relation}
+                                                                onChange={(e) => setProfileForm({ ...profileForm, emergencyContact2Relation: e.target.value })}
+                                                                className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all"
+                                                            />
+                                                        </div>
+                                                    )}
+
                                                     <div className="space-y-2">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone</label>
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
                                                         <input 
                                                             type="text" 
                                                             value={profileForm.emergencyContact2Phone}
