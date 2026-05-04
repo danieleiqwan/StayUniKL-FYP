@@ -73,7 +73,7 @@ export default function AnnouncementsBanner() {
     return (
         <div className="space-y-4">
             {visible.map(a => {
-                const style = PRIORITY_STYLE[a.priority];
+                const style = PRIORITY_STYLE[a.priority] || PRIORITY_STYLE.general;
                 return (
                     <div
                         key={a.id}

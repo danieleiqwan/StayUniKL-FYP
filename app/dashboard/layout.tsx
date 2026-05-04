@@ -56,24 +56,24 @@ function NavContent({
     logout,
 }: NavContentProps) {
     const [isFacilitiesOpen, setIsFacilitiesOpen] = useState(
-        pathname.includes('/court')
+        pathname?.includes('/court') || false
     );
     const [isMiscOpen, setIsMiscOpen] = useState(
-        pathname.includes('/gym') || pathname.includes('/dobby') || pathname.includes('/handbook') || pathname.includes('/contacts')
+        (pathname?.includes('/gym') || pathname?.includes('/dobby') || pathname?.includes('/handbook') || pathname?.includes('/contacts')) || false
     );
     const [isResourcesOpen, setIsResourcesOpen] = useState(
-        pathname.includes('/financials') || pathname.includes('/announcements') || pathname.includes('/documents')
+        (pathname?.includes('/financials') || pathname?.includes('/announcements') || pathname?.includes('/documents')) || false
     );
 
     // Keep dropdown open when navigating to a child route
     useEffect(() => {
-        if (pathname.includes('/court')) {
+        if (pathname?.includes('/court')) {
             setIsFacilitiesOpen(true);
         }
-        if (pathname.includes('/gym') || pathname.includes('/dobby') || pathname.includes('/handbook') || pathname.includes('/contacts')) {
+        if (pathname?.includes('/gym') || pathname?.includes('/dobby') || pathname?.includes('/handbook') || pathname?.includes('/contacts')) {
             setIsMiscOpen(true);
         }
-        if (pathname.includes('/financials') || pathname.includes('/announcements') || pathname.includes('/documents')) {
+        if (pathname?.includes('/financials') || pathname?.includes('/announcements') || pathname?.includes('/documents')) {
             setIsResourcesOpen(true);
         }
     }, [pathname]);
@@ -107,20 +107,20 @@ function NavContent({
 
     const facilitiesActive =
         isFacilitiesOpen ||
-        pathname.includes('/court');
+        (pathname?.includes('/court') || false);
 
     const miscActive =
         isMiscOpen ||
-        pathname.includes('/gym') ||
-        pathname.includes('/dobby') ||
-        pathname.includes('/handbook') ||
-        pathname.includes('/contacts');
+        (pathname?.includes('/gym') ||
+        pathname?.includes('/dobby') ||
+        pathname?.includes('/handbook') ||
+        pathname?.includes('/contacts') || false);
 
     const resourcesActive =
         isResourcesOpen ||
-        pathname.includes('/financials') ||
-        pathname.includes('/announcements') ||
-        pathname.includes('/documents');
+        (pathname?.includes('/financials') ||
+        pathname?.includes('/announcements') ||
+        pathname?.includes('/documents') || false);
 
     return (
         <div className="flex flex-col h-full overflow-hidden">

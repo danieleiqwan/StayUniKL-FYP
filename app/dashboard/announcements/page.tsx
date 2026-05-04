@@ -102,7 +102,7 @@ export default function AnnouncementsPage() {
             ) : (
                 <div className="grid grid-cols-1 gap-6">
                     {filtered.map(a => {
-                        const pCfg = PRIORITY_CONFIG[a.priority];
+                        const pCfg = PRIORITY_CONFIG[a.priority] || PRIORITY_CONFIG.general;
                         return (
                             <div key={a.id} className="group relative bg-white dark:bg-slate-900 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-500">
                                 {/* Side Accent */}
