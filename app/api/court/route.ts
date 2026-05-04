@@ -194,6 +194,15 @@ export async function POST(request: Request) {
                 }, { status: 403 });
             }
 
+            // Check for NO-SHOW bans
+            const [banRows]: any = await pool.query('SELECT court_ban_until FROM users WHERE id = ?', [studentId]);
+            if (banRows.length > 0 && banRows[0].court_ban_until) {
+                const banDate = new Date(banRows[0].court_ban_until);
+                if (banDate > new Date()) {
+                    return NextResponse.json({ 
+                        error: `Your court booking privileges are suspended until ${banDate.toLocaleDateString()} due to multiple no-shows.` 
+                    }, { status: 403 });
+                }
             }
 
             // --- OVERDUE PAYMENT BLOCK ---
