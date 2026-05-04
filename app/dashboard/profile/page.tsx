@@ -245,24 +245,7 @@ export default function ProfilePage() {
                                 </div>
                             )}
 
-                                    <div className="flex justify-end pt-4">
-                                        <button 
-                                            onClick={handleProfileSubmit}
-                                            disabled={isSaving}
-                                            className="bg-[#F26C22] hover:bg-[#d65a16] text-white px-10 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-orange-500/20 flex items-center gap-2"
-                                        >
-                                            {isSaving ? 'Saving Changes...' : <><Save className="h-4 w-4" /> Save Records</>}
-                                        </button>
-                                    </div>
 
-                                    <div className="p-6 bg-orange-50 dark:bg-orange-900/20 rounded-3xl border border-orange-100 dark:border-orange-900/30 flex items-center gap-4">
-                                        <AlertCircle className="h-5 w-5 text-[#F26C22] dark:text-orange-400" />
-                                        <p className="text-xs text-[#F26C22]/70 dark:text-orange-400/70 font-medium leading-relaxed">
-                                            To modify your primary credentials, please head to the <span className="font-black">Settings</span> tab or visit the administration office.
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
 
                             {/* Billing Section */}
                             {activeTab === 'billing' && (
