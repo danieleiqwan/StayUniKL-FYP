@@ -28,57 +28,10 @@ export default function ProfilePage() {
         }
     }, [user]);
 
-    // Form States
-    const [profileForm, setProfileForm] = useState({
-        name: user?.name || '',
-        email: user?.email || '',
-        phoneNumber: user?.phoneNumber || '',
-        address: user?.address || '',
-        city: user?.city || '',
-        state: user?.state || '',
-        postcode: user?.postcode || '',
-        emergencyContact1Name: user?.emergencyContact1Name || '',
-        emergencyContact1Relation: user?.emergencyContact1Relation || '',
-        emergencyContact1Phone: user?.emergencyContact1Phone || '',
-        emergencyContact2Name: user?.emergencyContact2Name || '',
-        emergencyContact2Relation: user?.emergencyContact2Relation || '',
-        emergencyContact2Phone: user?.emergencyContact2Phone || '',
-    });
-
-    const [passwordForm, setPasswordForm] = useState({
-        current: '',
-        new: '',
-        confirm: ''
-    });
-
     if (!user) return null;
 
     const appOwed = myApplication?.status === 'Payment Pending' ? Number(myApplication.totalPrice) : 0;
     const outstandingTotal = invoices.filter(i => i.status === 'Unpaid').reduce((acc, curr) => acc + parseFloat(curr.amount), 0) + appOwed;
-
-    const handleProfileSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSaving(true);
-        setMsg(null);
-        try {
-            const res = await fetch('/api/profile/update', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(profileForm)
-            });
-            const data = await res.json();
-            if (data.success) {
-                setUser({ ...user, ...profileForm });
-                setMsg({ type: 'success', text: 'Profile updated successfully!' });
-            } else {
-                setMsg({ type: 'error', text: data.error || 'Failed to update.' });
-            }
-        } catch (err) {
-            setMsg({ type: 'error', text: 'Error saving changes.' });
-        } finally {
-            setIsSaving(false);
-        }
-    };
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -200,187 +153,97 @@ export default function ProfilePage() {
                                             <h3 className="text-lg font-black text-slate-900 dark:text-white mb-1">Official Identity</h3>
                                             <p className="text-sm text-slate-400 dark:text-slate-500 font-medium">Verified credentials for StayUniKL management.</p>
                                         </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
-                                            <div className="w-full bg-slate-50 dark:bg-slate-800/50 rounded-2xl py-4 px-6 text-sm font-bold text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-700 flex items-center gap-3">
-                                                <User className="h-4 w-4" /> {user.name}
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
-                                            <div className="w-full bg-slate-50 dark:bg-slate-800/50 rounded-2xl py-4 px-6 text-sm font-bold text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-700 flex items-center gap-3">
-                                                <Mail className="h-4 w-4" /> {user.email}
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Phone Number</label>
-                                            <input 
-                                                type="text" 
-                                                value={profileForm.phoneNumber}
-                                                onChange={(e) => setProfileForm({ ...profileForm, phoneNumber: e.target.value })}
-                                                className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
-                                                placeholder="e.g. +60123456789"
-                                            />
-                                        </div>
-                                        <div className="space-y-2 md:col-span-2">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Hometown Address</label>
-                                            <textarea 
-                                                value={profileForm.address}
-                                                onChange={(e) => setProfileForm({ ...profileForm, address: e.target.value })}
-                                                className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all resize-none" 
-                                                rows={3}
-                                                placeholder="Street, City, State, Postcode"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">City</label>
-                                            <input 
-                                                type="text" 
-                                                value={profileForm.city}
-                                                onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
-                                                className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
-                                                placeholder="e.g. Kuala Lumpur"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Postcode</label>
-                                            <input 
-                                                type="text" 
-                                                value={profileForm.postcode}
-                                                onChange={(e) => setProfileForm({ ...profileForm, postcode: e.target.value })}
-                                                className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-4 px-6 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
-                                                placeholder="e.g. 50100"
-                                            />
+                                        <div className="md:ml-auto">
+                                            <Link href="/dashboard/settings" className="flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-200 dark:shadow-none">
+                                                <Wrench className="h-4 w-4" /> Edit Identity
+                                            </Link>
                                         </div>
                                     </div>
 
-                                    {/* Emergency Contact Section */}
-                                    <div className="pt-6 border-t border-slate-50 dark:border-slate-800">
-                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6">Emergency Contact (Parent/Guardian)</h3>
-                                        
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                            {/* Contact 1 */}
-                                            <div className="space-y-4">
-                                                <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em]">Contact #1</p>
-                                                <div className="space-y-2">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
-                                                    <input 
-                                                        type="text" 
-                                                        value={profileForm.emergencyContact1Name}
-                                                        onChange={(e) => setProfileForm({ ...profileForm, emergencyContact1Name: e.target.value })}
-                                                        className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
-                                                    />
-                                                </div>
-                                                <div className="grid grid-cols-1 gap-4">
-                                                    <div className="space-y-2">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship to Student</label>
-                                                        <select 
-                                                            value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(profileForm.emergencyContact1Relation) ? profileForm.emergencyContact1Relation : (profileForm.emergencyContact1Relation ? 'Other' : '')}
-                                                            onChange={(e) => {
-                                                                const val = e.target.value;
-                                                                setProfileForm({ ...profileForm, emergencyContact1Relation: val === 'Other' ? '' : val });
-                                                            }}
-                                                            className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all appearance-none cursor-pointer"
-                                                        >
-                                                            <option value="" disabled>Select Relationship</option>
-                                                            <option value="Father">Father</option>
-                                                            <option value="Mother">Mother</option>
-                                                            <option value="Guardian">Guardian</option>
-                                                            <option value="Sibling">Sibling</option>
-                                                            <option value="Relative">Relative</option>
-                                                            <option value="Spouse">Spouse</option>
-                                                            <option value="Other">Other (Please specify)</option>
-                                                        </select>
+                                    {/* Detailed Information Grid */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        {/* Core Stats */}
+                                        <div className="space-y-4">
+                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Core Records</h4>
+                                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 space-y-5 border border-slate-100 dark:border-slate-800">
+                                                <ProfileInfoItem icon={<User className="h-4 w-4 text-orange-500" />} label="Full Name" value={user.name} />
+                                                <ProfileInfoItem icon={<Mail className="h-4 w-4 text-blue-500" />} label="Email Address" value={user.email} />
+                                                <ProfileInfoItem icon={<ShieldCheck className="h-4 w-4 text-[#F26C22]" />} label="Student ID" value={user.studentId || 'Pending Update'} />
+                                                <ProfileInfoItem icon={<Phone className="h-4 w-4 text-emerald-500" />} label="Phone Number" value={user.phoneNumber || 'Not Provided'} />
+                                            </div>
+                                        </div>
+
+                                        {/* Address Records */}
+                                        <div className="space-y-4">
+                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Hometown Address</h4>
+                                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 space-y-5 border border-slate-100 dark:border-slate-800 h-full">
+                                                <div className="flex gap-4">
+                                                    <div className="h-8 w-8 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center text-slate-400 shadow-sm">
+                                                        <MapPin className="h-4 w-4" />
                                                     </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Street Address</p>
+                                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300 leading-relaxed">
+                                                            {user.address || 'No address provided'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <ProfileInfoItem icon={<Globe className="h-4 w-4 text-slate-400" />} label="City" value={user.city || '—'} />
+                                                    <ProfileInfoItem icon={<Globe className="h-4 w-4 text-slate-400" />} label="State" value={user.state || '—'} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                                    {(!['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(profileForm.emergencyContact1Relation) || profileForm.emergencyContact1Relation === '') && (
-                                                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
-                                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Specify Relationship</label>
-                                                            <input 
-                                                                type="text" 
-                                                                placeholder="e.g. Grandfather, Uncle"
-                                                                value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(profileForm.emergencyContact1Relation) ? '' : profileForm.emergencyContact1Relation}
-                                                                onChange={(e) => setProfileForm({ ...profileForm, emergencyContact1Relation: e.target.value })}
-                                                                className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all"
+                                    {/* Emergency Contacts */}
+                                    <div className="space-y-4">
+                                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Emergency Contacts (Parent/Guardian)</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {[1, 2].map(num => (
+                                                <div key={num} className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-8 border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
+                                                    <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em] mb-6">Contact #{num}</p>
+                                                    <div className="space-y-6 relative z-10">
+                                                        <ProfileInfoItem 
+                                                            icon={<User className="h-4 w-4 text-slate-400" />} 
+                                                            label="Full Name" 
+                                                            value={(user as any)[`emergencyContact${num}Name`] || '—'} 
+                                                        />
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <ProfileInfoItem 
+                                                                icon={<AlertCircle className="h-4 w-4 text-slate-400" />} 
+                                                                label="Relation" 
+                                                                value={(user as any)[`emergencyContact${num}Relation`] || '—'} 
+                                                            />
+                                                            <ProfileInfoItem 
+                                                                icon={<Phone className="h-4 w-4 text-slate-400" />} 
+                                                                label="Phone" 
+                                                                value={(user as any)[`emergencyContact${num}Phone`] || '—'} 
                                                             />
                                                         </div>
-                                                    )}
-
-                                                    <div className="space-y-2">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
-                                                        <input 
-                                                            type="text" 
-                                                            value={profileForm.emergencyContact1Phone}
-                                                            onChange={(e) => setProfileForm({ ...profileForm, emergencyContact1Phone: e.target.value })}
-                                                            className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
-                                                        />
                                                     </div>
+                                                    <User className="absolute -right-4 -bottom-4 h-24 w-24 text-slate-200 dark:text-slate-800 transition-transform group-hover:scale-110 duration-700" />
                                                 </div>
-                                            </div>
-
-                                            {/* Contact 2 */}
-                                            <div className="space-y-4">
-                                                <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em]">Contact #2</p>
-                                                <div className="space-y-2">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
-                                                    <input 
-                                                        type="text" 
-                                                        value={profileForm.emergencyContact2Name}
-                                                        onChange={(e) => setProfileForm({ ...profileForm, emergencyContact2Name: e.target.value })}
-                                                        className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
-                                                    />
-                                                </div>
-                                                <div className="grid grid-cols-1 gap-4">
-                                                    <div className="space-y-2">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship to Student</label>
-                                                        <select 
-                                                            value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(profileForm.emergencyContact2Relation) ? profileForm.emergencyContact2Relation : (profileForm.emergencyContact2Relation ? 'Other' : '')}
-                                                            onChange={(e) => {
-                                                                const val = e.target.value;
-                                                                setProfileForm({ ...profileForm, emergencyContact2Relation: val === 'Other' ? '' : val });
-                                                            }}
-                                                            className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all appearance-none cursor-pointer"
-                                                        >
-                                                            <option value="" disabled>Select Relationship</option>
-                                                            <option value="Father">Father</option>
-                                                            <option value="Mother">Mother</option>
-                                                            <option value="Guardian">Guardian</option>
-                                                            <option value="Sibling">Sibling</option>
-                                                            <option value="Relative">Relative</option>
-                                                            <option value="Spouse">Spouse</option>
-                                                            <option value="Other">Other (Please specify)</option>
-                                                        </select>
-                                                    </div>
-
-                                                    {(!['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(profileForm.emergencyContact2Relation) || profileForm.emergencyContact2Relation === '') && (
-                                                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
-                                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Specify Relationship</label>
-                                                            <input 
-                                                                type="text" 
-                                                                placeholder="e.g. Grandfather, Uncle"
-                                                                value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(profileForm.emergencyContact2Relation) ? '' : profileForm.emergencyContact2Relation}
-                                                                onChange={(e) => setProfileForm({ ...profileForm, emergencyContact2Relation: e.target.value })}
-                                                                className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all"
-                                                            />
-                                                        </div>
-                                                    )}
-
-                                                    <div className="space-y-2">
-                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
-                                                        <input 
-                                                            type="text" 
-                                                            value={profileForm.emergencyContact2Phone}
-                                                            onChange={(e) => setProfileForm({ ...profileForm, emergencyContact2Phone: e.target.value })}
-                                                            className="w-full bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:border-[#F26C22] dark:text-white transition-all" 
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            ))}
                                         </div>
                                     </div>
+
+                                    <div className="p-8 bg-orange-50 dark:bg-orange-900/20 rounded-[2.5rem] border border-orange-100 dark:border-orange-900/30 flex flex-col md:flex-row items-center gap-6">
+                                        <div className="h-14 w-14 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center text-[#F26C22] shadow-sm flex-shrink-0">
+                                            <AlertCircle className="h-6 w-6" />
+                                        </div>
+                                        <div className="text-center md:text-left">
+                                            <p className="text-sm font-black text-slate-900 dark:text-white mb-1">Maintaining Accuracy</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                                                Keep your records up to date to ensure official correspondence and emergency protocols are handled correctly.
+                                            </p>
+                                        </div>
+                                        <Link href="/dashboard/settings" className="md:ml-auto px-8 py-4 bg-[#F26C22] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#d65a16] transition-all flex items-center gap-2">
+                                            Go to Settings <ArrowRight className="h-4 w-4" />
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
 
                                     <div className="flex justify-end pt-4">
                                         <button 
@@ -512,6 +375,20 @@ export default function ProfilePage() {
                         </div>
                     </div>
                 </main>
+            </div>
+        </div>
+    );
+}
+
+function ProfileInfoItem({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
+    return (
+        <div className="flex items-center gap-4 group/item">
+            <div className="h-8 w-8 bg-white dark:bg-slate-900 rounded-lg flex items-center justify-center text-slate-400 shadow-sm transition-colors group-hover/item:text-slate-600 dark:group-hover/item:text-slate-200">
+                {icon}
+            </div>
+            <div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{label}</p>
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{value}</p>
             </div>
         </div>
     );
