@@ -15,7 +15,7 @@ export async function GET() {
         try {
             [rows] = await pool.query(
                 `SELECT 
-                    id, name, email, role, gender, student_id, profile_image, 
+                    id, name, email, role, gender, student_id, nric, profile_image, 
                     alert_booking, alert_maintenance, alert_announcement,
                     address, city, state, postcode,
                     emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone,
@@ -26,7 +26,7 @@ export async function GET() {
         } catch (e) {
             // Fallback for when migration hasn't run or columns are missing
             [rows] = await pool.query(
-                'SELECT id, name, email, role, gender, student_id, profile_image FROM users WHERE id = ?',
+                'SELECT id, name, email, role, gender, student_id, nric, profile_image FROM users WHERE id = ?',
                 [authUser.id]
             );
         }
@@ -46,6 +46,7 @@ export async function GET() {
                 role: user.role,
                 gender: user.gender,
                 studentId: user.student_id,
+                nric: user.nric,
                 profileImage: user.profile_image,
                 phoneNumber: user.phone_number,
                 address: user.address,

@@ -23,6 +23,7 @@ export default function SettingsHub() {
         city: user?.city || '',
         state: user?.state || '',
         postcode: user?.postcode || '',
+        nric: user?.nric || '',
         emergencyContact1Name: user?.emergencyContact1Name || '',
         emergencyContact1Relation: user?.emergencyContact1Relation || '',
         emergencyContact1Phone: user?.emergencyContact1Phone || '',
@@ -212,13 +213,23 @@ export default function SettingsHub() {
                                                 className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
                                             />
                                         </div>
+                                         <div className="space-y-2">
+                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">NRIC / Passport (Permanent)</label>
+                                            <input
+                                                type="text"
+                                                readOnly
+                                                value={accountForm.nric}
+                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-70"
+                                            />
+                                        </div>
                                         <div className="space-y-2">
                                             <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Student ID</label>
                                             <input
                                                 type="text"
-                                                readOnly
+                                                placeholder="Enter your Student ID"
                                                 value={accountForm.studentId}
-                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-70"
+                                                onChange={e => setAccountForm({ ...accountForm, studentId: e.target.value })}
+                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
                                             />
                                         </div>
                                         <div className="space-y-2">

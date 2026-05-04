@@ -69,6 +69,7 @@ export async function POST(request: Request) {
                 role: user.role,
                 gender: user.gender,
                 studentId: user.student_id || null,
+                nric: user.nric,
                 phoneNumber: user.phone_number,
                 address: user.address,
                 city: user.city,
