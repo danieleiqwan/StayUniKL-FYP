@@ -27,6 +27,7 @@ import {
 import VirtualIDCard from '@/components/dashboard/VirtualIDCard';
 import RoommatesCard from '@/components/dashboard/RoommatesCard';
 import BillingHistory from '@/components/dashboard/BillingHistory';
+import AnnouncementsBanner from '@/components/dashboard/AnnouncementsBanner';
 
 export default function StudentDashboard() {
     const router = useRouter();
@@ -165,6 +166,9 @@ export default function StudentDashboard() {
                     </Link>
                 </div>
             )}
+
+            {/* Announcements Banner Feed */}
+            <AnnouncementsBanner />
 
             {/* Header */}
             <div className="flex items-end justify-between">

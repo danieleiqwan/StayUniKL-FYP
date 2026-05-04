@@ -26,7 +26,8 @@ import {
     BookOpen,
     Phone,
     Layers,
-    FileText
+    FileText,
+    Megaphone
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -78,6 +79,7 @@ function NavContent({
         { name: 'Complaints', path: '/dashboard/complaints',  icon: Wrench },
         { name: 'Room Change',path: '/dashboard/room-change', icon: ArrowRightLeft },
         { name: 'Financials', path: '/dashboard/financials',  icon: CreditCard },
+        { name: 'Announcements', path: '/dashboard/announcements', icon: Megaphone },
         { name: 'Documents',  path: '/dashboard/documents',   icon: FileText },
         { name: 'Notifications', path: '/dashboard/notifications', icon: Bell },
     ];

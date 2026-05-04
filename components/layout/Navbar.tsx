@@ -205,6 +205,9 @@ export default function Navbar() {
                                         <Link href="/admin/documents" className="text-sm font-medium text-slate-600 hover:text-[#F26C22] dark:text-slate-300 dark:hover:text-[#F26C22]">
                                             Documents
                                         </Link>
+                                        <Link href="/admin/announcements" className="text-sm font-medium text-slate-600 hover:text-[#F26C22] dark:text-slate-300 dark:hover:text-[#F26C22]">
+                                            Announcements
+                                        </Link>
                                         <Link href="/admin/reports" className="text-sm font-medium text-slate-600 hover:text-[#F26C22] dark:text-slate-300 dark:hover:text-[#F26C22]">
                                             Reports
                                         </Link>
