@@ -65,7 +65,13 @@ export async function createSystemNotification({
         // 1. Fetch all student IDs AND their announcement preferences
         let users: any = [];
         try {
-            [users] = await pool.query("SELECT id FROM users WHERE role = 'student' AND (alert_announcement IS NULL OR alert_announcement = 1)");
+            // If the type is 'error' or 'warning', we consider it mandatory/emergency and bypass preference
+            if (type === 'error' || type === 'warning') {
+                [users] = await pool.query("SELECT id FROM users WHERE role = 'student'");
+            } else {
+                // Otherwise, respect the preference
+                [users] = await pool.query("SELECT id FROM users WHERE role = 'student' AND (alert_announcement IS NULL OR alert_announcement = 1)");
+            }
         } catch(e) {
              // Fallback if migration hasn't run
              [users] = await pool.query("SELECT id FROM users WHERE role = 'student'");
