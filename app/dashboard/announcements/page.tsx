@@ -100,33 +100,69 @@ export default function AnnouncementsPage() {
                     </p>
                 </div>
             ) : (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-6">
                     {filtered.map(a => {
                         const pCfg = PRIORITY_CONFIG[a.priority];
                         return (
-                            <div key={a.id} className={`bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden ${pCfg.border} transition-colors`}>
-                                <div className="p-6">
-                                    <div className="flex flex-wrap items-center gap-2 mb-3">
-                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${pCfg.badge}`}>
-                                            {pCfg.icon} {pCfg.label}
-                                        </span>
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
-                                            <Tag className="h-3 w-3" /> {CATEGORY_LABELS[a.category]}
-                                        </span>
-                                    </div>
-                                    <h3 className="font-bold text-slate-900 dark:text-white text-base mb-2">{a.title}</h3>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{a.message}</p>
-                                    <div className="flex items-center gap-5 mt-4 pt-4 border-t border-slate-50 dark:border-slate-800">
-                                        <span className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                                            <Clock className="h-3.5 w-3.5" />
-                                            {new Date(a.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                        {a.expires_at && (
-                                            <span className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                                                <Calendar className="h-3.5 w-3.5" />
-                                                Until {new Date(a.expires_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                            </span>
-                                        )}
+                            <div key={a.id} className="group relative bg-white dark:bg-slate-900 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-500">
+                                {/* Side Accent */}
+                                <div className={`absolute left-0 top-0 bottom-0 w-2 ${pCfg.label === 'Urgent' ? 'bg-rose-500' : pCfg.label === 'Important' ? 'bg-amber-500' : 'bg-blue-400'}`} />
+                                
+                                <div className="p-8 md:p-10">
+                                    <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+                                        <div className="flex-1">
+                                            <div className="flex flex-wrap items-center gap-3 mb-4">
+                                                <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${pCfg.badge}`}>
+                                                    {pCfg.icon} {pCfg.label}
+                                                </span>
+                                                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border border-slate-100 dark:border-slate-700/50">
+                                                    <Tag className="h-3 w-3" /> {CATEGORY_LABELS[a.category]}
+                                                </span>
+                                            </div>
+                                            
+                                            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 uppercase tracking-tight leading-tight group-hover:text-[#F26C22] transition-colors">
+                                                {a.title}
+                                            </h3>
+                                            
+                                            <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium mb-6">
+                                                {a.message}
+                                            </p>
+                                            
+                                            <div className="flex flex-wrap items-center gap-6">
+                                                <div className="flex items-center gap-2.5 text-slate-400 dark:text-slate-500">
+                                                    <div className="h-8 w-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                                                        <Clock className="h-4 w-4" />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] font-black uppercase tracking-tighter opacity-50">Posted On</span>
+                                                        <span className="text-xs font-bold whitespace-nowrap">
+                                                            {new Date(a.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                
+                                                {a.expires_at && (
+                                                    <div className="flex items-center gap-2.5 text-slate-400 dark:text-slate-500">
+                                                        <div className="h-8 w-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-rose-400">
+                                                            <Calendar className="h-4 w-4" />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[9px] font-black uppercase tracking-tighter opacity-50 text-rose-400/70">Valid Until</span>
+                                                            <span className="text-xs font-bold whitespace-nowrap">
+                                                                {new Date(a.expires_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Optional Action or Icon */}
+                                        <div className="shrink-0 flex items-center justify-center md:h-full">
+                                            <div className="h-20 w-20 rounded-3xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center border border-slate-100 dark:border-slate-700/50 group-hover:bg-orange-50 dark:group-hover:bg-orange-900/10 group-hover:border-orange-100 dark:group-hover:border-orange-900/30 transition-all duration-500">
+                                                <Megaphone className="h-8 w-8 text-slate-200 dark:text-slate-700 group-hover:text-[#F26C22] transition-colors duration-500" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
