@@ -194,16 +194,20 @@ export async function POST(request: Request) {
                 }, { status: 403 });
             }
 
-            // Check for NO-SHOW bans
-            const [banRows]: any = await pool.query('SELECT court_ban_until FROM users WHERE id = ?', [studentId]);
-            if (banRows.length > 0 && banRows[0].court_ban_until) {
-                const banDate = new Date(banRows[0].court_ban_until);
-                if (banDate > new Date()) {
-                    return NextResponse.json({ 
-                        error: `Your court booking privileges are suspended until ${banDate.toLocaleDateString()} due to multiple no-shows.` 
-                    }, { status: 403 });
-                }
             }
+
+            // --- OVERDUE PAYMENT BLOCK ---
+            const [overdueRows]: any = await pool.query(
+                'SELECT id FROM invoices WHERE user_id = ? AND status = "Overdue" LIMIT 1',
+                [studentId]
+            );
+
+            if (overdueRows.length > 0) {
+                return NextResponse.json({ 
+                    error: 'Booking Blocked: You have one or more overdue invoices. Please settle your outstanding payments in the Financials section before booking facilities.' 
+                }, { status: 403 });
+            }
+            // -----------------------------
         }
 
         // 1. Check if the slot is in the past
