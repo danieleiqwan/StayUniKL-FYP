@@ -210,10 +210,15 @@ export async function PUT(request: Request) {
                 const studentId = app.student_id;
                 const bedId = app.bed_id;
 
-                // 3. Release Bed if cancelled/rejected/checked-out
+                // 3. Update Bed Status based on application status
                 if (status === 'Cancelled' || status === 'Rejected' || status === 'Checked out' || status === 'No show') {
                     if (bedId) {
                         await connection.query('UPDATE beds SET status = "Available" WHERE id = ?', [bedId]);
+                    }
+                } else if (status === 'Checked in' || status === 'Approved' || status === 'Payment Pending' || status === 'Pending') {
+                    // Ensure bed is marked as Occupied for any active status
+                    if (bedId) {
+                        await connection.query('UPDATE beds SET status = "Occupied" WHERE id = ?', [bedId]);
                     }
                 }
 
