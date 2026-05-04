@@ -11,15 +11,20 @@ export async function GET() {
         }
 
         // Fetch full user data from DB using the ID from the token
-        // Use COALESCE or try to select it. If the DB doesn't have the columns yet, we handle it.
         let rows: any = [];
         try {
             [rows] = await pool.query(
-                'SELECT id, name, email, role, gender, student_id, profile_image, alert_booking, alert_maintenance, alert_announcement FROM users WHERE id = ?',
+                `SELECT 
+                    id, name, email, role, gender, student_id, profile_image, 
+                    alert_booking, alert_maintenance, alert_announcement,
+                    address, city, state, postcode,
+                    emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone,
+                    emergency_contact2_name, emergency_contact2_relation, emergency_contact2_phone
+                FROM users WHERE id = ?`,
                 [authUser.id]
             );
         } catch (e) {
-            // Fallback for when migration hasn't run
+            // Fallback for when migration hasn't run or columns are missing
             [rows] = await pool.query(
                 'SELECT id, name, email, role, gender, student_id, profile_image FROM users WHERE id = ?',
                 [authUser.id]
@@ -42,6 +47,17 @@ export async function GET() {
                 gender: user.gender,
                 studentId: user.student_id,
                 profileImage: user.profile_image,
+                phoneNumber: user.phone_number,
+                address: user.address,
+                city: user.city,
+                state: user.state,
+                postcode: user.postcode,
+                emergencyContact1Name: user.emergency_contact1_name,
+                emergencyContact1Relation: user.emergency_contact1_relation,
+                emergencyContact1Phone: user.emergency_contact1_phone,
+                emergencyContact2Name: user.emergency_contact2_name,
+                emergencyContact2Relation: user.emergency_contact2_relation,
+                emergencyContact2Phone: user.emergency_contact2_phone,
                 alertBooking: user.alert_booking !== undefined ? !!user.alert_booking : true,
                 alertMaintenance: user.alert_maintenance !== undefined ? !!user.alert_maintenance : true,
                 alertAnnouncement: user.alert_announcement !== undefined ? !!user.alert_announcement : true
