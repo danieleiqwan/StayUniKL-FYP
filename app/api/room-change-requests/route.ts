@@ -120,6 +120,21 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Forbidden: You cannot create a room change request for another user' }, { status: 403 });
         }
 
+        // --- OVERDUE PAYMENT BLOCK ---
+        if (user.role !== 'admin') {
+            const [overdueRows]: any = await pool.query(
+                'SELECT id FROM invoices WHERE user_id = ? AND status = "Overdue" LIMIT 1',
+                [studentId]
+            );
+
+            if (overdueRows.length > 0) {
+                return NextResponse.json({ 
+                    error: 'Request Blocked: You have one or more overdue invoices. Please settle your outstanding payments in the Financials section before requesting a room change.' 
+                }, { status: 403 });
+            }
+        }
+        // -----------------------------
+
         // Validate required fields (at least preferredRoomId/BedId OR preferredRoomType)
         if (!studentId || !currentRoomId || !reason) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });

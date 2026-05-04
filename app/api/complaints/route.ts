@@ -101,6 +101,21 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Forbidden: You cannot create a complaint for another user' }, { status: 403 });
         }
 
+        // --- OVERDUE PAYMENT BLOCK ---
+        if (user.role !== 'admin') {
+            const [overdueRows]: any = await pool.query(
+                'SELECT id FROM invoices WHERE user_id = ? AND status = "Overdue" LIMIT 1',
+                [studentId]
+            );
+
+            if (overdueRows.length > 0) {
+                return NextResponse.json({ 
+                    error: 'Complaint Blocked: You have one or more overdue invoices. Please settle your outstanding payments in the Financials section before submitting new maintenance requests.' 
+                }, { status: 403 });
+            }
+        }
+        // -----------------------------
+
         const id = `comp_${Date.now()}`;
 
         // 2. Upload Images to Cloudinary (if any are base64)
