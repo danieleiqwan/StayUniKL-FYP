@@ -145,10 +145,10 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
                                         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm border-t-4 border-t-rose-500">
                                             <h3 className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-4">Emergency Contact #1</h3>
                                             <div className="space-y-4">
-                                                <InfoCard label="Full Name" value={data.profile.emergency_contact_1_name || 'N/A'} icon={<User className="h-3.5 w-3.5 text-slate-400" />} />
+                                                <InfoCard label="Full Name" value={data.profile.emergency_contact1_name || 'N/A'} icon={<User className="h-3.5 w-3.5 text-slate-400" />} />
                                                 <div className="grid grid-cols-2 gap-4">
-                                                    <InfoCard label="Relation" value={data.profile.emergency_contact_1_relation || 'N/A'} icon={<Users className="h-3.5 w-3.5 text-slate-400" />} />
-                                                    <InfoCard label="Phone" value={data.profile.emergency_contact_1_phone || 'N/A'} icon={<Phone className="h-3.5 w-3.5 text-slate-400" />} />
+                                                    <InfoCard label="Relation" value={data.profile.emergency_contact1_relation || 'N/A'} icon={<Users className="h-3.5 w-3.5 text-slate-400" />} />
+                                                    <InfoCard label="Phone" value={data.profile.emergency_contact1_phone || 'N/A'} icon={<Phone className="h-3.5 w-3.5 text-slate-400" />} />
                                                 </div>
                                             </div>
                                         </div>
@@ -156,10 +156,10 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
                                         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm border-t-4 border-t-slate-300">
                                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Emergency Contact #2</h3>
                                             <div className="space-y-4">
-                                                <InfoCard label="Full Name" value={data.profile.emergency_contact_2_name || 'N/A'} icon={<User className="h-3.5 w-3.5 text-slate-400" />} />
+                                                <InfoCard label="Full Name" value={data.profile.emergency_contact2_name || 'N/A'} icon={<User className="h-3.5 w-3.5 text-slate-400" />} />
                                                 <div className="grid grid-cols-2 gap-4">
-                                                    <InfoCard label="Relation" value={data.profile.emergency_contact_2_relation || 'N/A'} icon={<Users className="h-3.5 w-3.5 text-slate-400" />} />
-                                                    <InfoCard label="Phone" value={data.profile.emergency_contact_2_phone || 'N/A'} icon={<Phone className="h-3.5 w-3.5 text-slate-400" />} />
+                                                    <InfoCard label="Relation" value={data.profile.emergency_contact2_relation || 'N/A'} icon={<Users className="h-3.5 w-3.5 text-slate-400" />} />
+                                                    <InfoCard label="Phone" value={data.profile.emergency_contact2_phone || 'N/A'} icon={<Phone className="h-3.5 w-3.5 text-slate-400" />} />
                                                 </div>
                                             </div>
                                         </div>

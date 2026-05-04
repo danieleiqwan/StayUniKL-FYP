@@ -15,8 +15,8 @@ export async function GET(request: Request) {
             `SELECT 
                 id, student_id, name, email, role, gender, phone_number, parent_phone_number, created_at,
                 address, city, state, postcode, 
-                emergency_contact_1_name, emergency_contact_1_relation, emergency_contact_1_phone,
-                emergency_contact_2_name, emergency_contact_2_relation, emergency_contact_2_phone,
+                emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone,
+                emergency_contact2_name, emergency_contact2_relation, emergency_contact2_phone,
                 profile_image
             FROM users 
             WHERE id = ? OR student_id = ?`,
