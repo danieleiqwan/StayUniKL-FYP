@@ -13,18 +13,20 @@ import RoomAssignmentModal from '@/components/admin/RoomAssignmentModal';
 import PredictiveMaintenance from '@/components/admin/PredictiveMaintenance';
 import WaitlistOpportunities from '@/components/admin/WaitlistOpportunities';
 import FacilityAnalytics from '@/components/admin/FacilityAnalytics';
+import SportManagement from '@/components/admin/SportManagement';
 import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2 } from 'lucide-react';
 
 export default function AdminDashboard() {
     const { user } = useAuth();
     const {
         applications, complaints, courtBookings, facilitySettings, roomChangeRequests, refreshData,
-        updateApplicationStatus, updateComplaint, updateBookingStatus, updateFacilitySettings, toggleSlotBlock
+        updateApplicationStatus, updateComplaint, updateBookingStatus, updateFacilitySettings, toggleSlotBlock,
+        allSports
     } = useData();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'applications' | 'complaints' | 'facilities' | 'room-changes'>('applications');
     const [facilityTab, setFacilityTab] = useState<'court' | 'gym' | 'laundry'>('court');
-    const [courtSubTab, setCourtSubTab] = useState<'bookings' | 'settings' | 'schedule'>('bookings');
+    const [courtSubTab, setCourtSubTab] = useState<'bookings' | 'settings' | 'schedule' | 'sports'>('bookings');
     const [selectedScheduleDate, setSelectedScheduleDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
@@ -486,13 +488,13 @@ export default function AdminDashboard() {
                                 </div>
 
                                 <div className="border-b border-slate-200 dark:border-slate-800">
-                                    {['bookings', 'settings', 'schedule'].map(sub => (
+                                    {['bookings', 'settings', 'schedule', 'sports'].map(sub => (
                                         <button
                                             key={sub}
                                             onClick={() => setCourtSubTab(sub as any)}
                                             className={`mr-6 pb-2 text-sm font-medium transition-colors capitalize ${courtSubTab === sub ? 'border-b-2 border-[#F26C22] text-[#F26C22]' : 'text-slate-500 hover:text-slate-700'}`}
                                         >
-                                            {sub}
+                                            {sub === 'sports' ? '🏅 Sports' : sub}
                                         </button>
                                     ))}
                                 </div>
@@ -543,7 +545,7 @@ export default function AdminDashboard() {
                                                     />
                                                 </div>
 
-                                                {/* Sport */}
+                                                {/* Sport Filter — populated from DB */}
                                                 <div>
                                                     <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Sport</label>
                                                     <select
@@ -552,10 +554,9 @@ export default function AdminDashboard() {
                                                         className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#F26C22] dark:bg-slate-800 dark:border-slate-700 dark:text-white transition-all"
                                                     >
                                                         <option value="">All Sports</option>
-                                                        <option value="Badminton">Badminton</option>
-                                                        <option value="Basketball">Basketball</option>
-                                                        <option value="Volleyball">Volleyball</option>
-                                                        <option value="Football">Football</option>
+                                                        {allSports.map(s => (
+                                                            <option key={s.id} value={s.name}>{s.name}{!s.isActive ? ' (Disabled)' : ''}</option>
+                                                        ))}
                                                     </select>
                                                 </div>
                                             </div>
@@ -654,6 +655,12 @@ export default function AdminDashboard() {
                                                 />
                                             </div>
                                         </div>
+                                    </div>
+                                )}
+
+                                {courtSubTab === 'sports' && (
+                                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 animate-in fade-in duration-300">
+                                        <SportManagement />
                                     </div>
                                 )}
 

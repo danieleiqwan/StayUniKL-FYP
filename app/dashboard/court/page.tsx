@@ -8,12 +8,13 @@ import Link from 'next/link';
 import { 
     CheckCircle2, ChevronRight, ChevronLeft, CalendarDays, 
     Clock, Trophy, Feather, CircleDot, Circle, Volleyball,
-    Lock, Home as HomeIcon, AlertTriangle, Info
+    Lock, Home as HomeIcon, AlertTriangle, Info, Dumbbell,
+    Table2, Swords, Bike, Target, Waves
 } from 'lucide-react';
 
 export default function CourtBookingPage() {
     const { user } = useAuth();
-    const { facilitySettings, courtBookings, createBooking, myApplication } = useData();
+    const { facilitySettings, courtBookings, createBooking, myApplication, sports } = useData();
     const courtSettings = facilitySettings?.court || { isOpen: false, openTime: '08:00', closeTime: '22:00', blockedSlots: [] };
     const router = useRouter();
 
@@ -28,12 +29,58 @@ export default function CourtBookingPage() {
     const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
     const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
 
-    const sports = [
-        { id: 'Badminton', icon: Feather, color: 'hover:border-emerald-400 dark:hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400', active: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 ring-4 ring-emerald-50 dark:ring-emerald-900/10 text-emerald-700 dark:text-emerald-400' },
-        { id: 'Volleyball', icon: CircleDot, color: 'hover:border-amber-400 dark:hover:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-600 dark:text-amber-400', active: 'border-amber-500 bg-amber-50 dark:bg-amber-900/30 ring-4 ring-amber-50 dark:ring-amber-900/10 text-amber-700 dark:text-amber-400' },
-        { id: 'Basketball', icon: Circle, color: 'hover:border-orange-400 dark:hover:border-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-orange-600 dark:text-orange-400', active: 'border-orange-500 bg-orange-50 dark:bg-orange-900/30 ring-4 ring-orange-50 dark:ring-orange-900/10 text-orange-700 dark:text-orange-400' },
-        { id: 'Football', icon: CircleDot, color: 'hover:border-[#F26C22]/40 dark:hover:border-orange-900/40 hover:bg-orange-50 dark:hover:bg-orange-900/10 text-[#F26C22] dark:text-orange-400', active: 'border-[#F26C22] bg-orange-50 dark:bg-orange-900/30 ring-4 ring-orange-50 dark:ring-orange-900/10 text-[#F26C22] dark:text-orange-400' },
-    ];
+    // --- Color Theme Mapping ---
+    const colorThemes: Record<string, { idle: string; active: string }> = {
+        emerald: {
+            idle: 'hover:border-emerald-400 dark:hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
+            active: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 ring-4 ring-emerald-50 dark:ring-emerald-900/10 text-emerald-700 dark:text-emerald-400',
+        },
+        amber: {
+            idle: 'hover:border-amber-400 dark:hover:border-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-600 dark:text-amber-400',
+            active: 'border-amber-500 bg-amber-50 dark:bg-amber-900/30 ring-4 ring-amber-50 dark:ring-amber-900/10 text-amber-700 dark:text-amber-400',
+        },
+        orange: {
+            idle: 'hover:border-orange-400 dark:hover:border-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-orange-600 dark:text-orange-400',
+            active: 'border-orange-500 bg-orange-50 dark:bg-orange-900/30 ring-4 ring-orange-50 dark:ring-orange-900/10 text-orange-700 dark:text-orange-400',
+        },
+        rose: {
+            idle: 'hover:border-rose-400 dark:hover:border-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-rose-600 dark:text-rose-400',
+            active: 'border-rose-500 bg-rose-50 dark:bg-rose-900/30 ring-4 ring-rose-50 dark:ring-rose-900/10 text-rose-700 dark:text-rose-400',
+        },
+        blue: {
+            idle: 'hover:border-blue-400 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400',
+            active: 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-4 ring-blue-50 dark:ring-blue-900/10 text-blue-700 dark:text-blue-400',
+        },
+        purple: {
+            idle: 'hover:border-purple-400 dark:hover:border-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 text-purple-600 dark:text-purple-400',
+            active: 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 ring-4 ring-purple-50 dark:ring-purple-900/10 text-purple-700 dark:text-purple-400',
+        },
+        cyan: {
+            idle: 'hover:border-cyan-400 dark:hover:border-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400',
+            active: 'border-cyan-500 bg-cyan-50 dark:bg-cyan-900/30 ring-4 ring-cyan-50 dark:ring-cyan-900/10 text-cyan-700 dark:text-cyan-400',
+        },
+        teal: {
+            idle: 'hover:border-teal-400 dark:hover:border-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20 text-teal-600 dark:text-teal-400',
+            active: 'border-teal-500 bg-teal-50 dark:bg-teal-900/30 ring-4 ring-teal-50 dark:ring-teal-900/10 text-teal-700 dark:text-teal-400',
+        },
+    };
+
+    // --- Icon Mapping ---
+    const sportIconMap: Record<string, React.ElementType> = {
+        Badminton: Feather,
+        Volleyball: CircleDot,
+        Basketball: Circle,
+        Football: CircleDot,
+        'Table Tennis': Table2,
+        Gym: Dumbbell,
+        Swimming: Waves,
+        Cycling: Bike,
+        Archery: Target,
+        Fencing: Swords,
+    };
+    const DefaultSportIcon = Trophy;
+    const getSportIcon = (name: string): React.ElementType => sportIconMap[name] || DefaultSportIcon;
+    const getTheme = (colorTheme: string) => colorThemes[colorTheme] || colorThemes.orange;
 
     if (!user) return null;
 
@@ -345,19 +392,24 @@ export default function CourtBookingPage() {
                                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Select a sport to see available equipment and configurations.</p>
                                 </div>
                                 <div className="grid gap-4 sm:grid-cols-2 max-w-2xl mx-auto">
-                                    {sports.map(s => {
-                                        const isSelected = selectedSport === s.id;
-                                        const SportIcon = s.icon;
+                                    {sports.length === 0 ? (
+                                        <div className="col-span-2 py-10 text-center text-slate-400 dark:text-slate-600 text-sm italic">
+                                            No sports available. Please contact administration.
+                                        </div>
+                                    ) : sports.map(s => {
+                                        const isSelected = selectedSport === s.name;
+                                        const SportIcon = getSportIcon(s.name);
+                                        const theme = getTheme(s.colorTheme);
                                         return (
                                             <button
                                                 key={s.id}
-                                                onClick={() => setSelectedSport(s.id)}
+                                                onClick={() => setSelectedSport(s.name)}
                                                 className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center justify-center gap-3 ${
-                                                    isSelected ? s.active : `border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 ${s.color}`
+                                                    isSelected ? theme.active : `border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 ${theme.idle}`
                                                 }`}
                                             >
                                                 <SportIcon className={`h-12 w-12 mb-2 ${isSelected ? '' : 'text-slate-400 dark:text-slate-600'}`} strokeWidth={1.5} />
-                                                <span className={`text-lg font-bold ${isSelected ? '' : 'text-slate-700 dark:text-slate-300'}`}>{s.id}</span>
+                                                <span className={`text-lg font-bold ${isSelected ? '' : 'text-slate-700 dark:text-slate-300'}`}>{s.name}</span>
                                             </button>
                                         );
                                     })}
@@ -516,7 +568,7 @@ export default function CourtBookingPage() {
                                     <div className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-700 h-14">
                                         <span className="text-slate-500 dark:text-slate-400 font-medium text-sm flex items-center gap-2"><Trophy className="h-4 w-4" /> Sport</span>
                                         <span className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                            {selectedSport} {sports.find(s=>s.id === selectedSport)?.icon && (() => { const I = sports.find(s=>s.id === selectedSport)!.icon; return <I className="h-4 w-4" />; })()}
+                                            {selectedSport} {(() => { const I = getSportIcon(selectedSport || ''); return <I className="h-4 w-4" />; })()}
                                         </span>
                                     </div>
                                     <div className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-700 h-14">

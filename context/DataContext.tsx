@@ -42,6 +42,9 @@ export interface Invoice {
 export interface Document {
     id: string; user_id: string; type: string; name: string; file_url: string; status: 'Pending' | 'Verified' | 'Rejected'; rejection_reason?: string; created_at: string;
 }
+export interface Sport {
+    id: string; name: string; colorTheme: string; isActive: boolean; displayOrder: number;
+}
 
 interface DataContextType {
     applications: Application[];
@@ -80,6 +83,11 @@ interface DataContextType {
     payments: Payment[];
     invoices: Invoice[];
     myDocuments: Document[];
+    sports: Sport[];
+    allSports: Sport[];
+    addSport: (name: string, colorTheme: string) => Promise<{ success?: boolean; error?: string }>;
+    updateSport: (id: string, data: Partial<Sport>) => Promise<{ success?: boolean; error?: string }>;
+    deleteSport: (id: string) => Promise<{ success?: boolean; error?: string; canDisable?: boolean }>;
     refreshData: () => Promise<void>;
 }
 
@@ -105,6 +113,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const [roomChangeRequests, setRoomChangeRequests] = useState<any[]>([]);
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [myDocuments, setMyDocuments] = useState<Document[]>([]);
+    const [sports, setSports] = useState<Sport[]>([]);
+    const [allSports, setAllSports] = useState<Sport[]>([]);
 
     // --- Fetch Data ---
     const fetchData = useCallback(async () => {
@@ -183,6 +193,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 if (rcrData.success) {
                     setRoomChangeRequests(rcrData.requests || []);
                 }
+            }
+
+            // Fetch Sports (active only for students, all for context)
+            const sportsRes = await fetch('/api/sports?admin=true');
+            const sportsData = await sportsRes.json();
+            if (sportsData.sports) {
+                setAllSports(sportsData.sports);
+                setSports(sportsData.sports.filter((s: Sport) => s.isActive));
             }
 
         } catch (error) {
@@ -387,11 +405,47 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const getRoomsByFloor = (floorId: number) => rooms.filter(r => r.floorId === floorId);
     const getAvailableFloors = (gender: 'Male' | 'Female') => gender === 'Male' ? [1, 2, 3] : [4, 5, 6, 7];
     const bookBed = async (roomId: string, bedId: string) => {
-        // Ideally this is triggered by assigning a bed to an application (PUT application)
-        // But if we want a separate 'block bed' function, we'd need an API.
-        // For now, let's assume this is legacy or unused directly.
-        // We'll update it to be 'assignBedToApplication' logic, but for now just refresh data.
         fetchData();
+    };
+
+    // --- Actions: Sports ---
+    const addSport = async (name: string, colorTheme: string): Promise<{ success?: boolean; error?: string }> => {
+        try {
+            const res = await fetch('/api/sports', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, colorTheme }),
+            });
+            const data = await res.json();
+            if (res.ok) { await fetchData(); return { success: true }; }
+            return { error: data.error || 'Failed to add sport.' };
+        } catch (e: any) { return { error: e.message }; }
+    };
+
+    const updateSport = async (id: string, updates: Partial<Sport>): Promise<{ success?: boolean; error?: string }> => {
+        try {
+            const res = await fetch('/api/sports', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, ...updates }),
+            });
+            const data = await res.json();
+            if (res.ok) { await fetchData(); return { success: true }; }
+            return { error: data.error || 'Failed to update sport.' };
+        } catch (e: any) { return { error: e.message }; }
+    };
+
+    const deleteSport = async (id: string): Promise<{ success?: boolean; error?: string; canDisable?: boolean }> => {
+        try {
+            const res = await fetch('/api/sports', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id }),
+            });
+            const data = await res.json();
+            if (res.ok) { await fetchData(); return { success: true }; }
+            return { error: data.error, canDisable: data.canDisable };
+        } catch (e: any) { return { error: e.message }; }
     };
 
     const myApplication = user 
@@ -410,7 +464,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
             myApplication, myRoomChangeRequest, myComplaints,
             notifications, unreadNotificationsCount, markNotificationRead,
             roomChangeRequests,
-            payments, invoices, myDocuments, refreshData: fetchData
+            payments, invoices, myDocuments,
+            sports, allSports, addSport, updateSport, deleteSport,
+            refreshData: fetchData
         }}>
             {children}
         </DataContext.Provider>
