@@ -97,7 +97,15 @@ export async function GET(request: Request) {
             success: true,
             data: {
                 profile,
-                applications: appRows,
+                applications: appRows.map((app: any) => ({
+                    ...app,
+                    roomType: app.room_type,
+                    roomId: app.room_id,
+                    bedId: app.bed_id,
+                    durationType: app.duration_type,
+                    stayDuration: app.stay_duration,
+                    totalPrice: app.total_price
+                })),
                 payments: payRows,
                 complaints: parsedCompRows,
                 documents: docRows,
