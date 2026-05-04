@@ -222,7 +222,6 @@ export default function ProfilePage() {
                                                             />
                                                         </div>
                                                     </div>
-                                                    <User className="absolute -right-4 -bottom-4 h-24 w-24 text-slate-200 dark:text-slate-800 transition-transform group-hover:scale-110 duration-700" />
                                                 </div>
                                             ))}
                                         </div>
