@@ -33,7 +33,9 @@ export async function GET(request: Request) {
                 ? b.date.toISOString().split('T')[0]
                 : String(b.date).split('T')[0],
             timeSlot: b.time_slot,
-            status: b.status
+            status: b.status,
+            attendanceStatus: b.attendance_status || 'Pending',
+            timestamp: b.created_at
         }));
 
         // Fetch All Settings (court, gym, laundry)
