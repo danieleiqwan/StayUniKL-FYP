@@ -25,7 +25,7 @@ import {
     Clock,
     BookOpen,
     Phone,
-    Layers,
+    FolderOpen,
     FileText,
     Megaphone
 } from 'lucide-react';
@@ -201,7 +201,7 @@ function NavContent({
                         } ${collapsed ? 'justify-center' : ''}`}
                     >
                         <div className="flex items-center gap-3">
-                            <Layers style={{ height: '18px', width: '18px' }} className="shrink-0" />
+                            <FolderOpen style={{ height: '18px', width: '18px' }} className="shrink-0" />
                             {!collapsed && <span className="text-sm">Resources</span>}
                         </div>
                         {!collapsed && (
