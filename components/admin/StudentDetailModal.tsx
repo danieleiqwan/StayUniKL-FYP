@@ -21,7 +21,8 @@ import {
     Hash,
     Layers,
     MapPin,
-    Globe
+    Globe,
+    IdCard
 } from 'lucide-react';
 
 interface StudentDetailModalProps {
@@ -124,6 +125,7 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
                                             <InfoCard label="UniKL Email" value={data?.profile?.email || 'N/A'} icon={<Mail className="h-4 w-4 text-blue-500" />} />
                                             <InfoCard label="Phone Number" value={data?.profile?.phone_number || 'N/A'} icon={<Phone className="h-4 w-4 text-green-500" />} />
                                             <InfoCard label="Gender" value={data?.profile?.gender || 'N/A'} icon={<Shield className="h-4 w-4 text-[#F26C22]" />} />
+                                            <InfoCard label="Student ID Card" value={data?.profile?.student_id || studentId || 'N/A'} icon={<IdCard className="h-4 w-4 text-blue-500" />} />
                                             <InfoCard label="Account Created" value={data?.profile?.created_at ? new Date(data.profile.created_at).toLocaleDateString() : 'N/A'} icon={<Clock className="h-4 w-4 text-slate-500" />} />
                                         </div>
 
