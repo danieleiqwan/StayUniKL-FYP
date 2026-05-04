@@ -22,12 +22,27 @@ export async function GET(request: Request) {
                     DATE_FORMAT(created_at, '%b %Y') as month,
                     SUM(amount) as total
                 FROM payments 
-                WHERE status = 'Success'
+                WHERE status IN ('Success', 'Paid')
                 GROUP BY DATE_FORMAT(created_at, '%Y-%m')
                 ORDER BY MIN(created_at) ASC
                 LIMIT 6
             `);
             revenueData = rows;
+
+            // If payments table is empty, fallback to counting Approved applications as revenue
+            if (revenueData.length === 0) {
+                const [appRows]: any = await pool.query(`
+                    SELECT 
+                        DATE_FORMAT(date, '%b %Y') as month,
+                        SUM(total_price) as total
+                    FROM applications 
+                    WHERE status = 'Approved'
+                    GROUP BY DATE_FORMAT(date, '%Y-%m')
+                    ORDER BY MIN(date) ASC
+                    LIMIT 6
+                `);
+                revenueData = appRows;
+            }
         } catch (e) { console.error("Revenue query failed", e); }
 
         // 3. Intake Data (Applications by Month)
