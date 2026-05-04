@@ -191,62 +191,7 @@ function NavContent({
                     );
                 })}
 
-                {/* ── Resources Dropdown ── */}
-                <div className="space-y-0.5">
-                    <button
-                        onClick={() => setIsResourcesOpen(prev => !prev)}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all group relative ${
-                            resourcesActive
-                                ? 'bg-[#F26C22] text-white'
-                                : 'text-white/50 hover:bg-white/5 hover:text-white'
-                        } ${collapsed ? 'justify-center' : ''}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <FolderOpen style={{ height: '18px', width: '18px' }} className="shrink-0" />
-                            {!collapsed && <span className="text-sm">Resources</span>}
-                        </div>
-                        {!collapsed && (
-                            <ChevronDown
-                                className={`h-3.5 w-3.5 transition-transform duration-300 ${
-                                    isResourcesOpen ? 'rotate-180' : 'rotate-0'
-                                }`}
-                            />
-                        )}
-
-                        {/* Tooltip in collapsed mode */}
-                        {collapsed && !isMobile && (
-                            <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 border border-white/10 text-white text-xs font-black uppercase tracking-widest rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[100] whitespace-nowrap dark:bg-slate-800 dark:border-white/20">
-                                Resources
-                            </div>
-                        )}
-                    </button>
-
-                    <div
-                        className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out ${
-                            isResourcesOpen && !collapsed
-                                ? 'max-h-64 opacity-100'
-                                : 'max-h-0 opacity-0'
-                        }`}
-                    >
-                        <div className="pl-8 space-y-0.5 pt-1 pb-2">
-                            {resourceItems.map((sub) => (
-                                <Link
-                                    key={sub.path}
-                                    href={sub.path}
-                                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${
-                                        pathname === sub.path
-                                            ? 'text-[#F26C22] bg-white/5'
-                                            : 'text-white/30 hover:text-white/70 hover:bg-white/5'
-                                    }`}
-                                >
-                                    <sub.icon className="h-3.5 w-3.5" /> {sub.label}
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* ── Facilities Dropdown ── moved under Resources */}
+                {/* ── Facilities Dropdown ── */}
                 <div className="space-y-0.5">
                     <button
                         onClick={() => setIsFacilitiesOpen(prev => !prev)}
@@ -286,6 +231,61 @@ function NavContent({
                     >
                         <div className="pl-8 space-y-0.5 pt-1 pb-2">
                             {facilityItems.map((sub) => (
+                                <Link
+                                    key={sub.path}
+                                    href={sub.path}
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${
+                                        pathname === sub.path
+                                            ? 'text-[#F26C22] bg-white/5'
+                                            : 'text-white/30 hover:text-white/70 hover:bg-white/5'
+                                    }`}
+                                >
+                                    <sub.icon className="h-3.5 w-3.5" /> {sub.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Resources Dropdown ── moved under Facilities */}
+                <div className="space-y-0.5">
+                    <button
+                        onClick={() => setIsResourcesOpen(prev => !prev)}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-bold transition-all group relative ${
+                            resourcesActive
+                                ? 'bg-[#F26C22] text-white'
+                                : 'text-white/50 hover:bg-white/5 hover:text-white'
+                        } ${collapsed ? 'justify-center' : ''}`}
+                    >
+                        <div className="flex items-center gap-3">
+                            <FolderOpen style={{ height: '18px', width: '18px' }} className="shrink-0" />
+                            {!collapsed && <span className="text-sm">Resources</span>}
+                        </div>
+                        {!collapsed && (
+                            <ChevronDown
+                                className={`h-3.5 w-3.5 transition-transform duration-300 ${
+                                    isResourcesOpen ? 'rotate-180' : 'rotate-0'
+                                }`}
+                            />
+                        )}
+
+                        {/* Tooltip in collapsed mode */}
+                        {collapsed && !isMobile && (
+                            <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 border border-white/10 text-white text-xs font-black uppercase tracking-widest rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[100] whitespace-nowrap dark:bg-slate-800 dark:border-white/20">
+                                Resources
+                            </div>
+                        )}
+                    </button>
+
+                    <div
+                        className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out ${
+                            isResourcesOpen && !collapsed
+                                ? 'max-h-64 opacity-100'
+                                : 'max-h-0 opacity-0'
+                        }`}
+                    >
+                        <div className="pl-8 space-y-0.5 pt-1 pb-2">
+                            {resourceItems.map((sub) => (
                                 <Link
                                     key={sub.path}
                                     href={sub.path}
