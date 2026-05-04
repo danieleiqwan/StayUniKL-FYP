@@ -246,7 +246,7 @@ function NavContent({
                     </div>
                 </div>
 
-                {/* ── Facilities Dropdown ── */}
+                {/* ── Facilities Dropdown ── moved under Resources */}
                 <div className="space-y-0.5">
                     <button
                         onClick={() => setIsFacilitiesOpen(prev => !prev)}
