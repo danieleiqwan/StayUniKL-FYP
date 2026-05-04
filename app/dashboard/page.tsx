@@ -144,6 +144,8 @@ export default function StudentDashboard() {
                         Pay Now →
                     </Link>
                 </div>
+            )}
+
             {/* Profile Completion Banner */}
             {(!user.address || !user.emergencyContact1Name || !user.emergencyContact1Phone) && (
                 <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-blue-100">
