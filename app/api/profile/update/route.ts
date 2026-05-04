@@ -12,6 +12,7 @@ const updateProfileSchema = z.object({
     city: z.string().optional().nullable(),
     state: z.string().optional().nullable(),
     postcode: z.string().optional().nullable(),
+    nric: z.string().optional().nullable(),
     emergencyContact1Name: z.string().optional().nullable(),
     emergencyContact1Relation: z.string().optional().nullable(),
     emergencyContact1Phone: z.string().optional().nullable(),
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
         }
 
         const { 
-            name, email, studentId, phoneNumber, address, city, state, postcode,
+            name, email, studentId, nric, phoneNumber, address, city, state, postcode,
             emergencyContact1Name, emergencyContact1Relation, emergencyContact1Phone,
             emergencyContact2Name, emergencyContact2Relation, emergencyContact2Phone
         } = validation.data;
@@ -61,16 +62,27 @@ export async function POST(request: Request) {
             }
         }
 
+        // Check if nric is already taken
+        if (nric) {
+            const [existingNric]: any = await pool.query(
+                'SELECT id FROM users WHERE nric = ? AND id != ?',
+                [nric, user.id]
+            );
+            if (existingNric.length > 0) {
+                return NextResponse.json({ error: 'NRIC/Passport is already in use' }, { status: 400 });
+            }
+        }
+
         // Update user in DB
         const [result]: any = await pool.query(
             `UPDATE users SET 
-                name = ?, email = ?, student_id = ?, phone_number = ?, 
+                name = ?, email = ?, student_id = ?, nric = ?, phone_number = ?, 
                 address = ?, city = ?, state = ?, postcode = ?,
                 emergency_contact1_name = ?, emergency_contact1_relation = ?, emergency_contact1_phone = ?,
                 emergency_contact2_name = ?, emergency_contact2_relation = ?, emergency_contact2_phone = ?
             WHERE id = ?`,
             [
-                name, email, studentId || null, phoneNumber || null,
+                name, email, studentId || null, nric || null, phoneNumber || null,
                 address || null, city || null, state || null, postcode || null,
                 emergencyContact1Name || null, emergencyContact1Relation || null, emergencyContact1Phone || null,
                 emergencyContact2Name || null, emergencyContact2Relation || null, emergencyContact2Phone || null,
