@@ -130,7 +130,6 @@ export default function SettingsHub() {
         { id: 'account', label: 'Edit Identity', icon: User, desc: 'Update your official records and contact information' },
         { id: 'security', label: 'Security & Access', icon: Lock, desc: 'Manage your password and active sessions' },
         { id: 'alerts', label: 'Communication', icon: Bell, desc: 'Configure how you receive hostel updates' },
-        { id: 'app', label: 'App Preferences', icon: Palette, desc: 'Theme, language and accessibility' },
     ];
 
     const ActiveIcon = tabs.find(t => t.id === activeTab)?.icon || SettingsIcon;
@@ -497,34 +496,6 @@ export default function SettingsHub() {
                                 </div>
                             )}
 
-                            {/* App Preferences */}
-                            {activeTab === 'app' && (
-                                <div className="space-y-10 animate-in slide-in-from-bottom-2 duration-500">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="space-y-4">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">Theme Engine</label>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <button className="flex items-center justify-center gap-3 p-4 bg-white dark:bg-slate-800 border-2 border-[#F26C22] rounded-2xl text-[#F26C22] dark:text-orange-400 font-bold text-sm shadow-xl shadow-orange-50 dark:shadow-none transition-all">
-                                                    <Palette className="h-4 w-4" /> Light
-                                                </button>
-                                                <button className="flex items-center justify-center gap-3 p-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent rounded-2xl text-slate-500 dark:text-slate-400 font-bold text-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-700">
-                                                    <Moon className="h-4 w-4" /> Dark
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest transition-colors">Regional Language</label>
-                                            <div className="relative">
-                                                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                                                <select className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 pl-12 pr-4 text-sm font-bold text-slate-800 dark:text-white outline-none appearance-none transition-all">
-                                                    <option>English (US)</option>
-                                                    <option>Bahasa Melayu</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
 
                             {/* Status Message Footer */}
                             {msg && (
