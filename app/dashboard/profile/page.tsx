@@ -183,8 +183,8 @@ export default function ProfilePage() {
                                                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800">
                                                     <ProfileInfoItem icon={<ShieldCheck className="h-4 w-4 text-rose-500" />} label="NRIC / Passport" value={user.nric || 'Pending Update'} />
                                                 </div>
-                                                {/* Added Student ID Card under Gender Card */}
-                                                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 sm:col-span-2 lg:col-span-1">
+                                                {/* Added Student ID Card under Gender Card - Spans 2 columns on tablet to fix alignment */}
+                                                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 sm:col-span-2">
                                                     <ProfileInfoItem icon={<IdCard className="h-4 w-4 text-blue-500" />} label="Student ID Card" value={user.studentId || user.id} />
                                                 </div>
                                             </div>
