@@ -7,7 +7,7 @@ import {
     User, Lock, Home, Bell, Palette, Camera, Mail, 
     Phone, MapPin, ShieldCheck, Moon, Globe, 
     LogOut, CheckCircle2, ChevronRight, AlertCircle, Save,
-    CreditCard, FileText, Wrench, ArrowRight
+    CreditCard, FileText, Wrench, ArrowRight, IdCard
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -182,6 +182,10 @@ export default function ProfilePage() {
                                                 </div>
                                                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800">
                                                     <ProfileInfoItem icon={<ShieldCheck className="h-4 w-4 text-rose-500" />} label="NRIC / Passport" value={user.nric || 'Pending Update'} />
+                                                </div>
+                                                {/* Added Student ID Card under Gender Card */}
+                                                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800">
+                                                    <ProfileInfoItem icon={<IdCard className="h-4 w-4 text-blue-500" />} label="Student ID Card" value={user.studentId || user.id} />
                                                 </div>
                                             </div>
                                         </div>
