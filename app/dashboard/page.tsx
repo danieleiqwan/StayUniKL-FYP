@@ -144,6 +144,25 @@ export default function StudentDashboard() {
                         Pay Now →
                     </Link>
                 </div>
+            {/* Profile Completion Banner */}
+            {(!user.address || !user.emergencyContact1Name || !user.emergencyContact1Phone) && (
+                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-blue-100">
+                    <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-blue-600 shrink-0">
+                            <Bell className="h-5 w-5" />
+                        </div>
+                        <div className="text-white">
+                            <p className="font-black text-sm">Complete Your Profile</p>
+                            <p className="text-xs opacity-90">Your profile is missing important identity and emergency contact information.</p>
+                        </div>
+                    </div>
+                    <Link
+                        href="/dashboard/settings"
+                        className="bg-white text-blue-600 px-6 py-2.5 rounded-xl font-black text-xs tracking-widest uppercase hover:bg-blue-50 transition-all whitespace-nowrap shrink-0"
+                    >
+                        Complete Now →
+                    </Link>
+                </div>
             )}
 
             {/* New User Welcome / Apply Banner */}
