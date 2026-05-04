@@ -26,6 +26,7 @@ import {
     BookOpen,
     Phone,
     FolderOpen,
+    Layers,
     FileText,
     Megaphone
 } from 'lucide-react';
