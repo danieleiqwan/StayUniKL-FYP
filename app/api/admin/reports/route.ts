@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
     try {
+        let debug_errors: any = {};
+
         // 1. Occupancy Data
         let occupancy = { total_beds: 0, occupied_beds: 0 };
         try {
@@ -12,7 +16,10 @@ export async function GET(request: Request) {
                     (SELECT COUNT(*) FROM beds WHERE status = 'Occupied') as occupied_beds
             `);
             if (rows && rows[0]) occupancy = rows[0];
-        } catch (e) { console.error("Occupancy query failed", e); }
+        } catch (e: any) { 
+            console.error("Occupancy query failed", e);
+            debug_errors.occupancy = String(e);
+        }
 
         // 2. Revenue Data (Last 6 Months)
         let revenueData = [];
@@ -23,7 +30,7 @@ export async function GET(request: Request) {
                     SUM(amount) as total
                 FROM payments 
                 WHERE status IN ('Success', 'Paid')
-                GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+                GROUP BY month
                 ORDER BY MIN(created_at) ASC
                 LIMIT 6
             `);
@@ -36,14 +43,17 @@ export async function GET(request: Request) {
                         DATE_FORMAT(date, '%b %Y') as month,
                         SUM(total_price) as total
                     FROM applications 
-                    WHERE status = 'Approved'
-                    GROUP BY DATE_FORMAT(date, '%Y-%m')
+                    WHERE status LIKE 'Approved%' OR status = 'Checked in'
+                    GROUP BY month
                     ORDER BY MIN(date) ASC
                     LIMIT 6
                 `);
                 revenueData = appRows;
             }
-        } catch (e) { console.error("Revenue query failed", e); }
+        } catch (e: any) { 
+            console.error("Revenue query failed", e); 
+            debug_errors.revenue = String(e);
+        }
 
         // 3. Intake Data (Applications by Month)
         let intakeData = [];
@@ -53,12 +63,15 @@ export async function GET(request: Request) {
                     DATE_FORMAT(date, '%b %Y') as month,
                     COUNT(*) as count
                 FROM applications
-                GROUP BY DATE_FORMAT(date, '%Y-%m')
+                GROUP BY month
                 ORDER BY MIN(date) ASC
                 LIMIT 6
             `);
             intakeData = rows;
-        } catch (e) { console.error("Intake query failed", e); }
+        } catch (e: any) { 
+            console.error("Intake query failed", e); 
+            debug_errors.intake = String(e);
+        }
 
         // 4. Complaint Resolution Time
         let avgResolutionHours = 0;
@@ -70,7 +83,10 @@ export async function GET(request: Request) {
                 WHERE status = 'Resolved' AND resolved_at IS NOT NULL
             `);
             if (rows && rows[0]) avgResolutionHours = rows[0].avg_resolution_hours || 0;
-        } catch (e) { console.error("Complaints query failed", e); }
+        } catch (e: any) { 
+            console.error("Complaints query failed", e); 
+            debug_errors.complaints = String(e);
+        }
 
         // 5. Semester Stats
         let semesterStats = [];
@@ -91,7 +107,10 @@ export async function GET(request: Request) {
                 WHERE date >= '2024-07-01' AND date <= '2024-12-31'
             `);
             semesterStats = rows;
-        } catch (e) { console.error("SemesterStats query failed", e); }
+        } catch (e: any) { 
+            console.error("SemesterStats query failed", e); 
+            debug_errors.semesterStats = String(e);
+        }
 
         const totalBeds = occupancy.total_beds || 0;
         const occupiedBeds = occupancy.occupied_beds || 0;
@@ -108,7 +127,8 @@ export async function GET(request: Request) {
             complaints: {
                 avgResolutionTime: Math.round(avgResolutionHours)
             },
-            semesterStats: semesterStats || []
+            semesterStats: semesterStats || [],
+            debug_errors
         });
     } catch (error: any) {
         console.error("Error generating report:", error);

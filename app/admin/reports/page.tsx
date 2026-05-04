@@ -143,6 +143,13 @@ export default function AdminReportsPage() {
                         </div>
                     </div>
                 </div>
+                
+                {reportData.debug_errors && Object.keys(reportData.debug_errors).length > 0 && (
+                    <div className="mt-8 bg-red-50 text-red-600 p-6 rounded-2xl border border-red-200">
+                        <h3 className="font-bold mb-2">Debug SQL Errors:</h3>
+                        <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(reportData.debug_errors, null, 2)}</pre>
+                    </div>
+                )}
 
                 {/* Statistics Summary */}
                 <div className="mt-8 bg-slate-900 rounded-3xl p-10 text-white relative overflow-hidden shadow-2xl shadow-slate-900/20">
