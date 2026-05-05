@@ -1,3 +1,4 @@
+// Deployment trigger: Rollback to stable version
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
