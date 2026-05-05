@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Navbar from '@/components/layout/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { Building2, DollarSign, Zap, Users } from 'lucide-react';
 
@@ -36,6 +37,7 @@ export default function AdminReportsPage() {
 
     return (
         <div className="max-w-[1400px] mx-auto px-10 py-8">
+            <Navbar />
 
             <div className="container mx-auto px-4 py-8">
                 <div className="mb-8">
