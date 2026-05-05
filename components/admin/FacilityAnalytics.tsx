@@ -94,22 +94,22 @@ export default function FacilityAnalytics() {
                     </div>
                 </div>
 
-                <div className="flex items-end h-32 gap-2 mt-4 px-2">
+                <div className="flex items-end h-48 gap-2 mt-4 px-2 pb-8 border-b border-slate-100 dark:border-slate-800/50">
                     {analytics.sortedTimes.map(time => {
                         const count = analytics.timeCount[time];
                         const height = analytics.maxTimeCount > 0 ? (count / analytics.maxTimeCount) * 100 : 0;
                         return (
-                            <div key={time} className="flex-1 flex flex-col items-center group relative">
+                            <div key={time} className="flex-1 h-full flex flex-col justify-end items-center group relative">
                                 {/* Tooltip */}
                                 <div className="absolute -top-8 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
                                     {count} bookings
                                 </div>
                                 
                                 <div 
-                                    className="w-full bg-amber-200 dark:bg-amber-900/40 rounded-t-sm group-hover:bg-amber-400 dark:group-hover:bg-amber-500 transition-colors"
-                                    style={{ height: `${Math.max(10, height)}%` }}
+                                    className="w-full max-w-[32px] bg-amber-200 dark:bg-amber-900/40 rounded-t-md group-hover:bg-amber-400 dark:group-hover:bg-amber-500 transition-all duration-700 ease-out"
+                                    style={{ height: `${Math.max(5, height)}%` }}
                                 ></div>
-                                <div className="text-[8px] text-slate-400 mt-2 rotate-[-45deg] origin-top-left absolute -bottom-6 truncate">
+                                <div className="text-[9px] text-slate-400 font-bold mt-2 -rotate-45 origin-top-left absolute -bottom-7 whitespace-nowrap">
                                     {time}
                                 </div>
                             </div>
