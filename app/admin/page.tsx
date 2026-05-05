@@ -14,7 +14,7 @@ import PredictiveMaintenance from '@/components/admin/PredictiveMaintenance';
 import WaitlistOpportunities from '@/components/admin/WaitlistOpportunities';
 import FacilityAnalytics from '@/components/admin/FacilityAnalytics';
 import SportManagement from '@/components/admin/SportManagement';
-import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight, Bell, Wrench, Zap, DollarSign, Megaphone } from 'lucide-react';
+import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight, Bell, Wrench, Zap, DollarSign, Megaphone, CalendarDays } from 'lucide-react';
 
 export default function AdminDashboardPage() {
     return (
@@ -438,7 +438,7 @@ function AdminDashboard() {
                                                     </div>
                                                 );
                                             })}
-                                        {applications.length === 0 && complaints.length === 0 && (
+                                        {(!applications || applications.length === 0) && (!complaints || complaints.length === 0) && (
                                             <p className="text-center text-slate-500 text-sm py-4">No recent activity.</p>
                                         )}
                                     </div>
