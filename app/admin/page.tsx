@@ -1,10 +1,9 @@
-// Deployment trigger: Rollback to stable version
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
 import { useData, CourtBooking } from '@/context/DataContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import Navbar from '@/components/layout/Navbar';
+import AdminSidebar from '@/components/layout/AdminSidebar';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import AdminFilterBar, { FilterState } from '@/components/admin/AdminFilterBar';
@@ -15,7 +14,7 @@ import PredictiveMaintenance from '@/components/admin/PredictiveMaintenance';
 import WaitlistOpportunities from '@/components/admin/WaitlistOpportunities';
 import FacilityAnalytics from '@/components/admin/FacilityAnalytics';
 import SportManagement from '@/components/admin/SportManagement';
-import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2 } from 'lucide-react';
+import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight } from 'lucide-react';
 
 export default function AdminDashboard() {
     const { user } = useAuth();
@@ -90,7 +89,7 @@ export default function AdminDashboard() {
 
 
     // Stats
-    const totalCourtBookingsToday = courtBookings.filter(b => b.date === new Date().toISOString().split('T')[0]).length;
+    const totalCourtBookingsToday = (courtBookings || []).filter(b => b.date === new Date().toISOString().split('T')[0]).length;
 
     // Generate Slots for Schedule View
     const generateSlots = () => {
@@ -122,10 +121,10 @@ export default function AdminDashboard() {
 
     // Pending Counts for Badges
     const counts = useMemo(() => ({
-        applications: applications.filter(a => a.status === 'Pending' || !a.status).length,
-        complaints: complaints.filter(c => c.status === 'Pending').length,
-        facilities: courtBookings.filter(b => b.status === 'Pending').length,
-        roomChanges: roomChangeRequests.filter(r => r.status === 'Pending Review').length
+        applications: (applications || []).filter(a => a.status === 'Pending' || !a.status).length,
+        complaints: (complaints || []).filter(c => c.status === 'Pending').length,
+        facilities: (courtBookings || []).filter(b => b.status === 'Pending').length,
+        roomChanges: (roomChangeRequests || []).filter(r => r.status === 'Pending Review').length
     }), [applications, complaints, courtBookings, roomChangeRequests]);
 
     const handleApproveWithRoom = (request: any) => {
@@ -223,167 +222,152 @@ export default function AdminDashboard() {
     if (!user || user.role !== 'admin') return <div className="p-10 text-center">Access Denied. Admins only.</div>;
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
-            <Navbar />
-            <div className="container mx-auto px-4 py-10">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-2">
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Admin Dashboard</h1>
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-black text-foreground">
+            <AdminSidebar 
+                activeTab={activeTab} 
+                onTabChange={setActiveTab} 
+                counts={counts}
+            />
 
-                    <div className="flex flex-wrap items-center gap-3">
-                        <LiveClock />
-                        <button
-                            onClick={() => router.push('/admin/checkin')}
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors flex items-center gap-2"
-                        >
-                            <ScanLine className="h-4 w-4" /> QR Check-in Hub
-                        </button>
-                        <button
-                            onClick={() => router.push('/admin/rooms')}
-                            className="bg-[#F26C22] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#d65a16] transition-colors flex items-center gap-2"
-                        >
-                            <Building2 className="h-4 w-4" /> View Room Availability
-                        </button>
-                        <button
-                            onClick={() => router.push('/admin/documents')}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2"
-                        >
-                            <FileText className="h-4 w-4" /> Verify Documents
-                        </button>
-                    </div>
-                </div>
+            <main className="pl-80 min-h-screen">
+                <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
+                    
+                    {/* Header Section */}
+                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="h-10 w-10 bg-orange-50 dark:bg-orange-900/20 rounded-xl flex items-center justify-center text-[#F26C22]">
+                                    <LayoutDashboard className="h-5 w-5" />
+                                </div>
+                                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+                                    {activeTab === 'applications' ? 'Student Enrollment' :
+                                     activeTab === 'complaints' ? 'Facility Maintenance' :
+                                     activeTab === 'facilities' ? 'Sports & Facilities' : 
+                                     activeTab === 'room-changes' ? 'Room Transitions' : 'Admin Hub'}
+                                </h1>
+                            </div>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium ml-1">
+                                {activeTab === 'applications' ? 'Review and manage incoming student hostel applications.' :
+                                 activeTab === 'complaints' ? 'Track and resolve facility issues reported by residents.' :
+                                 activeTab === 'facilities' ? 'Configure operation hours and manage sport bookings.' :
+                                 activeTab === 'room-changes' ? 'Handle internal room transfer and bed assignment requests.' : 'System overview and management.'}
+                            </p>
+                        </div>
 
-                <div className="mb-8 flex space-x-4 border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
-                    {['applications', 'complaints', 'facilities', 'room-changes'].map(tab => {
-                        const countKey = tab === 'room-changes' ? 'roomChanges' : tab;
-                        const count = (counts as any)[countKey] || 0;
-                        
-                        return (
+                        <div className="flex flex-wrap items-center gap-3">
+                            <LiveClock />
+                            <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2 hidden lg:block"></div>
                             <button
-                                key={tab}
-                                onClick={() => {
-                                    setActiveTab(tab as any);
-                                }}
-                                className={`pb-2 px-2 text-sm font-bold transition-all capitalize whitespace-nowrap flex items-center gap-2 ${activeTab === tab
-                                    ? 'border-b-2 border-[#F26C22] text-[#F26C22] dark:text-orange-400'
-                                    : 'text-slate-500 hover:text-[#F26C22] dark:text-slate-400'
-                                    }`}
+                                onClick={() => router.push('/admin/checkin')}
+                                className="group bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/10 flex items-center gap-2"
                             >
-                                <span>
-                                    {tab === 'facilities' ? 'Facility Management' :
-                                        tab === 'complaints' ? 'Facilities Complaints' :
-                                            tab === 'room-changes' ? 'Room Changes' : tab}
-                                </span>
-                                {count > 0 && (
-                                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-black animate-in zoom-in duration-300">
-                                        {count}
-                                    </span>
-                                )}
+                                <ScanLine className="h-4 w-4 group-hover:scale-110 transition-transform" /> QR Check-in Hub
                             </button>
-                        );
-                    })}
-                </div>
+                            <button
+                                onClick={() => router.push('/admin/rooms')}
+                                className="group bg-slate-900 dark:bg-slate-800 text-white px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-slate-900/10 flex items-center gap-2 hover:bg-[#F26C22] dark:hover:bg-[#F26C22]"
+                            >
+                                <Building2 className="h-4 w-4 group-hover:scale-110 transition-transform" /> Room Matrix
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Stats Summary Row (Optional but looks premium) */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        {[
+                            { label: 'Pending Apps', val: counts.applications, color: 'text-orange-500', bg: 'bg-orange-50' },
+                            { label: 'Active Complaints', val: counts.complaints, color: 'text-blue-500', bg: 'bg-blue-50' },
+                            { label: 'Waitlist', val: counts.roomChanges, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+                            { label: 'Bookings Today', val: totalCourtBookingsToday, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+                        ].map((stat, i) => (
+                            <div key={i} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
+                                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-1">{stat.label}</p>
+                                <div className="flex items-end justify-between">
+                                    <p className={`text-3xl font-black ${stat.color} dark:text-white`}>{stat.val.toString().padStart(2, '0')}</p>
+                                    <div className={`h-8 w-8 ${stat.bg} dark:bg-slate-800 rounded-xl flex items-center justify-center`}>
+                                        <ChevronRight className={`h-4 w-4 ${stat.color}`} />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="w-full h-[1px] bg-slate-100 dark:bg-slate-800"></div>
 
                 {/* Applications Tab */}
                 {activeTab === 'applications' && (
-                    <>
+                    <div className="space-y-4 animate-in fade-in duration-300">
                         <AdminFilterBar
                             onFilterChange={setAppFilters}
                             statusOptions={['Pending', 'Payment Pending', 'Approved', 'Checked in', 'Checked out', 'Cancelled', 'No show']}
                         />
-                        <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="bg-slate-50 text-slate-900 dark:bg-slate-800 dark:text-white">
-                                        <tr>
-                                            <th className="px-6 py-4 font-semibold">Student</th>
-                                            <th className="px-6 py-4 font-semibold">Room Type</th>
-                                            <th className="px-6 py-4 font-semibold">Date</th>
-                                            <th className="px-6 py-4 font-semibold">Status</th>
-                                            <th className="px-6 py-4 font-semibold">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {filteredApps.length === 0 ? <tr><td colSpan={5} className="p-6 text-center text-slate-500">No applications found.</td></tr> :
-                                            filteredApps.map(app => (
-                                                <tr key={app.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <div>
-                                                                <div className="font-medium text-slate-900 dark:text-white">{app.studentName}</div>
-                                                                <div className="text-xs text-slate-500">{app.studentId}</div>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => setSelectedStudentId(app.studentId)}
-                                                                className="p-1.5 text-slate-400 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
-                                                                title="View Full Profile"
-                                                            >
-                                                                <Eye className="h-4 w-4" />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{app.roomType}</td>
-                                                    <td className="px-6 py-4 text-slate-500">{new Date(app.date).toLocaleDateString()}</td>
-
-                                                    <td className="px-6 py-4">
-                                                        <span className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${app.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                                                            app.status === 'Checked in' ? 'bg-teal-100 text-teal-700' :
-                                                                app.status === 'Checked out' ? 'bg-gray-100 text-gray-700' :
-                                                                    app.status === 'Payment Pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                                        app.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
-                                                                            app.status === 'No show' ? 'bg-orange-100 text-orange-700' :
-                                                                                'bg-slate-100 text-slate-700'
-                                                            }`}>
-                                                            {app.status || 'Pending'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {(app.status === 'Pending' || !app.status) && (
-                                                                <>
-                                                                    <button onClick={() => updateApplicationStatus(app.id, 'Payment Pending')} className="text-xs bg-[#F26C22] text-white px-2 py-1 rounded hover:bg-[#d65a16]">Accept</button>
-                                                                    <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">Reject</button>
-                                                                    <button onClick={() => {
-                                                                        const bedId = prompt("Enter Bed ID to Assign (e.g., 101-A):");
-                                                                        if (bedId) {
-                                                                            fetch('/api/applications', {
-                                                                                method: 'PUT',
-                                                                                headers: { 'Content-Type': 'application/json' },
-                                                                                body: JSON.stringify({ id: app.id, bedId })
-                                                                            }).then(() => refreshData());
-                                                                        }
-                                                                    }} className="text-xs bg-slate-600 text-white px-2 py-1 rounded hover:bg-slate-700">Assign Bed</button>
-                                                                </>
-                                                            )}
-                                                            {app.status === 'Payment Pending' && (
-                                                                <>
-                                                                    <button onClick={() => updateApplicationStatus(app.id, 'Approved')} className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700">Verify Payment</button>
-                                                                    <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">Cancel</button>
-                                                                </>
-                                                            )}
-                                                            {app.status === 'Approved' && (
-                                                                <>
-                                                                    <button onClick={() => updateApplicationStatus(app.id, 'Checked in')} className="text-xs bg-teal-600 text-white px-2 py-1 rounded hover:bg-teal-700">Check In</button>
-                                                                    <button onClick={() => updateApplicationStatus(app.id, 'No show')} className="text-xs bg-orange-600 text-white px-2 py-1 rounded hover:bg-orange-700">No Show</button>
-                                                                    <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">Cancel</button>
-                                                                </>
-                                                            )}
-                                                            {app.status === 'Checked in' && (
-                                                                <button onClick={() => updateApplicationStatus(app.id, 'Checked out')} className="text-xs bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700">Check Out</button>
-                                                            )}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                    </tbody>
-                                </table>
+                        <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
+                            <div className="grid grid-cols-[2fr_1fr_1fr_1fr_2fr] px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Student</span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Room Type</span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Applied</span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</span>
+                            </div>
+                            <div className="divide-y divide-slate-50 dark:divide-slate-800">
+                                {filteredApps.length === 0 ? (
+                                    <div className="py-20 text-center">
+                                        <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No applications found.</p>
+                                    </div>
+                                ) : filteredApps.map(app => (
+                                    <div key={app.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_2fr] items-center px-8 py-5 hover:bg-orange-50/30 dark:hover:bg-slate-800/30 transition-colors group">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-black text-sm shrink-0">
+                                                {(app.studentName || 'S').charAt(0)}
+                                            </div>
+                                            <div>
+                                                <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{app.studentName}</p>
+                                                <p className="text-xs text-slate-400 font-mono">{app.studentId}</p>
+                                            </div>
+                                            <button onClick={() => setSelectedStudentId(app.studentId)} className="p-1.5 text-slate-300 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="View Full Profile">
+                                                <Eye className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
+                                        <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{app.roomType || '—'}</p>
+                                        <p className="text-sm text-slate-400 font-medium">{new Date(app.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                                        <span className={`inline-flex items-center w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                            app.status === 'Approved' || app.status === 'Approved - Assigned' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                            app.status === 'Checked in' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' :
+                                            app.status === 'Checked out' ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' :
+                                            app.status === 'Payment Pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                            app.status === 'Cancelled' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
+                                            app.status === 'No show' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                                            'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                                        }`}>{app.status || 'Pending'}</span>
+                                        <div className="flex flex-wrap gap-2 justify-end">
+                                            {(app.status === 'Pending' || !app.status) && (<>
+                                                <button onClick={() => updateApplicationStatus(app.id, 'Payment Pending')} className="text-[10px] font-black uppercase tracking-widest bg-[#F26C22] text-white px-3 py-1.5 rounded-xl hover:bg-[#d65a16] transition-all">Accept</button>
+                                                <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Reject</button>
+                                                <button onClick={() => { const bedId = prompt('Enter Bed ID (e.g., 101-A):'); if (bedId) { fetch('/api/applications', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: app.id, bedId }) }).then(() => refreshData()); } }} className="text-[10px] font-black uppercase tracking-widest bg-slate-700 text-white px-3 py-1.5 rounded-xl hover:bg-slate-800 transition-all">Assign Bed</button>
+                                            </>)}
+                                            {app.status === 'Payment Pending' && (<>
+                                                <button onClick={() => updateApplicationStatus(app.id, 'Approved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Verify Payment</button>
+                                                <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Cancel</button>
+                                            </>)}
+                                            {app.status === 'Approved' && (<>
+                                                <button onClick={() => updateApplicationStatus(app.id, 'Checked in')} className="text-[10px] font-black uppercase tracking-widest bg-teal-500 text-white px-3 py-1.5 rounded-xl hover:bg-teal-600 transition-all">Check In</button>
+                                                <button onClick={() => updateApplicationStatus(app.id, 'No show')} className="text-[10px] font-black uppercase tracking-widest bg-amber-500 text-white px-3 py-1.5 rounded-xl hover:bg-amber-600 transition-all">No Show</button>
+                                                <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Cancel</button>
+                                            </>)}
+                                            {app.status === 'Checked in' && (
+                                                <button onClick={() => updateApplicationStatus(app.id, 'Checked out')} className="text-[10px] font-black uppercase tracking-widest bg-slate-600 text-white px-3 py-1.5 rounded-xl hover:bg-slate-700 transition-all">Check Out</button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    </>
+                    </div>
                 )}
 
                 {/* Complaints Tab */}
                 {activeTab === 'complaints' && (
-                    <div className="animate-in fade-in duration-300">
+                    <div className="space-y-4 animate-in fade-in duration-300">
                         <PredictiveMaintenance />
                         <AdminFilterBar
                             onFilterChange={setComplaintFilters}
@@ -391,61 +375,52 @@ export default function AdminDashboard() {
                             showGender={false}
                             showRoomType={false}
                         />
-                        <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="bg-slate-50 text-slate-900 dark:bg-slate-800 dark:text-white">
-                                        <tr>
-                                            <th className="px-6 py-4 font-semibold">Reported By</th>
-                                            <th className="px-6 py-4 font-semibold">Issue</th>
-                                            <th className="px-6 py-4 font-semibold">Status</th>
-                                            <th className="px-6 py-4 font-semibold">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {filteredComplaints.length === 0 ? <tr><td colSpan={4} className="p-6 text-center text-slate-500">No complaints found.</td></tr> :
-                                            filteredComplaints.map(c => (
-                                                <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                                    <td className="px-6 py-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <div>
-                                                                <div className="font-medium text-slate-900 dark:text-white">{c.studentName}</div>
-                                                                <div className="text-xs text-slate-500">{c.studentId}</div>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => setSelectedStudentId(c.studentId)}
-                                                                className="p-1.5 text-slate-400 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
-                                                                title="View Full Profile"
-                                                            >
-                                                                <Eye className="h-4 w-4" />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="font-medium text-slate-900 dark:text-white">{c.title}</div>
-                                                        <div className="text-xs text-slate-500 max-w-xs truncate">{c.description}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={`rounded-full px-2 py-1 text-xs font-medium ${c.status === 'Resolved' ? 'bg-green-100 text-green-700' : c.status === 'In Progress' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}`}>{c.status}</span>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {c.status === 'Pending' && (
-                                                            <div className="flex gap-2">
-                                                                <button onClick={() => {
-                                                                    const d = prompt("Appt Date (YYYY-MM-DD):", new Date().toISOString().split('T')[0]);
-                                                                    if (d) updateComplaint(c.id, 'In Progress', d);
-                                                                }} className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Arr. Appt</button>
-                                                                <button onClick={() => updateComplaint(c.id, 'Resolved')} className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Resolve</button>
-                                                            </div>
-                                                        )}
-                                                        {c.status === 'In Progress' && (
-                                                            <button onClick={() => updateComplaint(c.id, 'Resolved')} className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Resolve</button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                    </tbody>
-                                </table>
+                        <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
+                            <div className="grid grid-cols-[2fr_2fr_1fr_1.5fr] px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Reported By</span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Issue</span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</span>
+                            </div>
+                            <div className="divide-y divide-slate-50 dark:divide-slate-800">
+                                {filteredComplaints.length === 0 ? (
+                                    <div className="py-20 text-center">
+                                        <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No complaints found.</p>
+                                    </div>
+                                ) : filteredComplaints.map(c => (
+                                    <div key={c.id} className="grid grid-cols-[2fr_2fr_1fr_1.5fr] items-center px-8 py-5 hover:bg-blue-50/20 dark:hover:bg-slate-800/30 transition-colors group">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-black text-sm shrink-0">
+                                                {(c.studentName || 'S').charAt(0)}
+                                            </div>
+                                            <div>
+                                                <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{c.studentName}</p>
+                                                <p className="text-xs text-slate-400 font-mono">{c.studentId}</p>
+                                            </div>
+                                            <button onClick={() => setSelectedStudentId(c.studentId)} className="p-1.5 text-slate-300 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="View Profile">
+                                                <Eye className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{c.title}</p>
+                                            <p className="text-xs text-slate-400 max-w-xs truncate mt-0.5">{c.description}</p>
+                                        </div>
+                                        <span className={`inline-flex items-center w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                            c.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                            c.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                                            'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                        }`}>{c.status}</span>
+                                        <div className="flex gap-2 justify-end">
+                                            {c.status === 'Pending' && (<>
+                                                <button onClick={() => { const d = prompt('Appointment Date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]); if (d) updateComplaint(c.id, 'In Progress', d); }} className="text-[10px] font-black uppercase tracking-widest bg-blue-500 text-white px-3 py-1.5 rounded-xl hover:bg-blue-600 transition-all">Schedule</button>
+                                                <button onClick={() => updateComplaint(c.id, 'Resolved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Resolve</button>
+                                            </>)}
+                                            {c.status === 'In Progress' && (
+                                                <button onClick={() => updateComplaint(c.id, 'Resolved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Mark Resolved</button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -453,13 +428,18 @@ export default function AdminDashboard() {
 
                 {/* Facility Management Tab */}
                 {activeTab === 'facilities' && (
-                    <div className="space-y-6">
-                        <div className="flex space-x-2 border-b border-slate-200 dark:border-slate-800">
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        {/* Facility Pill Sub-Tabs */}
+                        <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-1.5 rounded-2xl w-fit">
                             {['court', 'gym', 'laundry'].map(f => (
                                 <button
                                     key={f}
                                     onClick={() => setFacilityTab(f as any)}
-                                    className={`pb-2 px-4 text-sm font-medium transition-colors capitalize ${facilityTab === f ? 'border-b-2 border-[#F26C22] text-[#F26C22]' : 'text-slate-500'}`}
+                                    className={`px-6 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all capitalize ${
+                                        facilityTab === f
+                                            ? 'bg-white dark:bg-slate-900 text-[#F26C22] shadow-sm'
+                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                    }`}
                                 >
                                     {f}
                                 </button>
@@ -468,32 +448,35 @@ export default function AdminDashboard() {
 
                         {facilityTab === 'court' && (
                             <div className="space-y-6">
-                                <div className="animate-in fade-in duration-300">
-                                    <FacilityAnalytics />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                                    <div className="rounded-xl border bg-white p-4 text-center shadow-sm dark:bg-slate-900 dark:border-slate-800">
-                                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{totalCourtBookingsToday}</div>
-                                        <div className="text-xs text-slate-500">Bookings Today</div>
+                                <FacilityAnalytics />
+                                {/* Court Quick Stats */}
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">Bookings Today</p>
+                                        <p className="text-3xl font-black text-slate-900 dark:text-white">{totalCourtBookingsToday.toString().padStart(2, '0')}</p>
                                     </div>
-                                    <div className="rounded-xl border bg-white p-4 text-center shadow-sm dark:bg-slate-900 dark:border-slate-800">
-                                        <div className="text-2xl font-bold text-slate-900 dark:text-white">{scheduleSlots.length}</div>
-                                        <div className="text-xs text-slate-500">Total Daily Slots</div>
+                                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">Total Daily Slots</p>
+                                        <p className="text-3xl font-black text-slate-900 dark:text-white">{scheduleSlots.length.toString().padStart(2, '0')}</p>
                                     </div>
-                                    <div className="rounded-xl border bg-white p-4 text-center shadow-sm dark:bg-slate-900 dark:border-slate-800">
-                                        <div className={`text-2xl font-bold ${facilitySettings?.court.isOpen ? 'text-green-600' : 'text-red-600'}`}>
+                                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">Court Status</p>
+                                        <p className={`text-3xl font-black ${facilitySettings?.court.isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
                                             {facilitySettings?.court.isOpen ? 'Open' : 'Closed'}
-                                        </div>
-                                        <div className="text-xs text-slate-500">Current Status</div>
+                                        </p>
                                     </div>
                                 </div>
-
-                                <div className="border-b border-slate-200 dark:border-slate-800">
+                                {/* Court Sub-Tabs (pill style) */}
+                                <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-1.5 rounded-2xl w-fit">
                                     {['bookings', 'settings', 'schedule', 'sports'].map(sub => (
                                         <button
                                             key={sub}
                                             onClick={() => setCourtSubTab(sub as any)}
-                                            className={`mr-6 pb-2 text-sm font-medium transition-colors capitalize ${courtSubTab === sub ? 'border-b-2 border-[#F26C22] text-[#F26C22]' : 'text-slate-500 hover:text-slate-700'}`}
+                                            className={`px-5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all capitalize ${
+                                                courtSubTab === sub
+                                                    ? 'bg-white dark:bg-slate-900 text-[#F26C22] shadow-sm'
+                                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+                                            }`}
                                         >
                                             {sub === 'sports' ? '🏅 Sports' : sub}
                                         </button>
@@ -502,128 +485,87 @@ export default function AdminDashboard() {
 
                                 {courtSubTab === 'bookings' && (
                                     <div className="space-y-4">
-                                        {/* Court Booking Filter Bar */}
-                                        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 dark:bg-slate-900 dark:border-slate-800 transition-colors">
+                                        <div className="bg-white dark:bg-slate-900 p-6 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-800">
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                {/* Search */}
-                                                <div>
-                                                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Search Student</label>
-                                                    <div className="relative">
-                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Name or ID..."
-                                                            value={courtFilters.search}
-                                                            onChange={(e) => setCourtFilters({ ...courtFilters, search: e.target.value })}
-                                                            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#F26C22] dark:bg-slate-800 dark:border-slate-700 dark:text-white transition-all"
-                                                        />
-                                                    </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Search Student</label>
+                                                    <input type="text" placeholder="Name or ID..." value={courtFilters.search} onChange={(e) => setCourtFilters({ ...courtFilters, search: e.target.value })} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all" />
                                                 </div>
-
-                                                {/* Status */}
-                                                <div>
-                                                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Status</label>
-                                                    <select
-                                                        value={courtFilters.status}
-                                                        onChange={(e) => setCourtFilters({ ...courtFilters, status: e.target.value })}
-                                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#F26C22] dark:bg-slate-800 dark:border-slate-700 dark:text-white transition-all"
-                                                    >
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</label>
+                                                    <select value={courtFilters.status} onChange={(e) => setCourtFilters({ ...courtFilters, status: e.target.value })} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 transition-all">
                                                         <option value="">All Statuses</option>
                                                         <option value="Pending">Pending</option>
                                                         <option value="Approved">Approved</option>
                                                         <option value="Rejected">Rejected</option>
                                                     </select>
                                                 </div>
-
-                                                {/* Date */}
-                                                <div>
-                                                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Date</label>
-                                                    <input
-                                                        type="date"
-                                                        value={courtFilters.date}
-                                                        onChange={(e) => setCourtFilters({ ...courtFilters, date: e.target.value })}
-                                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#F26C22] dark:bg-slate-800 dark:border-slate-700 dark:text-white transition-all"
-                                                    />
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Date</label>
+                                                    <input type="date" value={courtFilters.date} onChange={(e) => setCourtFilters({ ...courtFilters, date: e.target.value })} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 transition-all" />
                                                 </div>
-
-                                                {/* Sport Filter — populated from DB */}
-                                                <div>
-                                                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Sport</label>
-                                                    <select
-                                                        value={courtFilters.sport}
-                                                        onChange={(e) => setCourtFilters({ ...courtFilters, sport: e.target.value })}
-                                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-[#F26C22] dark:bg-slate-800 dark:border-slate-700 dark:text-white transition-all"
-                                                    >
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sport</label>
+                                                    <select value={courtFilters.sport} onChange={(e) => setCourtFilters({ ...courtFilters, sport: e.target.value })} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 transition-all">
                                                         <option value="">All Sports</option>
-                                                        {allSports.map(s => (
-                                                            <option key={s.id} value={s.name}>{s.name}{!s.isActive ? ' (Disabled)' : ''}</option>
-                                                        ))}
+                                                        {allSports.map(s => (<option key={s.id} value={s.name}>{s.name}{!s.isActive ? ' (Disabled)' : ''}</option>))}
                                                     </select>
                                                 </div>
                                             </div>
-
                                             {(courtFilters.search || courtFilters.status || courtFilters.date || courtFilters.sport) && (
                                                 <div className="mt-4 flex justify-end">
-                                                    <button
-                                                        onClick={() => setCourtFilters({ search: '', status: '', date: '', sport: '' })}
-                                                        className="text-xs text-[#F26C22] font-bold hover:underline"
-                                                    >
-                                                        Clear All Filters
-                                                    </button>
+                                                    <button onClick={() => setCourtFilters({ search: '', status: '', date: '', sport: '' })} className="text-[10px] font-black uppercase tracking-widest text-[#F26C22] hover:underline">Clear Filters</button>
                                                 </div>
                                             )}
                                         </div>
-
-                                        <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
-                                            <table className="w-full text-left text-sm">
-                                                <thead className="bg-slate-50 text-slate-900 dark:bg-slate-800 dark:text-white">
-                                                    <tr>
-                                                        <th className="px-6 py-4 font-semibold">Student</th>
-                                                        <th className="px-6 py-4 font-semibold">Sport</th>
-                                                        <th className="px-6 py-4 font-semibold">Time</th>
-                                                        <th className="px-6 py-4 font-semibold">Status</th>
-                                                        <th className="px-6 py-4 font-semibold">Actions</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                                    {filteredCourtBookings.length === 0 ? <tr><td colSpan={5} className="p-6 text-center text-slate-500">No bookings match your filters.</td></tr> :
-                                                        filteredCourtBookings.map(b => (
-                                                            <tr key={b.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                                                <td className="px-6 py-4">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <div>
-                                                                            <div className="font-medium text-slate-900 dark:text-white">{b.studentName || 'Unknown Student'}</div>
-                                                                            <div className="text-xs text-slate-500">{b.studentId}</div>
-                                                                        </div>
-                                                                        <button
-                                                                            onClick={() => setSelectedStudentId(b.studentId)}
-                                                                            className="p-1.5 text-slate-400 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
-                                                                            title="View Full Profile"
-                                                                        >
-                                                                            <Eye className="h-4 w-4" />
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                                <td className="px-6 py-4">{b.sport}</td>
-                                                                <td className="px-6 py-4">{b.date} @ {b.timeSlot}</td>
-                                                                <td className="px-6 py-4">
-                                                                    <span className={`rounded-full px-2 py-1 text-xs font-medium ${b.status === 'Approved' ? 'bg-green-100 text-green-700' : b.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-101 text-yellow-700'}`}>{b.status}</span>
-                                                                </td>
-                                                                <td className="px-6 py-4">
-                                                                    {b.status === 'Pending' && (
-                                                                        <div className="flex gap-2">
-                                                                            <button onClick={() => updateBookingStatus(b.id, 'Approved')} className="text-xs bg-green-600 text-white px-2 py-1 rounded">Approve</button>
-                                                                            <button onClick={() => updateBookingStatus(b.id, 'Rejected')} className="text-xs bg-red-600 text-white px-2 py-1 rounded">Reject</button>
-                                                                        </div>
-                                                                    )}
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                </tbody>
-                                            </table>
+                                        <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
+                                            <div className="grid grid-cols-[2fr_1fr_1.5fr_1fr_1fr] px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Student</span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sport</span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Date & Time</span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</span>
+                                            </div>
+                                            <div className="divide-y divide-slate-50 dark:divide-slate-800">
+                                                {filteredCourtBookings.length === 0 ? (
+                                                    <div className="py-20 text-center"><p className="text-sm font-bold text-slate-400 dark:text-slate-500">No bookings match your filters.</p></div>
+                                                ) : filteredCourtBookings.map(b => (
+                                                    <div key={b.id} className="grid grid-cols-[2fr_1fr_1.5fr_1fr_1fr] items-center px-8 py-5 hover:bg-orange-50/20 dark:hover:bg-slate-800/30 transition-colors group">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white font-black text-sm shrink-0">
+                                                                {(b.studentName || 'S').charAt(0)}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{b.studentName || 'Unknown'}</p>
+                                                                <p className="text-xs text-slate-400 font-mono">{b.studentId}</p>
+                                                            </div>
+                                                            <button onClick={() => setSelectedStudentId(b.studentId)} className="p-1.5 text-slate-300 hover:text-[#F26C22] rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+                                                                <Eye className="h-3.5 w-3.5" />
+                                                            </button>
+                                                        </div>
+                                                        <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{b.sport}</p>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-slate-900 dark:text-white">{new Date(b.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</p>
+                                                            <p className="text-xs text-slate-400">@ {b.timeSlot}</p>
+                                                        </div>
+                                                        <span className={`inline-flex items-center w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                                            b.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                                            b.status === 'Rejected' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
+                                                            'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                        }`}>{b.status}</span>
+                                                        <div className="flex gap-2 justify-end">
+                                                            {b.status === 'Pending' && (<>
+                                                                <button onClick={() => updateBookingStatus(b.id, 'Approved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Approve</button>
+                                                                <button onClick={() => updateBookingStatus(b.id, 'Rejected')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Reject</button>
+                                                            </>)}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
+
 
                                 {courtSubTab === 'settings' && facilitySettings && (
                                     <div className="max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -934,7 +876,8 @@ export default function AdminDashboard() {
                         </div>
                     </div>
                 )}
-            </div>
+                </div>
+            </main>
 
             {/* Room Assignment Modal */}
             {assignModalOpen && selectedRequest && (
