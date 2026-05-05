@@ -17,7 +17,7 @@ export async function GET(request: Request) {
                 address, city, state, postcode, 
                 emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone,
                 emergency_contact2_name, emergency_contact2_relation, emergency_contact2_phone,
-                profile_image, nationality
+                profile_image, nationality, nric, birth_date
             FROM users 
             WHERE id = ? OR student_id = ?`,
             [studentId, studentId]

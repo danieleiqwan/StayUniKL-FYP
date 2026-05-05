@@ -50,6 +50,39 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
         }
     }, [studentId]);
 
+    const calculateAge = (s: any) => {
+        if (!s) return 'N/A';
+        if (s.birth_date) {
+            const birthDate = new Date(s.birth_date);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+            return `${age} Yrs`;
+        }
+        
+        if (s.nationality === 'Local' && s.nric) {
+            const cleanNric = s.nric.replace(/\D/g, '');
+            if (cleanNric.length >= 6) {
+                const yy = parseInt(cleanNric.substring(0, 2));
+                const mm = parseInt(cleanNric.substring(2, 4)) - 1;
+                const dd = parseInt(cleanNric.substring(4, 6));
+                
+                const currentYear = new Date().getFullYear();
+                const currentShort = currentYear % 100;
+                const birthYear = yy <= currentShort ? 2000 + yy : 1900 + yy;
+                
+                const birthDate = new Date(birthYear, mm, dd);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+                return `${age} Yrs`;
+            }
+        }
+        return 'N/A';
+    };
+
     if (!studentId) return null;
 
     return (
@@ -78,6 +111,7 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
 
                     <div className="w-full space-y-4">
                         <SidebarInfo label="Status" value="Active" color="text-emerald-500" />
+                        <SidebarInfo label="Age" value={calculateAge(data?.profile)} />
                         <SidebarInfo label="Gender" value={data?.profile?.gender || 'N/A'} />
                         <SidebarInfo label="Joined" value={data?.profile?.created_at ? new Date(data.profile.created_at).toLocaleDateString() : 'N/A'} />
                         <SidebarInfo label="Category" value={data?.profile?.nationality || 'Local'} />

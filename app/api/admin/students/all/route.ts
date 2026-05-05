@@ -14,6 +14,8 @@ export async function GET() {
                 u.profile_image,
                 u.gender,
                 u.nationality,
+                u.nric,
+                u.birth_date,
                 (SELECT status FROM applications WHERE student_id = u.id ORDER BY date DESC LIMIT 1) as latest_status,
                 (SELECT room_id FROM applications WHERE student_id = u.id AND status IN ('Checked in', 'Approved') ORDER BY date DESC LIMIT 1) as room_id
             FROM users u

@@ -78,6 +78,38 @@ export default function StudentsDirectoryPage() {
     const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
     const paginatedStudents = filteredStudents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+    const calculateAge = (s: any) => {
+        if (s.birth_date) {
+            const birthDate = new Date(s.birth_date);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+            return `${age} Yrs`;
+        }
+        
+        if (s.nationality === 'Local' && s.nric) {
+            const cleanNric = s.nric.replace(/\D/g, '');
+            if (cleanNric.length >= 6) {
+                const yy = parseInt(cleanNric.substring(0, 2));
+                const mm = parseInt(cleanNric.substring(2, 4)) - 1;
+                const dd = parseInt(cleanNric.substring(4, 6));
+                
+                const currentYear = new Date().getFullYear();
+                const currentShort = currentYear % 100;
+                const birthYear = yy <= currentShort ? 2000 + yy : 1900 + yy;
+                
+                const birthDate = new Date(birthYear, mm, dd);
+                const today = new Date();
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+                return `${age} Yrs`;
+            }
+        }
+        return 'N/A';
+    };
+
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'Checked in':
@@ -243,7 +275,7 @@ export default function StudentsDirectoryPage() {
                                                 <p className="text-[10px] text-slate-400 mt-0.5">Location {s.room_id ? `Room ${s.room_id}` : 'N/A'}</p>
                                             </td>
                                             <td className="px-8 py-6">
-                                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">N/A</p>
+                                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{calculateAge(s)}</p>
                                                 <p className="text-[10px] text-slate-400 mt-0.5">{s.gender || 'Unknown'}</p>
                                             </td>
                                             <td className="px-8 py-6">
