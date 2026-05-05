@@ -100,12 +100,18 @@ export default function RoomAssignmentModal({
 
             const roomBeds = room.beds || [];
             const occupiedCount = roomBeds.filter((b: any) => b.isOccupied).length;
+            const maintenanceCount = roomBeds.filter((b: any) => b.status === 'Maintenance').length;
             const capacity = room.capacity || (room.roomType === 'Single' ? 1 : room.roomType === 'Double' ? 2 : 4);
 
-            if (occupiedCount >= capacity) return;
+            // Even if full, we might want to see the room (e.g. to see who is there)
+            // but for assignment, we only care if there is at least one UN-OCCUPIED bed
+            const hasUnoccupiedBed = roomBeds.some((b: any) => !b.isOccupied);
+            if (!hasUnoccupiedBed) return;
 
             roomBeds.forEach((bed: any) => {
-                if (!bed.isOccupied && bed.status === 'Available') {
+                // We show the bed if it's not occupied
+                // If it's Maintenance, we'll show it but disable selection in the UI
+                if (!bed.isOccupied) {
                     available.push({
                         bedId: bed.id,
                         bedNumber: bed.label, 
@@ -113,7 +119,10 @@ export default function RoomAssignmentModal({
                         roomNumber: room.label, 
                         floor: room.floorId, 
                         roomType: room.roomType, 
-                        occupancy: `${occupiedCount}/${capacity}`
+                        status: bed.status, // Pass status for UI labeling
+                        occupancy: `${occupiedCount}/${capacity}`,
+                        totalBeds: roomBeds.length,
+                        availableCount: roomBeds.filter((b: any) => !b.isOccupied && b.status === 'Available').length
                     });
                 }
             });
@@ -291,9 +300,16 @@ export default function RoomAssignmentModal({
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <p className="text-xs text-slate-500 font-medium">
-                                                            {room.beds.length} available bed{room.beds.length !== 1 ? 's' : ''} inside
-                                                        </p>
+                                                        <div className="space-y-1">
+                                                            <p className="text-xs text-slate-500 font-bold">
+                                                                {room.beds.filter((b: any) => b.status === 'Available').length} Ready for move-in
+                                                            </p>
+                                                            {room.beds.some((b: any) => b.status !== 'Available') && (
+                                                                <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium italic">
+                                                                    * {room.beds.filter((b: any) => b.status !== 'Available').length} bed(s) pending maintenance/cleaning
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </button>
                                                 ))}
                                             </div>
@@ -330,25 +346,47 @@ export default function RoomAssignmentModal({
                                                     Available Beds in {selectedRoomData?.roomNumber}
                                                 </h4>
                                                 <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
-                                                    {selectedRoomData?.beds.map((bed: any) => (
-                                                        <button
-                                                            key={bed.bedId}
-                                                            onClick={() => setSelectedBedId(bed.bedId)}
-                                                            className={`p-6 rounded-2xl border-2 flex flex-col items-center justify-center gap-3 transition-all ${
-                                                                selectedBedId === bed.bedId
-                                                                    ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 shadow-md scale-105'
-                                                                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/50'
-                                                            }`}
-                                                        >
-                                                            <div className={`h-12 w-12 rounded-full flex items-center justify-center ${selectedBedId === bed.bedId ? 'bg-emerald-100 dark:bg-emerald-800/50' : 'bg-slate-100 dark:bg-slate-700'}`}>
-                                                                <BedIcon className={`h-6 w-6 ${selectedBedId === bed.bedId ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
-                                                            </div>
-                                                            <div className="text-center">
-                                                                <span className="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Bed</span>
-                                                                <span className="block text-2xl font-black">{bed.bedNumber}</span>
-                                                            </div>
-                                                        </button>
-                                                    ))}
+                                                    {selectedRoomData?.beds.map((bed: any) => {
+                                                        const isMaintenance = bed.status === 'Maintenance';
+                                                        const isDirty = bed.status === 'Dirty' || bed.status === 'Cleaning';
+                                                        const isSelectable = !isMaintenance && !isDirty;
+
+                                                        return (
+                                                            <button
+                                                                key={bed.bedId}
+                                                                onClick={() => isSelectable && setSelectedBedId(bed.bedId)}
+                                                                disabled={!isSelectable}
+                                                                className={`p-6 rounded-2xl border-2 flex flex-col items-center justify-center gap-3 transition-all relative ${
+                                                                    selectedBedId === bed.bedId
+                                                                        ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 shadow-md scale-105'
+                                                                        : !isSelectable
+                                                                            ? 'border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 opacity-60 cursor-not-allowed'
+                                                                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/50'
+                                                                }`}
+                                                            >
+                                                                <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
+                                                                    selectedBedId === bed.bedId 
+                                                                        ? 'bg-emerald-100 dark:bg-emerald-800/50' 
+                                                                        : !isSelectable ? 'bg-slate-200 dark:bg-slate-800' : 'bg-slate-100 dark:bg-slate-700'
+                                                                }`}>
+                                                                    {isMaintenance ? (
+                                                                        <Wrench className="h-6 w-6 text-slate-400" />
+                                                                    ) : (
+                                                                        <BedIcon className={`h-6 w-6 ${selectedBedId === bed.bedId ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`} />
+                                                                    )}
+                                                                </div>
+                                                                <div className="text-center">
+                                                                    <span className="block text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Bed {bed.bedNumber}</span>
+                                                                    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
+                                                                        bed.status === 'Available' ? 'bg-emerald-100 text-emerald-700' :
+                                                                        isMaintenance ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+                                                                    }`}>
+                                                                        {bed.status}
+                                                                    </span>
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
 

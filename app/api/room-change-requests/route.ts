@@ -232,12 +232,16 @@ export async function PUT(request: Request) {
                 if (reqRows.length > 0) {
                     const { student_id } = reqRows[0];
 
-                    // 3. Update Application table
+                    // 3. Update Application table with new room, bed, and floor info
+                    // We also fetch the floor_id for the new room to ensure consistency
+                    const [roomRows]: any = await connection.query('SELECT floor_id FROM rooms WHERE id = ?', [newRoomId]);
+                    const floorId = roomRows[0]?.floor_id;
+
                     await connection.query(
                         `UPDATE applications 
-                          SET bed_id = ?, room_id = ? 
-                          WHERE student_id = ? AND status = 'Checked in'`,
-                        [newBedId, newRoomId, student_id]
+                          SET bed_id = ?, room_id = ?, floor_id = ? 
+                          WHERE student_id = ? AND status IN ('Approved', 'Payment Pending', 'Checked in')`,
+                        [newBedId, newRoomId, floorId, student_id]
                     );
 
                     await connection.commit();
