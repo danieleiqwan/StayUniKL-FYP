@@ -68,7 +68,13 @@ export default function ComplaintsPage() {
                 }
                 uploadedPaths = uploadData.paths;
             }
-            await createComplaint(complaintForm.title, complaintForm.description, uploadedPaths, complaintForm.asset);
+            const result = await createComplaint(complaintForm.title, complaintForm.description, uploadedPaths, complaintForm.asset);
+            if (result?.error) {
+                // Show the server error message — keeps the form open so user can see why it failed
+                setUploadError(result.error);
+                return;
+            }
+            // Only close form on success
             setComplaintForm({ title: '', description: '', asset: '' });
             setImageFiles([]);
             imagePreviews.forEach(p => URL.revokeObjectURL(p));

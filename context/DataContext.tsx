@@ -63,7 +63,7 @@ interface DataContextType {
 
 
     complaints: Complaint[];
-    createComplaint: (title: string, description: string, imagePaths?: string[], asset?: string) => void;
+    createComplaint: (title: string, description: string, imagePaths?: string[], asset?: string) => Promise<{ success?: boolean; error?: string }>;
     updateComplaint: (id: string, status: Complaint['status'], appointmentDate?: string) => void;
     myComplaints: Complaint[];
 
@@ -280,10 +280,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
 
     // --- Actions: Complaints ---
-    const createComplaint = async (title: string, description: string, imagePaths?: string[], asset?: string) => {
-        if (!user) return;
+    const createComplaint = async (title: string, description: string, imagePaths?: string[], asset?: string): Promise<{ success?: boolean; error?: string }> => {
+        if (!user) return { error: 'Not logged in' };
         try {
-            await fetch('/api/complaints', {
+            const res = await fetch('/api/complaints', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -295,8 +295,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
                     imagePaths: imagePaths || [] 
                 })
             });
+            const data = await res.json();
+            if (!res.ok) {
+                return { error: data.error || 'Failed to submit complaint' };
+            }
             await fetchData();
-        } catch (e) { console.error(e); }
+            return { success: true };
+        } catch (e: any) {
+            console.error(e);
+            return { error: e.message || 'Network error. Please try again.' };
+        }
     };
 
     const updateComplaint = async (id: string, status: Complaint['status'], appointmentDate?: string) => {
