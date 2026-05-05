@@ -18,7 +18,7 @@ import {
     ScanLine
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface AdminSidebarProps {
     activeTab?: string;
@@ -34,6 +34,7 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ activeTab, onTabChange, counts }: AdminSidebarProps) {
     const { logout, user } = useAuth();
     const pathname = usePathname();
+    const router = useRouter();
 
     const menuItems = [
         { id: 'dashboard', label: 'Analytics', icon: BarChart3, path: '/admin/reports' },
@@ -80,23 +81,21 @@ export default function AdminSidebar({ activeTab, onTabChange, counts }: AdminSi
                                 <button
                                     key={item.id}
                                     onClick={() => {
-                                        if (item.tab && onTabChange) {
-                                            onTabChange(item.tab);
-                                            // If on a different page, we might need to navigate to /admin first
-                                            if (pathname !== '/admin') window.location.href = '/admin';
+                                        if (item.tab) {
+                                            if (onTabChange) {
+                                                onTabChange(item.tab);
+                                            }
+                                            // Always ensure we are on the main admin page when a tab is clicked
+                                            router.push(`/admin?tab=${item.tab}`);
+                                        } else if (item.path) {
+                                            router.push(item.path);
                                         }
                                     }}
                                     className="w-full group"
                                 >
-                                    {item.path ? (
-                                        <Link href={item.path} className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 ${isActive ? 'bg-[#F26C22] text-white shadow-xl shadow-orange-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
-                                            <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`} />
-                                            <span className="text-sm font-bold">{item.label}</span>
-                                            {isActive && <ChevronRight className="h-4 w-4 ml-auto opacity-50" />}
-                                        </Link>
-                                    ) : (
-                                        <div className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 ${isActive ? 'bg-[#F26C22] text-white shadow-xl shadow-orange-500/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}>
-                                            <Icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                                    {isActive ? (
+                                        <div className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 bg-[#F26C22] text-white shadow-xl shadow-orange-500/20`}>
+                                            <Icon className={`h-5 w-5 text-white`} />
                                             <span className="text-sm font-bold">{item.label}</span>
                                             {count > 0 && (
                                                 <span className="ml-auto flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-black animate-in zoom-in duration-300">
@@ -104,6 +103,16 @@ export default function AdminSidebar({ activeTab, onTabChange, counts }: AdminSi
                                                 </span>
                                             )}
                                             {isActive && !count && <ChevronRight className="h-4 w-4 ml-auto opacity-50" />}
+                                        </div>
+                                    ) : (
+                                        <div className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 text-slate-400 hover:text-white hover:bg-white/5`}>
+                                            <Icon className={`h-5 w-5 text-slate-500 group-hover:text-slate-300`} />
+                                            <span className="text-sm font-bold">{item.label}</span>
+                                            {count > 0 && (
+                                                <span className="ml-auto flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-black animate-in zoom-in duration-300">
+                                                    {count}
+                                                </span>
+                                            )}
                                         </div>
                                     )}
                                 </button>

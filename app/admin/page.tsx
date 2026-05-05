@@ -3,8 +3,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useData, CourtBooking } from '@/context/DataContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import AdminSidebar from '@/components/layout/AdminSidebar';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import AdminFilterBar, { FilterState } from '@/components/admin/AdminFilterBar';
 import StudentDetailModal from '@/components/admin/StudentDetailModal';
@@ -24,7 +23,17 @@ export default function AdminDashboard() {
         allSports
     } = useData();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState<'applications' | 'complaints' | 'facilities' | 'room-changes'>('applications');
+
+    // Sync tab with URL query param
+    useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab && ['applications', 'complaints', 'facilities', 'room-changes'].includes(tab)) {
+            setActiveTab(tab as any);
+        }
+    }, [searchParams]);
+
     const [facilityTab, setFacilityTab] = useState<'court' | 'gym' | 'laundry'>('court');
     const [courtSubTab, setCourtSubTab] = useState<'bookings' | 'settings' | 'schedule' | 'sports'>('bookings');
     const [selectedScheduleDate, setSelectedScheduleDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -222,15 +231,7 @@ export default function AdminDashboard() {
     if (!user || user.role !== 'admin') return <div className="p-10 text-center">Access Denied. Admins only.</div>;
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-black text-foreground">
-            <AdminSidebar 
-                activeTab={activeTab} 
-                onTabChange={setActiveTab} 
-                counts={counts}
-            />
-
-            <main className="pl-80 min-h-screen">
-                <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
+        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
                     
                     {/* Header Section */}
                     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
@@ -877,29 +878,28 @@ export default function AdminDashboard() {
                     </div>
                 )}
                 </div>
-            </main>
 
-            {/* Room Assignment Modal */}
-            {assignModalOpen && selectedRequest && (
-                <RoomAssignmentModal
-                    studentId={selectedRequest.student_id}
-                    studentGender={selectedRequest.student_gender}
-                    currentRoomId={selectedRequest.current_room_id}
-                    preferredRoomType={selectedRequest.preferred_room_type}
-                    preferredBedId={selectedRequest.preferred_bed_id}
-                    onClose={() => {
-                        setAssignModalOpen(false);
-                        setSelectedRequest(null);
-                    }}
-                    onAssign={handleAssignRoom}
+                {/* Room Assignment Modal */}
+                {assignModalOpen && selectedRequest && (
+                    <RoomAssignmentModal
+                        studentId={selectedRequest.student_id}
+                        studentGender={selectedRequest.student_gender}
+                        currentRoomId={selectedRequest.current_room_id}
+                        preferredRoomType={selectedRequest.preferred_room_type}
+                        preferredBedId={selectedRequest.preferred_bed_id}
+                        onClose={() => {
+                            setAssignModalOpen(false);
+                            setSelectedRequest(null);
+                        }}
+                        onAssign={handleAssignRoom}
+                    />
+                )}
+
+                {/* Student Detail Modal */}
+                <StudentDetailModal
+                    studentId={selectedStudentId}
+                    onClose={() => setSelectedStudentId(null)}
                 />
-            )}
-
-            {/* Student Detail Modal */}
-            <StudentDetailModal
-                studentId={selectedStudentId}
-                onClose={() => setSelectedStudentId(null)}
-            />
-        </div>
+            </div>
     );
 }

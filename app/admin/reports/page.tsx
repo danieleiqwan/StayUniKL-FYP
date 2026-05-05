@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Navbar from '@/components/layout/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { Building2, DollarSign, Zap, Users } from 'lucide-react';
 
@@ -23,27 +22,20 @@ export default function AdminReportsPage() {
     if (!user || user.role !== 'admin') return <div className="p-10 text-center">Access Denied. Admins only.</div>;
 
     if (loading) return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-            <Navbar />
-            <div className="flex items-center justify-center p-20 text-slate-500">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="animate-spin h-8 w-8 border-4 border-[#F26C22] border-t-transparent rounded-full"></div>
-                    <p className="font-medium">Loading analytics...</p>
-                </div>
+        <div className="flex items-center justify-center p-20 text-slate-500">
+            <div className="flex flex-col items-center gap-4">
+                <div className="animate-spin h-8 w-8 border-4 border-[#F26C22] border-t-transparent rounded-full"></div>
+                <p className="font-medium">Loading analytics...</p>
             </div>
         </div>
     );
 
     if (!reportData || reportData.error) return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-            <Navbar />
-            <div className="p-20 text-center text-red-500">Failed to load report data.</div>
-        </div>
+        <div className="p-20 text-center text-red-500">Failed to load report data.</div>
     );
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
-            <Navbar />
+        <div className="max-w-[1400px] mx-auto px-10 py-8">
 
             <div className="container mx-auto px-4 py-8">
                 <div className="mb-8">
