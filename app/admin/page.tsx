@@ -410,7 +410,7 @@ function AdminDashboard() {
                                     </h2>
                                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
                                         {/* Combine latest data into a feed */}
-                                        {[...applications, ...complaints]
+                                        {[...(applications || []), ...(complaints || [])]
                                             .sort((a, b) => new Date((b as any).date || (b as any).createdAt || 0).getTime() - new Date((a as any).date || (a as any).createdAt || 0).getTime())
                                             .slice(0, 8)
                                             .map((item: any, i) => {
