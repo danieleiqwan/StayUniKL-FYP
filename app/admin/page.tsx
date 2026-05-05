@@ -882,8 +882,7 @@ function AdminDashboard() {
                         </div>
                     </div>
                 )}
-                </div>
-
+                
                 {/* Room Assignment Modal */}
                 {assignModalOpen && selectedRequest && (
                     <RoomAssignmentModal
@@ -905,6 +904,6 @@ function AdminDashboard() {
                     studentId={selectedStudentId}
                     onClose={() => setSelectedStudentId(null)}
                 />
-            </>
+            </div>
     );
 }
