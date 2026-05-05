@@ -14,7 +14,7 @@ import PredictiveMaintenance from '@/components/admin/PredictiveMaintenance';
 import WaitlistOpportunities from '@/components/admin/WaitlistOpportunities';
 import FacilityAnalytics from '@/components/admin/FacilityAnalytics';
 import SportManagement from '@/components/admin/SportManagement';
-import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight } from 'lucide-react';
+import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight, Bell, Wrench, Zap, DollarSign, Megaphone } from 'lucide-react';
 
 export default function AdminDashboardPage() {
     return (
@@ -33,12 +33,12 @@ function AdminDashboard() {
     } = useData();
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [activeTab, setActiveTab] = useState<'applications' | 'complaints' | 'facilities' | 'room-changes'>('applications');
+    const [activeTab, setActiveTab] = useState<'overview' | 'applications' | 'complaints' | 'facilities' | 'room-changes'>('overview');
 
     // Sync tab with URL query param
     useEffect(() => {
         const tab = searchParams.get('tab');
-        if (tab && ['applications', 'complaints', 'facilities', 'room-changes'].includes(tab)) {
+        if (tab && ['overview', 'applications', 'complaints', 'facilities', 'room-changes'].includes(tab)) {
             setActiveTab(tab as any);
         }
     }, [searchParams]);
@@ -246,14 +246,16 @@ function AdminDashboard() {
                             <LayoutDashboard className="h-5 w-5" />
                         </div>
                         <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
-                            {activeTab === 'applications' ? 'Student Enrollment' :
+                            {activeTab === 'overview' ? 'Admin Overview' :
+                             activeTab === 'applications' ? 'Student Enrollment' :
                              activeTab === 'complaints' ? 'Facility Maintenance' :
                              activeTab === 'facilities' ? 'Sports & Facilities' : 
                              activeTab === 'room-changes' ? 'Room Transitions' : 'Admin Hub'}
                         </h1>
                     </div>
                             <p className="text-slate-500 dark:text-slate-400 font-medium ml-1">
-                                {activeTab === 'applications' ? 'Review and manage incoming student hostel applications.' :
+                                {activeTab === 'overview' ? 'System snapshot and high-level control center.' :
+                                 activeTab === 'applications' ? 'Review and manage incoming student hostel applications.' :
                                  activeTab === 'complaints' ? 'Track and resolve facility issues reported by residents.' :
                                  activeTab === 'facilities' ? 'Configure operation hours and manage sport bookings.' :
                                  activeTab === 'room-changes' ? 'Handle internal room transfer and bed assignment requests.' : 'System overview and management.'}
@@ -278,27 +280,173 @@ function AdminDashboard() {
                         </div>
                     </div>
 
-                    {/* Stats Summary Row (Optional but looks premium) */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        {[
-                            { label: 'Pending Apps', val: counts.applications, color: 'text-orange-500', bg: 'bg-orange-50' },
-                            { label: 'Active Complaints', val: counts.complaints, color: 'text-blue-500', bg: 'bg-blue-50' },
-                            { label: 'Waitlist', val: counts.roomChanges, color: 'text-indigo-500', bg: 'bg-indigo-50' },
-                            { label: 'Bookings Today', val: totalCourtBookingsToday, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-                        ].map((stat, i) => (
-                            <div key={i} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
-                                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-1">{stat.label}</p>
-                                <div className="flex items-end justify-between">
-                                    <p className={`text-3xl font-black ${stat.color} dark:text-white`}>{stat.val.toString().padStart(2, '0')}</p>
-                                    <div className={`h-8 w-8 ${stat.bg} dark:bg-slate-800 rounded-xl flex items-center justify-center`}>
-                                        <ChevronRight className={`h-4 w-4 ${stat.color}`} />
+                {/* Overview Tab */}
+                {activeTab === 'overview' && (
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                        {/* Key Statistics */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            {[
+                                { label: 'Pending Apps', val: counts.applications, color: 'text-orange-500', bg: 'bg-orange-50', icon: FileText },
+                                { label: 'Active Complaints', val: counts.complaints, color: 'text-blue-500', bg: 'bg-blue-50', icon: Wrench },
+                                { label: 'Room Transfers', val: counts.roomChanges, color: 'text-indigo-500', bg: 'bg-indigo-50', icon: Building2 },
+                                { label: 'Bookings Today', val: totalCourtBookingsToday, color: 'text-emerald-500', bg: 'bg-emerald-50', icon: CalendarDays },
+                            ].map((stat, i) => {
+                                const Icon = stat.icon;
+                                return (
+                                <div key={i} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                                    <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full ${stat.bg} dark:bg-slate-800 opacity-50 group-hover:scale-150 transition-transform duration-500`}></div>
+                                    <div className="relative z-10">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className={`h-10 w-10 ${stat.bg} dark:bg-slate-800 rounded-xl flex items-center justify-center`}>
+                                                <Icon className={`h-5 w-5 ${stat.color}`} />
+                                            </div>
+                                            <ChevronRight className="h-5 w-5 text-slate-300 dark:text-slate-700" />
+                                        </div>
+                                        <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-1">{stat.label}</p>
+                                        <p className={`text-4xl font-black ${stat.color} dark:text-white leading-none tracking-tighter`}>{stat.val.toString().padStart(2, '0')}</p>
+                                    </div>
+                                </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* Left Column: Alerts & Quick Actions */}
+                            <div className="lg:col-span-2 space-y-8">
+                                {/* Alerts */}
+                                <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-8 shadow-sm">
+                                    <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6 flex items-center gap-2">
+                                        <Bell className="h-4 w-4 text-rose-500" /> Action Required
+                                    </h2>
+                                    <div className="space-y-4">
+                                        {counts.applications > 0 && (
+                                            <div className="flex items-center justify-between p-4 rounded-2xl bg-orange-50/50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center text-orange-600 dark:text-orange-400">
+                                                        <FileText className="h-4 w-4" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-slate-900 dark:text-white">Pending Enrollments</p>
+                                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{counts.applications} applications waiting for review</p>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => setActiveTab('applications')} className="px-4 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold shadow-md shadow-orange-500/20 hover:bg-orange-600 transition-colors">Review</button>
+                                            </div>
+                                        )}
+                                        {counts.complaints > 0 && (
+                                            <div className="flex items-center justify-between p-4 rounded-2xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                                        <Wrench className="h-4 w-4" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-slate-900 dark:text-white">Active Complaints</p>
+                                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{counts.complaints} facility issues require attention</p>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => setActiveTab('complaints')} className="px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 hover:bg-blue-600 transition-colors">Resolve</button>
+                                            </div>
+                                        )}
+                                        {counts.roomChanges > 0 && (
+                                            <div className="flex items-center justify-between p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-900/30">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-10 w-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                                        <Building2 className="h-4 w-4" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-slate-900 dark:text-white">Room Transitions</p>
+                                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{counts.roomChanges} students requested room changes</p>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => setActiveTab('room-changes')} className="px-4 py-2 bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 hover:bg-indigo-600 transition-colors">Manage</button>
+                                            </div>
+                                        )}
+                                        {counts.applications === 0 && counts.complaints === 0 && counts.roomChanges === 0 && (
+                                            <div className="text-center py-8">
+                                                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">All clear! No urgent items pending.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Quick Actions */}
+                                <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-8 shadow-sm">
+                                    <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6 flex items-center gap-2">
+                                        <Zap className="h-4 w-4 text-emerald-500" /> Quick Actions
+                                    </h2>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {[
+                                            { label: 'Check-in Hub', icon: ScanLine, path: '/admin/checkin', color: 'emerald' },
+                                            { label: 'Room Matrix', icon: Building2, path: '/admin/rooms', color: 'blue' },
+                                            { label: 'Finances', icon: DollarSign, path: '/admin/billing', color: 'indigo' },
+                                            { label: 'Announcements', icon: Megaphone, path: '/admin/announcements', color: 'rose' },
+                                        ].map((action, i) => {
+                                            const Icon = action.icon;
+                                            return (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => router.push(action.path)}
+                                                    className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800/50 dark:hover:bg-slate-800 border border-slate-100 dark:border-slate-800 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                                >
+                                                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center bg-white dark:bg-slate-700 shadow-sm text-${action.color}-500`}>
+                                                        <Icon className="h-6 w-6" />
+                                                    </div>
+                                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 text-center">{action.label}</span>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
 
-                    <div className="w-full h-[1px] bg-slate-100 dark:bg-slate-800"></div>
+                            {/* Right Column: Activity Feed */}
+                            <div className="space-y-8">
+                                <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-8 shadow-sm h-full max-h-[800px] flex flex-col">
+                                    <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6 flex items-center justify-between">
+                                        <span className="flex items-center gap-2">
+                                            <Clock className="h-4 w-4 text-slate-400" /> Recent Activity
+                                        </span>
+                                        <span className="text-[10px] text-[#F26C22] bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-md">Live</span>
+                                    </h2>
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-6">
+                                        {/* Combine latest data into a feed */}
+                                        {[...applications, ...complaints]
+                                            .sort((a, b) => new Date((b as any).date || (b as any).createdAt || 0).getTime() - new Date((a as any).date || (a as any).createdAt || 0).getTime())
+                                            .slice(0, 8)
+                                            .map((item: any, i) => {
+                                                const isComplaint = 'title' in item;
+                                                const Icon = isComplaint ? Wrench : FileText;
+                                                const color = isComplaint ? 'text-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'text-orange-500 bg-orange-50 dark:bg-orange-900/20';
+                                                const title = isComplaint ? `New Complaint: ${item.title}` : `New Enrollment: ${item.studentName}`;
+                                                const subtitle = isComplaint ? item.studentName : item.roomType;
+                                                
+                                                return (
+                                                    <div key={i} className="flex gap-4 group cursor-pointer" onClick={() => setActiveTab(isComplaint ? 'complaints' : 'applications')}>
+                                                        <div className="relative">
+                                                            <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${color}`}>
+                                                                <Icon className="h-4 w-4" />
+                                                            </div>
+                                                            {i !== 7 && <div className="absolute top-10 bottom-[-24px] left-1/2 w-px bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>}
+                                                        </div>
+                                                        <div className="pb-1">
+                                                            <p className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-[#F26C22] transition-colors line-clamp-1">{title}</p>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className="text-xs text-slate-500 font-medium">{subtitle}</span>
+                                                                <span className="text-[10px] text-slate-400">• {(item.date || item.createdAt)?.split(' ')[0] || 'Recently'}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        {applications.length === 0 && complaints.length === 0 && (
+                                            <p className="text-center text-slate-500 text-sm py-4">No recent activity.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Applications Tab */}
                 {activeTab === 'applications' && (
