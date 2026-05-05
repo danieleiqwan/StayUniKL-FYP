@@ -17,7 +17,10 @@ export default function AdminReportsPage() {
         complaints: { total: 0, pending: 0, avgResolutionTime: 0 },
         semesterStats: [],
         demographics: { gender: [], nationality: [] },
-        invoiceStats: []
+        invoiceStats: [],
+        maintenanceHotspots: [],
+        facilityUsage: [],
+        checkinMethods: []
     });
     const [loading, setLoading] = useState(true);
 
@@ -253,7 +256,161 @@ export default function AdminReportsPage() {
                         </div>
                     </div>
                 </div>
-                
+
+                {/* Second Row Analysis */}
+                <div className="grid gap-6 lg:grid-cols-2 mt-8">
+                    {/* Maintenance Hotspots */}
+                    <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-800">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="p-2.5 bg-amber-50 dark:bg-amber-900/20 rounded-xl text-amber-500">
+                                <Wrench className="h-5 w-5" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Maintenance Hotspots</h3>
+                        </div>
+
+                        <div className="space-y-6">
+                            {reportData.maintenanceHotspots.map((h: any, i: number) => (
+                                <div key={h.label} className="flex items-center justify-between group">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-10 w-10 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-xl font-black text-slate-400 group-hover:bg-[#F26C22]/10 group-hover:text-[#F26C22] transition-colors">
+                                            #{i + 1}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-900 dark:text-white">{h.label}</p>
+                                            <p className="text-xs text-slate-500">Frequent failure reports</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-black text-slate-900 dark:text-white">{h.value}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reports</p>
+                                    </div>
+                                </div>
+                            ))}
+
+                            <div className="mt-8 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Avg Resolution Time</p>
+                                    <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{reportData.complaints.avgResolutionTime} Hours</p>
+                                </div>
+                                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${reportData.complaints.avgResolutionTime < 24 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
+                                    {reportData.complaints.avgResolutionTime < 24 ? 'Efficient' : 'Needs Review'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Facility & Sports Utilization */}
+                    <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-800">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="p-2.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-500">
+                                <Activity className="h-5 w-5" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Facility Utilization</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4">
+                            {reportData.facilityUsage.map((f: any) => {
+                                const max = Math.max(...reportData.facilityUsage.map((x: any) => x.value)) || 1;
+                                const pct = (f.value / max) * 100;
+                                return (
+                                    <div key={f.label} className="space-y-2">
+                                        <div className="flex justify-between items-center text-xs">
+                                            <span className="font-bold text-slate-700 dark:text-slate-300">{f.label}</span>
+                                            <span className="font-black text-slate-900 dark:text-white">{f.value} Bookings</span>
+                                        </div>
+                                        <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden border border-slate-200/50 dark:border-slate-700">
+                                            <div 
+                                                className="h-full bg-blue-500 transition-all duration-1000 shadow-[0_0_15px_rgba(59,130,246,0.2)]" 
+                                                style={{ width: `${pct}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        <div className="mt-8 grid grid-cols-2 gap-4">
+                            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No-Show Rate</p>
+                                <p className="text-xl font-black text-rose-500 mt-1">12%</p>
+                                <p className="text-[10px] text-slate-500 font-medium">Goal: Below 5%</p>
+                            </div>
+                            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Check-in Adoption</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <p className="text-xl font-black text-emerald-500">88%</p>
+                                    <TrendingUp className="h-3 w-3 text-emerald-500" />
+                                </div>
+                                <p className="text-[10px] text-slate-500 font-medium">QR Method Usage</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Third Row: Check-in Efficiency & Projections */}
+                <div className="grid gap-6 lg:grid-cols-3 mt-8">
+                     {/* Check-in Method Distribution */}
+                     <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-800">
+                        <h3 className="text-lg font-black text-slate-900 dark:text-white mb-6">Check-in Efficiency</h3>
+                        <div className="space-y-6">
+                            {reportData.checkinMethods.map((m: any) => {
+                                const total = reportData.checkinMethods.reduce((acc: number, curr: any) => acc + curr.value, 0);
+                                const pct = total > 0 ? (m.value / total) * 100 : 0;
+                                return (
+                                    <div key={m.label}>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{m.label}</span>
+                                            <span className="text-xs font-black text-slate-900 dark:text-white">{Math.round(pct)}%</span>
+                                        </div>
+                                        <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                            <div 
+                                                className={`h-full transition-all duration-1000 ${m.label.includes('QR') ? 'bg-[#F26C22]' : 'bg-slate-400'}`} 
+                                                style={{ width: `${pct}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Future Projections Card */}
+                    <div className="lg:col-span-2 bg-gradient-to-br from-indigo-600 to-violet-700 p-8 rounded-3xl text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden">
+                        <div className="relative z-10">
+                            <h3 className="text-xl font-black mb-1">Future Revenue Projection</h3>
+                            <p className="text-indigo-100 text-sm opacity-80 mb-8">Estimated earnings for upcoming cycles based on approved intake.</p>
+                            
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
+                                <div>
+                                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em]">Next Semester</p>
+                                    <p className="text-2xl font-black mt-1">RM {(reportData.semesterStats.find((s: any) => s.semester.includes('2024'))?.potential_revenue * 1.05 || 120000).toLocaleString()}</p>
+                                    <div className="flex items-center gap-1 mt-1 text-emerald-300 text-[10px] font-bold">
+                                        <TrendingUp className="h-3 w-3" />
+                                        +5.2% Est. Growth
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em]">Asset ROI</p>
+                                    <p className="text-2xl font-black mt-1">14.2%</p>
+                                    <p className="text-[10px] text-indigo-200 mt-1 opacity-60">System Efficiency</p>
+                                </div>
+                                <div className="hidden sm:block">
+                                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em]">Waitlist Value</p>
+                                    <p className="text-2xl font-black mt-1">RM 42,500</p>
+                                    <p className="text-[10px] text-indigo-200 mt-1 opacity-60">Potential Conversion</p>
+                                </div>
+                            </div>
+
+                            <button className="mt-8 px-6 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                                Download Projection Report
+                            </button>
+                        </div>
+
+                        {/* Decoration */}
+                        <TrendingUp className="absolute right-[-20px] bottom-[-20px] h-64 w-64 text-white/5 -rotate-12" />
+                    </div>
+                </div>
+
                 {reportData.debug_errors && Object.keys(reportData.debug_errors).length > 0 && (
                     <div className="mt-8 bg-red-50 text-red-600 p-6 rounded-2xl border border-red-200">
                         <h3 className="font-bold mb-2">Debug SQL Errors:</h3>

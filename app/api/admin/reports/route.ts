@@ -139,6 +139,56 @@ export async function GET(request: Request) {
             debug_errors.invoices = String(e);
         }
 
+        // 8. Maintenance Hotspots (New)
+        let maintenanceHotspots = [];
+        try {
+            const [rows]: any = await pool.query(`
+                SELECT asset as label, COUNT(*) as value 
+                FROM complaints 
+                WHERE asset IS NOT NULL AND asset != ''
+                GROUP BY asset 
+                ORDER BY value DESC 
+                LIMIT 5
+            `);
+            maintenanceHotspots = rows;
+        } catch (e: any) {
+            console.error("Maintenance Hotspots query failed", e);
+            debug_errors.hotspots = String(e);
+        }
+
+        // 9. Facility Usage (New)
+        let facilityUsage = [];
+        try {
+            const [rows]: any = await pool.query(`
+                SELECT sport as label, COUNT(*) as value 
+                FROM court_bookings 
+                GROUP BY sport 
+                ORDER BY value DESC
+            `);
+            facilityUsage = rows;
+        } catch (e: any) {
+            console.error("Facility Usage query failed", e);
+            debug_errors.facility_usage = String(e);
+        }
+
+        // 10. Check-in Methods (New - Estimated from Audit Logs)
+        let checkinMethods = [{ label: 'Manual Check-in', value: 0 }, { label: 'QR Self-Checkin', value: 0 }];
+        try {
+            const [qrRows]: any = await pool.query("SELECT COUNT(*) as count FROM audit_logs WHERE action = 'QR Scan Check-in'");
+            const qrCount = qrRows[0].count;
+            
+            const [totalCheckedIn]: any = await pool.query("SELECT COUNT(*) as count FROM applications WHERE status = 'Checked in'");
+            const totalCount = totalCheckedIn[0].count;
+            
+            checkinMethods = [
+                { label: 'Manual Check-in', value: Math.max(0, totalCount - qrCount) },
+                { label: 'QR Self-Checkin', value: qrCount }
+            ];
+        } catch (e: any) {
+            console.error("Checkin Methods query failed", e);
+            debug_errors.checkin_methods = String(e);
+        }
+
         const totalBeds = occupancy.total_beds || 0;
         const occupiedBeds = occupancy.occupied_beds || 0;
         const occupancyRate = totalBeds > 0 ? (occupiedBeds / totalBeds * 100).toFixed(1) : "0.0";
@@ -157,6 +207,9 @@ export async function GET(request: Request) {
             semesterStats: semesterStats || [],
             demographics: demographics,
             invoiceStats: invoiceStats || [],
+            maintenanceHotspots: maintenanceHotspots || [],
+            facilityUsage: facilityUsage || [],
+            checkinMethods: checkinMethods || [],
             debug_errors
         });
     } catch (error: any) {
