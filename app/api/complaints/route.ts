@@ -138,10 +138,24 @@ export async function POST(request: Request) {
 
         const imagesJson = finalImageUrls.length > 0 ? JSON.stringify(finalImageUrls) : null;
 
-        await pool.query(
-            'INSERT INTO complaints (id, student_id, title, description, asset, images) VALUES (?, ?, ?, ?, ?, ?)',
-            [id, studentId, title, description, asset || null, imagesJson]
-        );
+        try {
+            await pool.query(
+                'INSERT INTO complaints (id, student_id, title, description, asset, images) VALUES (?, ?, ?, ?, ?, ?)',
+                [id, studentId, title, description, asset || null, imagesJson]
+            );
+        } catch (dbErr: any) {
+            if (dbErr.message.includes("Unknown column 'asset'")) {
+                console.log('Detected missing "asset" column. Running auto-migration...');
+                await pool.query('ALTER TABLE complaints ADD COLUMN asset VARCHAR(255) DEFAULT NULL AFTER description');
+                // Retry the insert
+                await pool.query(
+                    'INSERT INTO complaints (id, student_id, title, description, asset, images) VALUES (?, ?, ?, ?, ?, ?)',
+                    [id, studentId, title, description, asset || null, imagesJson]
+                );
+            } else {
+                throw dbErr;
+            }
+        }
 
         // Audit Log
         await logAction({
