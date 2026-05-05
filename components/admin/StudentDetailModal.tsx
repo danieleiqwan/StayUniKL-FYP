@@ -53,471 +53,306 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
     if (!studentId) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-white dark:bg-slate-950 w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-300">
-
-                {/* Header */}
-                <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
-                            <div className="h-16 w-16 rounded-full border-4 border-white dark:border-slate-800 bg-[#F26C22] flex items-center justify-center overflow-hidden shadow-xl ring-4 ring-orange-500/10 transition-transform hover:scale-105 duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-white dark:bg-slate-950 w-full max-w-6xl h-[85vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-300">
+                
+                {/* ── Left Sidebar: Profile Preview ── */}
+                <div className="w-80 bg-slate-50/50 dark:bg-slate-900/50 border-r border-slate-100 dark:border-slate-800 p-8 flex flex-col items-center">
+                    <div className="relative mb-6">
+                        <div className="h-32 w-32 rounded-[2.5rem] bg-[#F26C22] p-1 shadow-2xl shadow-orange-500/20 group cursor-pointer transition-all hover:scale-105">
+                            <div className="h-full w-full rounded-[2.2rem] overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-4 border-white dark:border-slate-900">
                                 {data?.profile?.profile_image ? (
-                                    <img 
-                                        src={data.profile.profile_image} 
-                                        alt={data.profile.name} 
-                                        className="h-full w-full object-cover"
-                                    />
+                                    <img src={data.profile.profile_image} alt={data.profile.name} className="h-full w-full object-cover" />
                                 ) : (
-                                    <span className="text-xl font-black text-white uppercase">
-                                        {data?.profile?.name?.charAt(0) || studentId?.charAt(0) || 'S'}
-                                    </span>
+                                    <span className="text-4xl font-black text-slate-400 uppercase">{data?.profile?.name?.charAt(0) || 'S'}</span>
                                 )}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full shadow-sm" title="Active Account" />
                         </div>
-                        <div>
-                            <h2 className="text-xl font-black text-slate-900 dark:text-white leading-tight">
-                                {data?.profile?.name || 'Student Comprehensive Review'}
-                            </h2>
-                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1 opacity-70">
-                                Student ID: <span className="text-[#F26C22]">{data?.profile?.student_id || studentId}</span>
-                            </p>
+                        <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-emerald-500 border-4 border-white dark:border-slate-900 rounded-2xl shadow-lg flex items-center justify-center" title="Verified Account">
+                            <CheckCircle className="h-4 w-4 text-white" />
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 transition-colors"
-                    >
-                        <X className="h-6 w-6" />
-                    </button>
+
+                    <h2 className="text-xl font-black text-slate-900 dark:text-white text-center leading-tight mb-1">{data?.profile?.name || 'Student Name'}</h2>
+                    <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em] mb-8">{data?.profile?.student_id || studentId}</p>
+
+                    <div className="w-full space-y-4">
+                        <SidebarInfo label="Status" value="Active" color="text-emerald-500" />
+                        <SidebarInfo label="Gender" value={data?.profile?.gender || 'N/A'} />
+                        <SidebarInfo label="Joined" value={data?.profile?.created_at ? new Date(data.profile.created_at).toLocaleDateString() : 'N/A'} />
+                        <SidebarInfo label="Category" value="International" />
+                    </div>
+
+                    <div className="mt-auto w-full">
+                        <div className="p-4 bg-orange-50 dark:bg-orange-900/10 rounded-2xl border border-orange-100 dark:border-orange-900/20">
+                            <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-widest mb-1">Quick Note</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed italic">"Verified for Semester 1, 2024. Documents pending for financial aid."</p>
+                        </div>
+                    </div>
                 </div>
 
-                {loading ? (
-                    <div className="flex-1 flex flex-col items-center justify-center p-20 space-y-4">
-                        <div className="h-12 w-12 border-4 border-[#F26C22] border-t-transparent rounded-full animate-spin"></div>
-                        <p className="text-slate-500 font-bold animate-pulse">Aggregating student data...</p>
-                    </div>
-                ) : !data ? (
-                    <div className="flex-1 flex flex-col items-center justify-center p-20 text-center">
-                        <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-                        <p className="text-slate-900 dark:text-white font-bold text-lg">Failed to load student data</p>
-                        <button onClick={onClose} className="mt-4 text-[#F26C22] font-bold underline">Close Modal</button>
-                    </div>
-                ) : (
-                    <>
-                        {/* Tab Bar */}
-                        <div className="px-6 py-2 bg-white dark:bg-slate-950 flex gap-2 border-b border-slate-100 dark:border-slate-800 overflow-x-auto">
-                            <TabBtn active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} icon={<Shield className="h-4 w-4" />} label="Identity" />
-                            <TabBtn active={activeTab === 'hostel'} onClick={() => setActiveTab('hostel')} icon={<Home className="h-4 w-4" />} label="Hostel History" />
-                            <TabBtn active={activeTab === 'room'} onClick={() => setActiveTab('room')} icon={<BedDouble className="h-4 w-4" />} label="Room Details" />
-                            <TabBtn active={activeTab === 'finance'} onClick={() => setActiveTab('finance')} icon={<CreditCard className="h-4 w-4" />} label="Financials" />
-                            <TabBtn active={activeTab === 'support'} onClick={() => setActiveTab('support')} icon={<MessageSquare className="h-4 w-4" />} label="Support Log" />
+                {/* ── Main Content Area ── */}
+                <div className="flex-1 flex flex-col bg-white dark:bg-slate-950">
+                    
+                    {/* Header: Breadcrumbs & Actions */}
+                    <div className="px-10 py-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div>
+                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                                <span>Overview</span>
+                                <span className="text-slate-300">/</span>
+                                <span>Students</span>
+                                <span className="text-slate-300">/</span>
+                                <span className="text-[#F26C22]">{data?.profile?.name?.split(' ')[0] || 'Profile'}</span>
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Student Details</h3>
                         </div>
+                        <div className="flex items-center gap-3">
+                            <button className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                                Cancel
+                            </button>
+                            <button className="px-6 py-2.5 bg-[#F26C22] hover:bg-[#d65a16] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 transition-all active:scale-95">
+                                Activate Student
+                            </button>
+                            <button onClick={onClose} className="ml-4 p-2.5 bg-slate-50 dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-400 hover:text-rose-500 rounded-xl transition-all border border-slate-100 dark:border-slate-800">
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                    </div>
 
-                        {/* Content Area */}
-                        <div className="flex-1 overflow-y-auto p-8 bg-slate-50/30 dark:bg-slate-900/10">
+                    {loading ? (
+                        <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+                            <div className="h-12 w-12 border-4 border-[#F26C22] border-t-transparent rounded-full animate-spin"></div>
+                            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Synchronizing Records...</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Navigation Tabs */}
+                            <div className="px-10 py-4 bg-slate-50/30 dark:bg-slate-900/10 flex gap-8 border-b border-slate-100 dark:border-slate-800">
+                                <DetailTab active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} label="Identity & Contact" />
+                                <DetailTab active={activeTab === 'hostel'} onClick={() => setActiveTab('hostel')} label="Hostel History" />
+                                <DetailTab active={activeTab === 'room'} onClick={() => setActiveTab('room')} label="Current Assignment" />
+                                <DetailTab active={activeTab === 'finance'} onClick={() => setActiveTab('finance')} label="Transactions" />
+                                <DetailTab active={activeTab === 'support'} onClick={() => setActiveTab('support')} label="Support Log" />
+                            </div>
 
-                            {activeTab === 'profile' && (
-                                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-400">
-                                    {/* Core Identity */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <InfoCard label="Full Name" value={data?.profile?.name || 'N/A'} icon={<User className="h-4 w-4 text-orange-500" />} />
-                                            <InfoCard label="UniKL Email" value={data?.profile?.email || 'N/A'} icon={<Mail className="h-4 w-4 text-blue-500" />} />
-                                            <InfoCard label="Phone Number" value={data?.profile?.phone_number || 'N/A'} icon={<Phone className="h-4 w-4 text-green-500" />} />
-                                            <InfoCard label="Gender" value={data?.profile?.gender || 'N/A'} icon={<Shield className="h-4 w-4 text-[#F26C22]" />} />
-                                            <InfoCard label="Student ID Card" value={data?.profile?.student_id || studentId || 'N/A'} icon={<IdCard className="h-4 w-4 text-blue-500" />} />
-                                            <InfoCard label="Account Created" value={data?.profile?.created_at ? new Date(data.profile.created_at).toLocaleDateString() : 'N/A'} icon={<Clock className="h-4 w-4 text-slate-500" />} />
+                            {/* Scrollable Content */}
+                            <div className="flex-1 overflow-y-auto p-10 space-y-10">
+                                
+                                {activeTab === 'profile' && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+                                        <div className="grid grid-cols-2 gap-8">
+                                            <DetailItem label="Full Legal Name" value={data?.profile?.name || 'N/A'} icon={<User className="h-4 w-4" />} />
+                                            <DetailItem label="Official Email" value={data?.profile?.email || 'N/A'} icon={<Mail className="h-4 w-4" />} />
+                                            <DetailItem label="Phone Number" value={data?.profile?.phone_number || 'N/A'} icon={<Phone className="h-4 w-4" />} />
+                                            <DetailItem label="Identity Number" value={data?.profile?.student_id || studentId} icon={<IdCard className="h-4 w-4" />} />
                                         </div>
 
-                                        {/* Address Details */}
-                                        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                                            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                <MapPin className="h-4 w-4 text-[#F26C22]" /> Hometown Address
-                                            </h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                <div className="md:col-span-3">
-                                                    <InfoCard label="Street Address" value={data?.profile?.address || 'N/A'} icon={<Home className="h-4 w-4 text-slate-400" />} />
+                                        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-3xl p-8 border border-slate-100 dark:border-slate-800">
+                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+                                                <MapPin className="h-4 w-4 text-[#F26C22]" /> Permanent Address
+                                            </h4>
+                                            <div className="grid grid-cols-3 gap-8">
+                                                <div className="col-span-3">
+                                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Street Address</p>
+                                                    <p className="text-sm font-black text-slate-900 dark:text-white leading-relaxed">{data?.profile?.address || 'N/A'}</p>
                                                 </div>
-                                                <InfoCard label="City" value={data?.profile?.city || 'N/A'} icon={<Building2 className="h-4 w-4 text-slate-400" />} />
-                                                <InfoCard label="State" value={data?.profile?.state || 'N/A'} icon={<Globe className="h-4 w-4 text-slate-400" />} />
-                                                <InfoCard label="Postcode" value={data?.profile?.postcode || 'N/A'} icon={<Hash className="h-4 w-4 text-slate-400" />} />
+                                                <DetailItem label="City" value={data?.profile?.city || 'N/A'} />
+                                                <DetailItem label="State" value={data?.profile?.state || 'N/A'} />
+                                                <DetailItem label="Postcode" value={data?.profile?.postcode || 'N/A'} />
                                             </div>
                                         </div>
 
-                                    {/* Emergency Contacts */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm border-t-4 border-t-rose-500">
-                                                <h3 className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-4">Emergency Contact #1</h3>
-                                                <div className="space-y-4">
-                                                    <InfoCard label="Full Name" value={data?.profile?.emergency_contact1_name || 'N/A'} icon={<User className="h-3.5 w-3.5 text-slate-400" />} />
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <InfoCard label="Relation" value={data?.profile?.emergency_contact1_relation || 'N/A'} icon={<Users className="h-3.5 w-3.5 text-slate-400" />} />
-                                                        <InfoCard label="Phone" value={data?.profile?.emergency_contact1_phone || 'N/A'} icon={<Phone className="h-3.5 w-3.5 text-slate-400" />} />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm border-t-4 border-t-slate-300">
-                                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Emergency Contact #2</h3>
-                                                <div className="space-y-4">
-                                                    <InfoCard label="Full Name" value={data?.profile?.emergency_contact2_name || 'N/A'} icon={<User className="h-3.5 w-3.5 text-slate-400" />} />
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <InfoCard label="Relation" value={data?.profile?.emergency_contact2_relation || 'N/A'} icon={<Users className="h-3.5 w-3.5 text-slate-400" />} />
-                                                        <InfoCard label="Phone" value={data?.profile?.emergency_contact2_phone || 'N/A'} icon={<Phone className="h-3.5 w-3.5 text-slate-400" />} />
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        <div className="grid grid-cols-2 gap-8">
+                                            <EmergencyCard 
+                                                title="Emergency Contact 1" 
+                                                name={data?.profile?.emergency_contact1_name}
+                                                phone={data?.profile?.emergency_contact1_phone}
+                                                relation={data?.profile?.emergency_contact1_relation}
+                                            />
+                                            <EmergencyCard 
+                                                title="Emergency Contact 2" 
+                                                name={data?.profile?.emergency_contact2_name}
+                                                phone={data?.profile?.emergency_contact2_phone}
+                                                relation={data?.profile?.emergency_contact2_relation}
+                                            />
                                         </div>
+                                    </div>
+                                )}
 
-                                    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-4 flex items-center gap-2">
-                                            <FileText className="h-4 w-4 text-[#F26C22]" /> Documents Status
-                                        </h3>
-                                        {data.documents.length === 0 ? (
-                                            <p className="text-sm text-slate-500 italic">No documents uploaded yet.</p>
-                                        ) : (
-                                            <div className="space-y-3">
-                                                {data.documents.map((doc: any) => (
-                                                    <div key={doc.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded text-[#F26C22]">
-                                                                <FileText className="h-4 w-4" />
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-sm font-bold text-slate-900 dark:text-white">{doc.type}</p>
-                                                                <p className="text-[10px] text-slate-500">{new Date(doc.created_at).toLocaleDateString()}</p>
-                                                            </div>
-                                                        </div>
-                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${doc.status === 'Verified' ? 'bg-green-100 text-green-700' :
-                                                            doc.status === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
-                                                            }`}>
-                                                            {doc.status}
+                                {activeTab === 'hostel' && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+                                        {data.applications.map((app: any, i: number) => (
+                                            <div key={app.id} className="group relative pl-10">
+                                                <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-slate-100 dark:bg-slate-800"></div>
+                                                <div className="absolute left-0 top-1 h-6 w-6 rounded-xl bg-white dark:bg-slate-950 border-4 border-[#F26C22] shadow-sm z-10"></div>
+                                                <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 group-hover:border-orange-200 dark:group-hover:border-orange-900/30 transition-all">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <h4 className="font-black text-slate-900 dark:text-white uppercase text-xs tracking-widest">{app.roomType} Room Assignment</h4>
+                                                        <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                                                            app.status === 'Approved' || app.status === 'Checked in' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'
+                                                        }`}>
+                                                            {app.status}
                                                         </span>
                                                     </div>
-                                                ))}
+                                                    <div className="grid grid-cols-4 gap-4">
+                                                        <DetailItem label="Room ID" value={app.roomId || 'N/A'} />
+                                                        <DetailItem label="Bed" value={app.bedId || 'N/A'} />
+                                                        <DetailItem label="Amount" value={`RM${app.totalPrice}`} />
+                                                        <DetailItem label="Date" value={new Date(app.date).toLocaleDateString()} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {activeTab === 'room' && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        {!data.roomDetails ? (
+                                            <div className="text-center py-20 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-[2.5rem]">
+                                                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">No active assignment found</p>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-3 gap-8">
+                                                <div className="col-span-3 p-8 bg-emerald-50 dark:bg-emerald-900/10 rounded-[2rem] border border-emerald-100 dark:border-emerald-900/20 flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="h-14 w-14 bg-emerald-100 dark:bg-emerald-800/50 rounded-2xl flex items-center justify-center text-emerald-600">
+                                                            <Home className="h-7 w-7" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-0.5">Currently Residing</p>
+                                                            <h4 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Room {data.roomDetails.room_number}</h4>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Check-in Status</p>
+                                                        <span className="px-4 py-1.5 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20">
+                                                            {data.roomDetails.application_status}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <DetailItem label="Wing / Block" value={`${data.roomDetails.wing} Wing`} icon={<Building2 className="h-4 w-4" />} />
+                                                <DetailItem label="Floor Level" value={`Floor ${data.roomDetails.floor}`} icon={<Layers className="h-4 w-4" />} />
+                                                <DetailItem label="Room Type" value={data.roomDetails.room_type} icon={<Home className="h-4 w-4" />} />
+                                                <DetailItem label="Assigned Bed" value={data.roomDetails.assigned_bed} icon={<BedDouble className="h-4 w-4" />} />
+                                                <DetailItem label="Occupancy" value={`${data.roomDetails.occupied_beds} / ${data.roomDetails.capacity}`} icon={<Users className="h-4 w-4" />} />
+                                                <DetailItem label="Facility Status" value={data.roomDetails.room_status} icon={<Shield className="h-4 w-4" />} />
                                             </div>
                                         )}
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {activeTab === 'hostel' && (
-                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400">
-                                    {data.applications.length === 0 ? (
-                                        <div className="p-12 text-center text-slate-500">No application history found.</div>
-                                    ) : (
-                                        <div className="relative border-l-2 border-slate-100 dark:border-slate-800 ml-3 pl-8 space-y-8">
-                                            {data.applications.map((app: any) => (
-                                                <div key={app.id} className="relative">
-                                                    <div className="absolute -left-[41px] top-1 h-6 w-6 rounded-full bg-white dark:bg-slate-950 border-4 border-[#F26C22] shadow-sm"></div>
-                                                    <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                                                        <div className="flex items-center justify-between mb-3">
-                                                            <h4 className="font-bold text-slate-900 dark:text-white uppercase text-xs tracking-widest">{app.roomType} Room</h4>
-                                                            <div className="flex items-center gap-2">
-                                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                                                                    (app.durationType === '1_semester' || app.stayDuration === 4)
-                                                                        ? 'bg-orange-100 text-[#F26C22] dark:bg-orange-900/30 dark:text-orange-300'
-                                                                        : 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300'
-                                                                }`}>
-                                                                    {(app.durationType === '1_semester' || app.stayDuration === 4) ? '1 Semester' : '1 Month'}
-                                                                </span>
-                                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${app.status === 'Approved' || app.status === 'Checked in' ? 'bg-green-100 text-green-700' :
-                                                                    app.status === 'Cancelled' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
-                                                                    }`}>
-                                                                    {app.status}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="grid grid-cols-2 gap-4 text-sm">
-                                                            <div>
-                                                                <p className="text-[10px] text-slate-400 font-bold uppercase">Assigned Room</p>
-                                                                <p className="font-bold text-slate-700 dark:text-slate-300">{app.roomId || 'Not Assigned'}</p>
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-[10px] text-slate-400 font-bold uppercase">Bed Position</p>
-                                                                <p className="font-bold text-slate-700 dark:text-slate-300">{app.bedId || 'N/A'}</p>
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-[10px] text-slate-400 font-bold uppercase">Stay Duration</p>
-                                                                <p className="font-bold text-slate-700 dark:text-slate-300">
-                                                                    {(app.durationType === '1_semester' || app.stayDuration === 4) ? '4 Months (1 Semester)' : '1 Month'}
-                                                                </p>
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-[10px] text-slate-400 font-bold uppercase">Total Price</p>
-                                                                <p className="font-bold text-orange-600">RM{app.totalPrice}</p>
-                                                            </div>
-                                                            <div className="col-span-2 pt-2 border-t border-slate-50 dark:border-slate-800/50 flex justify-between items-center text-[11px]">
-                                                                <span className="text-slate-500 font-medium">Applied on {new Date(app.date).toLocaleDateString()}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                {activeTab === 'finance' && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden">
+                                            <table className="w-full text-left">
+                                                <thead className="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
+                                                    <tr>
+                                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Transaction ID</th>
+                                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount</th>
+                                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Method</th>
+                                                        <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+                                                    {data.payments.map((p: any) => (
+                                                        <tr key={p.id} className="hover:bg-white dark:hover:bg-slate-900 transition-colors">
+                                                            <td className="px-8 py-5 font-mono text-xs font-bold text-slate-500 uppercase">{p.id.substring(0, 12)}...</td>
+                                                            <td className="px-8 py-5 text-sm font-black text-emerald-600">RM{p.amount}</td>
+                                                            <td className="px-8 py-5"><span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] font-black uppercase text-slate-500">{p.method}</span></td>
+                                                            <td className="px-8 py-5 text-right text-xs font-bold text-slate-400">{new Date(p.created_at).toLocaleDateString()}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
                                         </div>
-                                    )}
-                                </div>
-                            )}
+                                    </div>
+                                )}
 
-                            {activeTab === 'room' && (
-                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400">
-                                    {!data.roomDetails ? (
-                                        <div className="flex flex-col items-center justify-center py-16 text-center">
-                                            <div className="mb-4 h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                                <BedDouble className="h-8 w-8 text-slate-400" />
-                                            </div>
-                                            <p className="font-bold text-slate-900 dark:text-white">No Room Assigned</p>
-                                            <p className="text-sm text-slate-500 mt-1">This student has not been assigned to a room yet.</p>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            {/* Status Banner */}
-                                            <div className={`flex items-center gap-3 px-5 py-4 rounded-2xl border ${
-                                                data.roomDetails.application_status === 'Checked in'
-                                                    ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800'
-                                                    : 'bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800'
-                                            }`}>
-                                                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
-                                                    data.roomDetails.application_status === 'Checked in'
-                                                        ? 'bg-green-100 dark:bg-green-800'
-                                                        : 'bg-orange-100 dark:bg-orange-800'
-                                                }`}>
-                                                    <BedDouble className={`h-5 w-5 ${
-                                                        data.roomDetails.application_status === 'Checked in'
-                                                            ? 'text-green-600 dark:text-green-300'
-                                                            : 'text-orange-600 dark:text-orange-300'
-                                                    }`} />
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs font-black uppercase tracking-widest text-slate-500">Current Status</p>
-                                                    <p className={`font-black text-sm ${
-                                                        data.roomDetails.application_status === 'Checked in'
-                                                            ? 'text-green-700 dark:text-green-300'
-                                                            : 'text-orange-700 dark:text-orange-300'
-                                                    }`}>{data.roomDetails.application_status}</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Main Info Grid */}
-                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                                <RoomInfoCard
-                                                    icon={<Hash className="h-4 w-4 text-[#F26C22]" />}
-                                                    label="Room Number"
-                                                    value={data?.roomDetails?.room_number || 'N/A'}
-                                                />
-                                                <RoomInfoCard
-                                                    icon={<Building2 className="h-4 w-4 text-[#F26C22]" />}
-                                                    label="Block / Wing"
-                                                    value={data?.roomDetails?.wing ? `${data.roomDetails.wing} Wing` : 'N/A'}
-                                                />
-                                                <RoomInfoCard
-                                                    icon={<Layers className="h-4 w-4 text-blue-500" />}
-                                                    label="Floor"
-                                                    value={data?.roomDetails?.floor ? `Floor ${data.roomDetails.floor}` : 'N/A'}
-                                                />
-                                                <RoomInfoCard
-                                                    icon={<Home className="h-4 w-4 text-purple-500" />}
-                                                    label="Room Type"
-                                                    value={data?.roomDetails?.room_type || 'N/A'}
-                                                />
-                                                <RoomInfoCard
-                                                    icon={<Users className="h-4 w-4 text-teal-500" />}
-                                                    label="Capacity"
-                                                    value={data?.roomDetails?.capacity ? `${data.roomDetails.capacity} persons` : 'N/A'}
-                                                />
-                                                <RoomInfoCard
-                                                    icon={<BedDouble className="h-4 w-4 text-pink-500" />}
-                                                    label="Assigned Bed"
-                                                    value={data?.roomDetails?.assigned_bed || 'Not Specified'}
-                                                />
-                                            </div>
-
-                                            {/* Occupancy Card */}
-                                            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-                                                <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest mb-5 flex items-center gap-2">
-                                                    <Users className="h-4 w-4 text-[#F26C22]" /> Occupancy Overview
-                                                </h3>
-                                                <div className="flex items-center gap-4 mb-4">
-                                                    <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden">
-                                                        <div
-                                                            className="h-full bg-[#F26C22] rounded-full transition-all duration-700"
-                                                            style={{ width: `${data.roomDetails.capacity > 0 ? (Number(data.roomDetails.occupied_beds) / data.roomDetails.capacity) * 100 : 0}%` }}
-                                                        />
+                                {activeTab === 'support' && (
+                                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+                                        {data.complaints.map((c: any) => (
+                                            <div key={c.id} className="bg-slate-50 dark:bg-slate-900/50 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800">
+                                                <div className="flex items-center justify-between mb-6">
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Issue Reported</p>
+                                                        <h4 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">{c.title}</h4>
                                                     </div>
-                                                    <span className="text-sm font-black text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                                                        {data.roomDetails.occupied_beds}/{data.roomDetails.capacity} occupied
+                                                    <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
+                                                        c.status === 'Resolved' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+                                                    }`}>
+                                                        {c.status}
                                                     </span>
                                                 </div>
-                                                <div className="grid grid-cols-3 gap-3">
-                                                    <div className="text-center p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
-                                                        <p className="text-2xl font-black text-slate-900 dark:text-white">{data.roomDetails.capacity}</p>
-                                                        <p className="text-[10px] text-slate-500 font-bold uppercase mt-1">Total Beds</p>
-                                                    </div>
-                                                    <div className="text-center p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30">
-                                                        <p className="text-2xl font-black text-red-600 dark:text-red-400">{data.roomDetails.occupied_beds}</p>
-                                                        <p className="text-[10px] text-red-500 font-bold uppercase mt-1">Occupied</p>
-                                                    </div>
-                                                    <div className="text-center p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-900/30">
-                                                        <p className="text-2xl font-black text-green-600 dark:text-green-400">{data.roomDetails.available_beds}</p>
-                                                        <p className="text-[10px] text-green-500 font-bold uppercase mt-1">Available</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Room Status Badge */}
-                                            <div className="flex items-center justify-between bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <Shield className="h-5 w-5 text-slate-400" />
-                                                    <div>
-                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Room Facility Status</p>
-                                                        <p className="text-sm font-black text-slate-900 dark:text-white">Operational Condition</p>
-                                                    </div>
-                                                </div>
-                                                <span className={`px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest ${
-                                                    data.roomDetails.room_status === 'Active'
-                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                        : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                }`}>
-                                                    {data.roomDetails.room_status}
-                                                </span>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-
-                            {activeTab === 'finance' && (
-                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400">
-                                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                                        <table className="w-full text-left text-xs">
-                                            <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 font-bold uppercase tracking-widest border-b border-slate-100 dark:border-slate-700">
-                                                <tr>
-                                                    <th className="px-6 py-4">Transaction ID</th>
-                                                    <th className="px-6 py-4">Reference</th>
-                                                    <th className="px-6 py-4">Amount</th>
-                                                    <th className="px-6 py-4">Method</th>
-                                                    <th className="px-6 py-4 text-right">Date</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                                {data.payments.length === 0 ? (
-                                                    <tr><td colSpan={5} className="p-10 text-center text-slate-500 italic">No payment records.</td></tr>
-                                                ) : (
-                                                    data.payments.map((pay: any) => (
-                                                        <tr key={pay.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                                                            <td className="px-6 py-4 font-mono font-bold text-slate-900 dark:text-white uppercase">{pay.id}</td>
-                                                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400 font-medium">{pay.reference_id}</td>
-                                                            <td className="px-6 py-4 text-green-600 dark:text-green-400 font-black">RM{pay.amount}</td>
-                                                            <td className="px-6 py-4"><span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded font-bold text-slate-500">{pay.method}</span></td>
-                                                            <td className="px-6 py-4 text-right text-slate-400">{new Date(pay.created_at).toLocaleDateString()}</td>
-                                                        </tr>
-                                                    ))
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'support' && (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-400">
-                                    {data.complaints.length === 0 ? (
-                                        <div className="p-12 text-center text-slate-500 italic">No historical complaints reported.</div>
-                                    ) : (
-                                        data.complaints.map((comp: any) => (
-                                            <div key={comp.id} className="bg-white dark:bg-slate-900 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm border-l-4 border-l-red-500">
-                                                <div className="p-5 pb-4">
-                                                    <div className="flex items-center justify-between mb-3">
-                                                        <h4 className="font-bold text-slate-900 dark:text-white">{comp.title}</h4>
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${comp.status === 'Resolved' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                                                            }`}>
-                                                            {comp.status}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">{comp.description}</p>
-                                                    
-                                                    {comp.images && comp.images.length > 0 && (
-                                                        <div className="mb-3">
-                                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">Attached Photos</p>
-                                                            <div className="flex gap-2 flex-wrap">
-                                                                {comp.images.map((src: string, i: number) => (
-                                                                    <a key={i} href={src} target="_blank" rel="noopener noreferrer">
-                                                                        <img
-                                                                            src={src}
-                                                                            alt={`Complaint image ${i + 1}`}
-                                                                            className="h-16 w-16 rounded-xl object-cover border border-slate-200 dark:border-slate-700 hover:opacity-80 hover:scale-105 transition-all cursor-pointer shadow-sm"
-                                                                        />
-                                                                    </a>
-                                                                ))}
-                                                            </div>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">{c.description}</p>
+                                                <div className="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-slate-800">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{new Date(c.date).toLocaleDateString()}</span>
+                                                    {c.technician_appointment && (
+                                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#F26C22]/10 text-[#F26C22] rounded-lg">
+                                                            <Clock className="h-3 w-3" />
+                                                            <span className="text-[10px] font-black uppercase tracking-widest">Appointment: {new Date(c.technician_appointment).toLocaleString()}</span>
                                                         </div>
                                                     )}
-
-                                                    <div className="flex items-center justify-between pt-3 border-t border-slate-50 dark:border-slate-800/50">
-                                                        <span className="text-[10px] text-slate-400 font-medium">{new Date(comp.date).toLocaleDateString()}</span>
-                                                        {comp.technician_appointment && (
-                                                            <span className="text-[10px] text-[#F26C22] font-bold flex items-center gap-1 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded">
-                                                                <Clock className="h-3 w-3" /> Appt: {new Date(comp.technician_appointment).toLocaleString()}
-                                                            </span>
-                                                        )}
-                                                    </div>
                                                 </div>
                                             </div>
-                                        ))
-                                    )}
-                                </div>
-                            )}
+                                        ))}
+                                    </div>
+                                )}
 
-                        </div>
-
-                        {/* Footer / Actions */}
-                        <div className="p-4 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-                            <button
-                                onClick={onClose}
-                                className="px-6 py-2.5 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl text-sm font-bold shadow-lg shadow-slate-500/10 hover:shadow-xl transition-all active:scale-95"
-                            >
-                                Close Account Review
-                            </button>
-                        </div>
-                    </>
-                )}
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );
 }
 
-function TabBtn({ active, onClick, icon, label }: { active: boolean, onClick: () => void, icon: React.ReactNode, label: string }) {
+function SidebarInfo({ label, value, color = "text-slate-900 dark:text-white" }: any) {
     return (
-        <button
+        <div className="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-800/50 last:border-0">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</span>
+            <span className={`text-xs font-black ${color}`}>{value}</span>
+        </div>
+    );
+}
+
+function DetailTab({ active, onClick, label }: any) {
+    return (
+        <button 
             onClick={onClick}
-            className={`flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${active
-                ? 'text-[#F26C22] border-b-2 border-[#F26C22] rounded-none'
-                : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-                }`}
+            className={`pb-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative ${
+                active ? 'text-[#F26C22]' : 'text-slate-400 hover:text-slate-600'
+            }`}
         >
-            {icon} {label}
+            {label}
+            {active && <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#F26C22] rounded-full"></div>}
         </button>
     );
 }
 
-function InfoCard({ label, value, icon }: { label: string, value: string, icon: React.ReactNode }) {
+function DetailItem({ label, value, icon }: any) {
     return (
-        <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:border-orange-200 dark:hover:border-orange-900/50">
-            <div className="flex items-center gap-2 mb-1.5 text-slate-400 font-bold uppercase tracking-widest text-[10px]">
+        <div className="space-y-1.5">
+            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                 {icon} {label}
             </div>
-            <p className="text-sm font-black text-slate-900 dark:text-white truncate">{value}</p>
+            <p className="text-sm font-black text-slate-900 dark:text-white">{value || 'Not Specified'}</p>
         </div>
     );
 }
 
-function RoomInfoCard({ label, value, icon }: { label: string, value: string, icon: React.ReactNode }) {
+function EmergencyCard({ title, name, phone, relation }: any) {
     return (
-        <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:border-orange-200 dark:hover:border-orange-900/50">
-            <div className="flex items-center gap-2 mb-1.5 text-slate-400 font-bold uppercase tracking-widest text-[10px]">
-                {icon} {label}
+        <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-slate-800">
+            <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em] mb-4">{title}</p>
+            <div className="space-y-4">
+                <DetailItem label="Full Name" value={name} />
+                <div className="grid grid-cols-2 gap-4">
+                    <DetailItem label="Relation" value={relation} />
+                    <DetailItem label="Phone" value={phone} />
+                </div>
             </div>
-            <p className="text-sm font-black text-slate-900 dark:text-white">{value}</p>
         </div>
     );
 }

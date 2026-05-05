@@ -98,66 +98,88 @@ export default function StudentsDirectoryPage() {
 
     return (
         <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
-                {/* Header Section */}
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
+                {/* ── Page Header ── */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
                     <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="h-8 w-8 bg-[#F26C22] rounded-lg flex items-center justify-center text-white">
-                                <Users className="h-4 w-4" />
-                            </div>
-                            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Admin Dashboard: All Students Directory</h1>
-                        </div>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium ml-11">Manage student records, assignments, and reports.</p>
+                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Student Management</h1>
+                        <p className="text-sm text-slate-500 mt-1">Manage and monitor all student records in one place.</p>
                     </div>
-
-                    <div className="flex items-center gap-4">
-                        <LiveClock />
-                        <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#F26C22] transition-colors" />
-                            <input 
-                                type="text"
-                                placeholder="Search by Name, ID, or Room..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-11 pr-6 py-3.5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl text-sm font-bold w-72 focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-[#F26C22] transition-all"
-                            />
-                        </div>
-                    </div>
+                    <button className="flex items-center gap-2 bg-[#F26C22] hover:bg-[#d65a16] text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95">
+                        <Plus className="h-4 w-4" /> Add New Student
+                    </button>
                 </div>
 
-                {/* Filter Bar */}
-                <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 mb-6 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-6">
-                    <div className="flex flex-wrap items-center gap-6">
-                        <div className="space-y-1.5">
+                {/* ── KPI Stats Cards ── */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <StatCard 
+                        title="Total Students" 
+                        value={students.length} 
+                        sub="All time" 
+                        icon={<Users className="h-6 w-6" />} 
+                        bg="bg-[#8E54E9]" 
+                    />
+                    <StatCard 
+                        title="Active Students" 
+                        value={students.filter(s => s.latest_status === 'Checked in').length} 
+                        sub="Currently active" 
+                        icon={<User className="h-6 w-6" />} 
+                        bg="bg-[#2DCE89]" 
+                    />
+                    <StatCard 
+                        title="With Subscriptions" 
+                        value={students.filter(s => s.latest_status === 'Checked in' || s.latest_status === 'Approved').length} 
+                        sub="Have active subscriptions" 
+                        icon={<Download className="h-6 w-6" />} 
+                        bg="bg-[#11CDEF]" 
+                    />
+                    <StatCard 
+                        title="New This Month" 
+                        value={students.filter(s => {
+                            const date = new Date(s.created_at);
+                            const now = new Date();
+                            return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+                        }).length} 
+                        sub="This month" 
+                        icon={<Plus className="h-6 w-6" />} 
+                        bg="bg-[#FB6340]" 
+                    />
+                </div>
+
+                {/* ── Filters Section ── */}
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-100 dark:border-slate-800 space-y-6">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Filters</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Search Students</label>
+                            <div className="relative group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#F26C22] transition-colors" />
+                                <input 
+                                    type="text"
+                                    placeholder="Search by name, email, or phone..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-transparent rounded-2xl text-sm font-bold focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 focus:border-[#F26C22] transition-all outline-none"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Status</label>
                             <select 
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#F26C22] min-w-[140px]"
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-transparent rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 focus:border-[#F26C22] transition-all"
                             >
-                                <option>All</option>
-                                <option>Active</option>
-                                <option>Checked Out</option>
+                                <option value="All">All Students</option>
+                                <option value="Active">Active</option>
+                                <option value="Checked Out">Inactive</option>
                             </select>
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Residency History</label>
-                            <select 
-                                value={residencyFilter}
-                                onChange={(e) => setResidencyFilter(e.target.value)}
-                                className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#F26C22] min-w-[140px]"
-                            >
-                                <option>All</option>
-                                <option>Current Staying</option>
-                                <option>Past Staying</option>
-                            </select>
-                        </div>
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Floor</label>
                             <select 
                                 value={floorFilter}
                                 onChange={(e) => setFloorFilter(e.target.value)}
-                                className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-[#F26C22] min-w-[140px]"
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-transparent rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 focus:border-[#F26C22] transition-all"
                             >
                                 <option>All Floors</option>
                                 {[1, 2, 3, 4, 5, 6, 7].map(f => (
@@ -166,34 +188,36 @@ export default function StudentsDirectoryPage() {
                             </select>
                         </div>
                     </div>
-
-                    <div className="flex items-center gap-3">
-                        <button className="flex items-center gap-2 px-5 py-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
-                            <Download className="h-4 w-4" /> Export CSV
-                        </button>
-                    </div>
                 </div>
 
-                {/* Table Section */}
-                <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+                {/* ── Table Section ── */}
+                <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+                    <div className="p-8 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">All Students ({filteredStudents.length})</h3>
+                        <span className="text-xs text-slate-400 font-bold">Showing {(currentPage-1)*itemsPerPage + 1} to {Math.min(currentPage*itemsPerPage, filteredStudents.length)} of {filteredStudents.length}</span>
+                    </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead>
-                                <tr className="border-b border-slate-50 dark:border-slate-800">
-                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Student</th>
-                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact Info</th>
-                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Current Status</th>
-                                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+                            <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+                                <tr>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Student</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Age/Gender</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Subscriptions</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                                 {loading ? (
                                     [...Array(5)].map((_, i) => (
                                         <tr key={i}>
+                                            <td className="px-8 py-6"><Skeleton className="h-12 w-48 rounded-2xl" /></td>
                                             <td className="px-8 py-6"><Skeleton className="h-10 w-40" /></td>
-                                            <td className="px-8 py-6"><Skeleton className="h-10 w-40" /></td>
-                                            <td className="px-8 py-6"><Skeleton className="h-6 w-24" /></td>
-                                            <td className="px-8 py-6 text-right"><Skeleton className="h-10 w-24 ml-auto" /></td>
+                                            <td className="px-8 py-6"><Skeleton className="h-6 w-20" /></td>
+                                            <td className="px-8 py-6"><Skeleton className="h-6 w-20" /></td>
+                                            <td className="px-8 py-6"><Skeleton className="h-8 w-24 rounded-full" /></td>
+                                            <td className="px-8 py-6 text-right"><Skeleton className="h-10 w-24 ml-auto rounded-xl" /></td>
                                         </tr>
                                     ))
                                 ) : paginatedStudents.length > 0 ? (
@@ -201,45 +225,52 @@ export default function StudentsDirectoryPage() {
                                         <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group">
                                             <td className="px-8 py-6">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="h-12 w-12 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 ring-4 ring-white dark:ring-slate-900 shadow-sm">
-                                                        <img 
-                                                            src={s.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${s.name}`} 
-                                                            alt={s.name} 
-                                                            className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                                        />
+                                                    <div className="h-12 w-12 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 ring-4 ring-white dark:ring-slate-900 shadow-sm flex items-center justify-center font-black text-slate-400 text-lg uppercase">
+                                                        {s.profile_image ? (
+                                                            <img src={s.profile_image} alt={s.name} className="h-full w-full object-cover" />
+                                                        ) : (
+                                                            s.name.charAt(0)
+                                                        )}
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-black text-slate-900 dark:text-white leading-none mb-1">{s.name}</p>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.student_id || 'ID N/A'}</p>
+                                                        <p className="text-sm font-black text-slate-900 dark:text-white mb-0.5">{s.name}</p>
+                                                        <p className="text-[10px] font-bold text-slate-400 lowercase italic">{s.email}</p>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6">
-                                                <div className="space-y-1">
-                                                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                                                        <Phone className="h-3 w-3 text-slate-300" /> {s.phone_number || 'N/A'}
-                                                    </p>
-                                                    <p className="text-xs font-medium text-slate-400 flex items-center gap-2 italic lowercase">
-                                                        <Mail className="h-3 w-3 text-slate-300" /> {s.email}
-                                                    </p>
-                                                </div>
+                                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{s.phone_number || 'N/A'}</p>
+                                                <p className="text-[10px] text-slate-400 mt-0.5">Location {s.room_id ? `Room ${s.room_id}` : 'N/A'}</p>
                                             </td>
                                             <td className="px-8 py-6">
-                                                {getStatusBadge(s.latest_status)}
-                                                {s.room_id && (
-                                                    <p className="text-[10px] font-black text-slate-400 mt-1.5 uppercase tracking-widest">Room: {s.room_id}</p>
-                                                )}
+                                                <p className="text-xs font-bold text-slate-700 dark:text-slate-300">N/A</p>
+                                                <p className="text-[10px] text-slate-400 mt-0.5">{s.gender || 'Unknown'}</p>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                                                    {s.latest_status === 'Checked in' ? '1 Active' : '0 Active'}
+                                                </span>
+                                            </td>
+                                            <td className="px-8 py-6 space-y-1.5">
+                                                <div className="flex flex-col gap-1">
+                                                    {s.latest_status === 'Checked in' ? (
+                                                        <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 uppercase tracking-widest w-fit">Active</span>
+                                                    ) : (
+                                                        <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 uppercase tracking-widest w-fit">Inactive</span>
+                                                    )}
+                                                    <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 uppercase tracking-widest w-fit">Unverified</span>
+                                                </div>
                                             </td>
                                             <td className="px-8 py-6 text-right">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button 
                                                         onClick={() => setSelectedStudentId(s.id)}
-                                                        className="px-5 py-2.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-xl text-[10px] font-black uppercase tracking-[0.1em] transition-all"
+                                                        className="p-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl text-slate-400 hover:text-[#F26C22] transition-all border border-slate-100 dark:border-slate-800"
                                                     >
-                                                        View Profile
+                                                        <Eye className="h-4.5 w-4.5" />
                                                     </button>
-                                                    <button className="p-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
-                                                        <MoreHorizontal className="h-5 w-5" />
+                                                    <button className="p-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl text-slate-400 hover:text-emerald-600 transition-all border border-slate-100 dark:border-slate-800">
+                                                        <CheckCircle className="h-4.5 w-4.5" />
                                                     </button>
                                                 </div>
                                             </td>
@@ -247,7 +278,7 @@ export default function StudentsDirectoryPage() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={4} className="px-8 py-20 text-center italic text-slate-400">No students found matches your criteria.</td>
+                                        <td colSpan={6} className="px-8 py-20 text-center italic text-slate-400">No students found matches your criteria.</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -255,7 +286,7 @@ export default function StudentsDirectoryPage() {
                     </div>
 
                     {/* Pagination Footer */}
-                    <div className="px-8 py-6 border-t border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between">
+                    <div className="px-8 py-6 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                             Showing <span className="text-slate-900 dark:text-white">{(currentPage-1)*itemsPerPage + 1}</span> to <span className="text-slate-900 dark:text-white">{Math.min(currentPage*itemsPerPage, filteredStudents.length)}</span> of <span className="text-slate-900 dark:text-white">{filteredStudents.length}</span> students
                         </p>
@@ -263,7 +294,7 @@ export default function StudentsDirectoryPage() {
                             <button 
                                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                 disabled={currentPage === 1}
-                                className="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-400 disabled:opacity-50 hover:border-[#F26C22] transition-colors"
+                                className="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-400 disabled:opacity-50 hover:border-[#F26C22] hover:text-[#F26C22] transition-all"
                             >
                                 <ChevronLeft className="h-4 w-4" />
                             </button>
@@ -271,10 +302,10 @@ export default function StudentsDirectoryPage() {
                                 <button
                                     key={i}
                                     onClick={() => setCurrentPage(i + 1)}
-                                    className={`h-8 w-8 rounded-lg text-xs font-black transition-all ${
+                                    className={`h-9 w-9 rounded-xl text-xs font-black transition-all ${
                                         currentPage === i + 1 
                                         ? 'bg-[#F26C22] text-white shadow-lg shadow-orange-500/30' 
-                                        : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:border-[#F26C22]'
+                                        : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:border-[#F26C22] hover:text-[#F26C22]'
                                     }`}
                                 >
                                     {i + 1}
@@ -283,19 +314,40 @@ export default function StudentsDirectoryPage() {
                             <button 
                                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                 disabled={currentPage === totalPages}
-                                className="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-400 disabled:opacity-50 hover:border-[#F26C22] transition-colors"
+                                className="h-9 w-9 flex items-center justify-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-400 disabled:opacity-50 hover:border-[#F26C22] hover:text-[#F26C22] transition-all"
                             >
                                 <ChevronRight className="h-4 w-4" />
                             </button>
                         </div>
                     </div>
-            </div>
+                </div>
 
             {/* Student Detail Modal */}
             <StudentDetailModal 
                 studentId={selectedStudentId} 
                 onClose={() => setSelectedStudentId(null)} 
             />
+        </div>
+    );
+}
+
+function StatCard({ title, value, sub, icon, bg }: any) {
+    return (
+        <div className={`${bg} rounded-3xl p-6 text-white shadow-lg overflow-hidden relative group transition-all hover:scale-[1.02]`}>
+            <div className="relative z-10">
+                <p className="text-sm font-bold opacity-80 uppercase tracking-widest">{title}</p>
+                <div className="flex items-end justify-between mt-4">
+                    <div>
+                        <p className="text-4xl font-black">{value}</p>
+                        <p className="text-[10px] font-bold opacity-60 uppercase mt-1 tracking-widest">{sub}</p>
+                    </div>
+                    <div className="h-12 w-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                        {icon}
+                    </div>
+                </div>
+            </div>
+            {/* Decorative element */}
+            <div className="absolute -right-4 -bottom-4 h-24 w-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
         </div>
     );
 }
