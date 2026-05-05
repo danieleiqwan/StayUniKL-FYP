@@ -293,6 +293,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
                     description, 
                     asset,
                     imagePaths: imagePaths || [] 
+                })
             });
             await fetchData();
         } catch (e) { console.error(e); }
