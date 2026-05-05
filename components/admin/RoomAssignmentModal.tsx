@@ -304,9 +304,9 @@ export default function RoomAssignmentModal({
                                                             <p className="text-xs text-slate-500 font-bold">
                                                                 {room.beds.filter((b: any) => b.status === 'Available').length} Ready for move-in
                                                             </p>
-                                                            {room.beds.some((b: any) => b.status !== 'Available') && (
+                                                            {room.beds.some((b: any) => b.status === 'Maintenance' || b.status === 'Dirty' || b.status === 'Cleaning') && (
                                                                 <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium italic">
-                                                                    * {room.beds.filter((b: any) => b.status !== 'Available').length} bed(s) pending maintenance/cleaning
+                                                                    * {room.beds.filter((b: any) => b.status === 'Maintenance' || b.status === 'Dirty' || b.status === 'Cleaning').length} bed(s) pending maintenance/cleaning
                                                                 </p>
                                                             )}
                                                         </div>
