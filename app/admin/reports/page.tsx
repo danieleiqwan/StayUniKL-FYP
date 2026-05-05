@@ -374,41 +374,6 @@ export default function AdminReportsPage() {
                         </div>
                     </div>
 
-                    {/* Future Projections Card */}
-                    <div className="lg:col-span-2 bg-gradient-to-br from-indigo-600 to-violet-700 p-8 rounded-3xl text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden">
-                        <div className="relative z-10">
-                            <h3 className="text-xl font-black mb-1">Future Revenue Projection</h3>
-                            <p className="text-indigo-100 text-sm opacity-80 mb-8">Estimated earnings for upcoming cycles based on approved intake.</p>
-                            
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-8">
-                                <div>
-                                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em]">Next Semester</p>
-                                    <p className="text-2xl font-black mt-1">RM {(reportData.semesterStats.find((s: any) => s.semester.includes('2024'))?.potential_revenue * 1.05 || 120000).toLocaleString()}</p>
-                                    <div className="flex items-center gap-1 mt-1 text-emerald-300 text-[10px] font-bold">
-                                        <TrendingUp className="h-3 w-3" />
-                                        +5.2% Est. Growth
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em]">Asset ROI</p>
-                                    <p className="text-2xl font-black mt-1">14.2%</p>
-                                    <p className="text-[10px] text-indigo-200 mt-1 opacity-60">System Efficiency</p>
-                                </div>
-                                <div className="hidden sm:block">
-                                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em]">Waitlist Value</p>
-                                    <p className="text-2xl font-black mt-1">RM 42,500</p>
-                                    <p className="text-[10px] text-indigo-200 mt-1 opacity-60">Potential Conversion</p>
-                                </div>
-                            </div>
-
-                            <button className="mt-8 px-6 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
-                                Download Projection Report
-                            </button>
-                        </div>
-
-                        {/* Decoration */}
-                        <TrendingUp className="absolute right-[-20px] bottom-[-20px] h-64 w-64 text-white/5 -rotate-12" />
-                    </div>
                 </div>
 
                 {reportData.debug_errors && Object.keys(reportData.debug_errors).length > 0 && (
