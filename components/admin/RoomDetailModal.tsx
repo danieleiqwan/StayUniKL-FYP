@@ -246,7 +246,24 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
                     </div>
 
                     <button 
-                        onClick={() => setIsMaintenance(!isMaintenance)}
+                        onClick={async () => {
+                            const newStatus = isMaintenance ? 'Available' : 'Maintenance';
+                            try {
+                                const res = await fetch('/api/rooms', {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ roomId: room.id, status: newStatus })
+                                });
+                                if (res.ok) {
+                                    setIsMaintenance(!isMaintenance);
+                                    onUpdate?.(); // Refreshes the grid behind it
+                                } else {
+                                    alert('Failed to update room status.');
+                                }
+                            } catch (err) {
+                                alert('Error updating room status.');
+                            }
+                        }}
                         className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
                             isMaintenance 
                             ? 'bg-slate-900 text-white hover:bg-slate-800' 

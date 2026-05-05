@@ -80,3 +80,20 @@ export async function GET() {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+
+export async function PUT(request: Request) {
+    try {
+        const body = await request.json();
+        const { roomId, status } = body;
+
+        if (!roomId || !status) {
+            return NextResponse.json({ error: 'Missing roomId or status' }, { status: 400 });
+        }
+
+        await pool.query('UPDATE rooms SET status = ? WHERE id = ?', [status, roomId]);
+
+        return NextResponse.json({ success: true });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
