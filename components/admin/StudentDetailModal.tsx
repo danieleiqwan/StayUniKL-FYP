@@ -80,13 +80,13 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
                         <SidebarInfo label="Status" value="Active" color="text-emerald-500" />
                         <SidebarInfo label="Gender" value={data?.profile?.gender || 'N/A'} />
                         <SidebarInfo label="Joined" value={data?.profile?.created_at ? new Date(data.profile.created_at).toLocaleDateString() : 'N/A'} />
-                        <SidebarInfo label="Category" value="International" />
+                        <SidebarInfo label="Category" value={data?.profile?.nationality || 'Local'} />
                     </div>
 
                     <div className="mt-auto w-full">
                         <div className="p-4 bg-orange-50 dark:bg-orange-900/10 rounded-2xl border border-orange-100 dark:border-orange-900/20">
                             <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-widest mb-1">Quick Note</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed italic">"Verified for Semester 1, 2024. Documents pending for financial aid."</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed italic">No administrative notes available for this student.</p>
                         </div>
                     </div>
                 </div>
