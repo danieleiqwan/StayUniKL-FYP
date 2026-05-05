@@ -4,7 +4,6 @@ import { Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useData, CourtBooking } from '@/context/DataContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import AdminNavbar from '@/components/layout/AdminNavbar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import AdminFilterBar, { FilterState } from '@/components/admin/AdminFilterBar';
@@ -235,30 +234,24 @@ function AdminDashboard() {
         }
     };
 
-    useEffect(() => {
-    }, []);
-
     if (!user || user.role !== 'admin') return <div className="p-10 text-center">Access Denied. Admins only.</div>;
 
     return (
-        <>
-            <AdminNavbar />
-            <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
-                    
-                    {/* Header Section */}
-                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
-                        <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="h-10 w-10 bg-orange-50 dark:bg-orange-900/20 rounded-xl flex items-center justify-center text-[#F26C22]">
-                                    <LayoutDashboard className="h-5 w-5" />
-                                </div>
-                                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
-                                    {activeTab === 'applications' ? 'Student Enrollment' :
-                                     activeTab === 'complaints' ? 'Facility Maintenance' :
-                                     activeTab === 'facilities' ? 'Sports & Facilities' : 
-                                     activeTab === 'room-changes' ? 'Room Transitions' : 'Admin Hub'}
-                                </h1>
-                            </div>
+        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
+            {/* Header Section */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
+                <div>
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="h-10 w-10 bg-orange-50 dark:bg-orange-900/20 rounded-xl flex items-center justify-center text-[#F26C22]">
+                            <LayoutDashboard className="h-5 w-5" />
+                        </div>
+                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+                            {activeTab === 'applications' ? 'Student Enrollment' :
+                             activeTab === 'complaints' ? 'Facility Maintenance' :
+                             activeTab === 'facilities' ? 'Sports & Facilities' : 
+                             activeTab === 'room-changes' ? 'Room Transitions' : 'Admin Hub'}
+                        </h1>
+                    </div>
                             <p className="text-slate-500 dark:text-slate-400 font-medium ml-1">
                                 {activeTab === 'applications' ? 'Review and manage incoming student hostel applications.' :
                                  activeTab === 'complaints' ? 'Track and resolve facility issues reported by residents.' :

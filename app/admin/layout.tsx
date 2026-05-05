@@ -7,6 +7,7 @@ import { useEffect, useState, useMemo } from 'react';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Bell, Search, Clock } from 'lucide-react';
+import AdminNavbar from '@/components/layout/AdminNavbar';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
@@ -50,26 +51,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {/* Main Content Area */}
             <main className="lg:pl-80 min-h-screen flex flex-col">
-                {/* Global Admin Header */}
-                <header className="flex justify-between items-center px-10 py-6 sticky top-0 z-40 bg-[#F8FAFC]/80 dark:bg-slate-950/80 backdrop-blur-md">
-                    <div className="flex items-center gap-4">
-                        {/* Mobile menu button could go here */}
-                    </div>
-
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-4 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-sm">
-                            <ThemeToggle />
-                            <div className="h-6 w-[1px] bg-slate-200 dark:bg-slate-800"></div>
-                            <div className="text-right hidden sm:block">
-                                <p className="text-xs font-black text-slate-900 dark:text-white tracking-tight leading-none mb-1">{user.name}</p>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Administrator</p>
-                            </div>
-                            <div className="h-10 w-10 rounded-xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center text-[#F26C22] font-black text-sm">
-                                {user.name?.charAt(0)}
-                            </div>
-                        </div>
-                    </div>
-                </header>
+                <AdminNavbar />
 
                 {/* Page Content */}
                 <div className="flex-1">
