@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useData, CourtBooking } from '@/context/DataContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import Navbar from '@/components/layout/Navbar';
+import AdminNavbar from '@/components/layout/AdminNavbar';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import AdminFilterBar, { FilterState } from '@/components/admin/AdminFilterBar';
@@ -242,7 +242,7 @@ function AdminDashboard() {
 
     return (
         <>
-            <Navbar />
+            <AdminNavbar />
             <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
                     
                     {/* Header Section */}
