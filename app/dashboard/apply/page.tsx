@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useData, Room, Bed } from '@/context/DataContext';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { CheckCircle2, ChevronRight, BedDouble, CalendarDays, Key, GraduationCap, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, ChevronRight, BedDouble, CalendarDays, Key, GraduationCap, AlertTriangle, QrCode } from 'lucide-react';
 
 export default function ApplyPage() {
     const { user } = useAuth();
@@ -49,14 +49,28 @@ export default function ApplyPage() {
                          activeApplication.status === 'Approved' || activeApplication.status === 'Payment Pending' ? 'Application Approved' :
                          'Application Logged'}
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md">
+                    <p className="text-slate-500 dark:text-slate-400 mb-6 max-w-md">
                         {activeApplication.status === 'Checked in' ? 
                             'Welcome to your new home! Your room placement is confirmed and you are officially checked in.' :
                          activeApplication.status === 'Approved' || activeApplication.status === 'Payment Pending' ?
-                            'Great news! Your application has been approved. Please proceed to the financials tab to complete your payment.' :
+                            'Great news! Your application has been approved. Please proceed to the financials tab to complete your payment if you haven\'t already.' :
                             'We have successfully safely logged your hostel application. You will be notified once there are updates regarding your placement.'
                         }
                     </p>
+
+                    {(activeApplication.status === 'Approved' || activeApplication.status === 'Payment Pending' || activeApplication.status === 'Approved - Assigned') && (
+                        <div className="mb-8 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/50 rounded-2xl flex items-start gap-4 text-left max-w-md w-full">
+                            <div className="bg-[#F26C22] text-white p-2 rounded-xl shrink-0 shadow-sm shadow-orange-500/20">
+                                <QrCode className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">Ready for Check-In?</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium leading-relaxed">
+                                    Proceed to the Hostel Check-In Hub and scan the QR code from your <strong className="text-slate-700 dark:text-slate-300">Digital Access Card</strong> (located in your Profile dashboard) at the terminal for an automatic self check-in.
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="w-full bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 text-left space-y-4 shadow-inner transition-colors">
                         <div className="flex justify-between items-center pb-4 border-b border-slate-200/60 dark:border-slate-700">
