@@ -199,30 +199,39 @@ export async function PUT(request: Request) {
         const connection = await pool.getConnection();
         await connection.beginTransaction();
 
-        try {
-            // 1. Update Application Status
+try {
+            // 1. Fetch BEFORE updating so bed_id is never null
+            const [appRows]: any = await connection.query(
+                'SELECT student_id, room_type, bed_id, total_price FROM applications WHERE id = ?', 
+                [id]
+            );
+
+            if (appRows.length === 0) {
+                await connection.rollback();
+                return NextResponse.json({ error: 'Application not found' }, { status: 404 });
+            }
+
+            const app = appRows[0];
+            const studentId = app.student_id;
+            const bedId = app.bed_id;
+
+            // 2. Update Application Status
             await connection.query(query, params);
 
-            // 2. Fetch application details for resource management and notifications
-            const [appRows]: any = await connection.query('SELECT student_id, room_type, bed_id, total_price FROM applications WHERE id = ?', [id]);
-            if (appRows.length > 0) {
-                const app = appRows[0];
-                const studentId = app.student_id;
-                const bedId = app.bed_id;
-
-                // 3. Update Bed Status based on application status
-                if (status === 'Cancelled' || status === 'Rejected' || status === 'Checked out' || status === 'No show') {
-                    if (bedId) {
-                        await connection.query('UPDATE beds SET status = "Available" WHERE id = ?', [bedId]);
-                    }
-                } else if (status === 'Checked in' || status === 'Approved' || status === 'Payment Pending' || status === 'Pending') {
-                    // Ensure bed is marked as Occupied for any active status
-                    if (bedId) {
-                        await connection.query('UPDATE beds SET status = "Occupied" WHERE id = ?', [bedId]);
-                    }
+            // 3. Update Bed Status based on application status
+            if (status === 'Cancelled' || status === 'Rejected' || status === 'Checked out' || status === 'No show') {
+                if (bedId) {
+                    await connection.query('UPDATE beds SET status = "Available" WHERE id = ?', [bedId]);
+                    // Also null the bed_id on the application so it's truly freed
+                    await connection.query('UPDATE applications SET bed_id = NULL, room_id = NULL WHERE id = ?', [id]);
                 }
+            } else if (status === 'Checked in' || status === 'Approved' || status === 'Payment Pending' || status === 'Pending') {
+                if (bedId) {
+                    await connection.query('UPDATE beds SET status = "Occupied" WHERE id = ?', [bedId]);
+                }
+            }
 
-                await connection.commit();
+            await connection.commit();
 
                 // --- NOTIFICATION LOGIC (Success Path) ---
                 let title = 'Application Update';
@@ -267,9 +276,6 @@ export async function PUT(request: Request) {
                     relatedEntityId: id,
                     relatedEntityType: 'Application'
                 });
-            } else {
-                await connection.rollback();
-            }
         } catch (err) {
             await connection.rollback();
             throw err;
