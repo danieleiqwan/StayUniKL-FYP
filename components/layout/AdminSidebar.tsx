@@ -41,7 +41,7 @@ export default function AdminSidebar({ activeTab, onTabChange, counts }: AdminSi
         { id: 'applications', label: 'Student Applications', icon: FileText, tab: 'applications' },
         { id: 'complaints', label: 'Facility Complaints', icon: Wrench, tab: 'complaints' },
         { id: 'facilities', label: 'Sport & Facilities', icon: CalendarDays, tab: 'facilities' },
-        { id: 'room-changes', label: 'Room Transitions', icon: Building2, tab: 'room-changes' },
+        { id: 'room-changes', label: 'Room Change Request', icon: Building2, tab: 'room-changes' },
         { id: 'announcements', label: 'Announcements', icon: Megaphone, path: '/admin/announcements' },
     ];
 

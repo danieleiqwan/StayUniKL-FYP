@@ -250,7 +250,7 @@ function AdminDashboard() {
                              activeTab === 'applications' ? 'Student Enrollment' :
                              activeTab === 'complaints' ? 'Facility Maintenance' :
                              activeTab === 'facilities' ? 'Sports & Facilities' : 
-                             activeTab === 'room-changes' ? 'Room Transitions' : 'Admin Hub'}
+                             activeTab === 'room-changes' ? 'Room Change Request' : 'Admin Hub'}
                         </h1>
                     </div>
                             <p className="text-slate-500 dark:text-slate-400 font-medium ml-1">
@@ -354,7 +354,7 @@ function AdminDashboard() {
                                                         <Building2 className="h-4 w-4" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-bold text-slate-900 dark:text-white">Room Transitions</p>
+                                                        <p className="text-sm font-bold text-slate-900 dark:text-white">Room Change Request</p>
                                                         <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{counts.roomChanges} students requested room changes</p>
                                                     </div>
                                                 </div>
