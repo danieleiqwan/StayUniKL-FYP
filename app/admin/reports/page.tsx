@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { 
     Users, Building2, DollarSign, Clock, TrendingUp, BarChart3, 
     ArrowUpRight, ArrowDownRight, PieChart, Activity, ShieldCheck,
-    Calendar, MapPin, Search
+    Calendar, MapPin, Search, Wrench
 } from 'lucide-react';
 
 export default function AdminReportsPage() {
@@ -174,7 +174,7 @@ export default function AdminReportsPage() {
                                 <div className="flex items-center gap-2 h-4 w-full rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
                                     {reportData.demographics.gender.map((g: any, i: number) => {
                                         const total = reportData.demographics.gender.reduce((acc: number, curr: any) => acc + curr.value, 0);
-                                        const pct = (g.value / total) * 100;
+                                        const pct = total > 0 ? (g.value / total) * 100 : 0;
                                         return (
                                             <div 
                                                 key={g.label} 
@@ -222,7 +222,7 @@ export default function AdminReportsPage() {
                         <div className="space-y-6">
                             {reportData.invoiceStats.map((stat: any) => {
                                 const totalCount = reportData.invoiceStats.reduce((acc: number, curr: any) => acc + curr.value, 0);
-                                const pct = (stat.value / totalCount) * 100;
+                                const pct = totalCount > 0 ? (stat.value / totalCount) * 100 : 0;
                                 const color = stat.label === 'Paid' ? 'bg-emerald-500' : 
                                               stat.label === 'Overdue' ? 'bg-rose-500' : 
                                               stat.label === 'Pending' ? 'bg-amber-500' : 'bg-slate-400';
