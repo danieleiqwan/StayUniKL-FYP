@@ -67,7 +67,7 @@ export default function ProfilePage() {
     };
 
     const tabs = [
-        { id: 'profile', label: 'Identity', icon: User, desc: 'Official student credentials (Contact admin to change)' },
+        { id: 'profile', label: 'Identity', icon: User, desc: 'Official student credentials' },
         { id: 'billing', label: 'Financials', icon: CreditCard, desc: 'Payments, invoices & balance' },
         { id: 'hostel', label: 'My Stay', icon: Home, desc: 'Room details & hostel info' },
     ];
