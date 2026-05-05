@@ -5,6 +5,14 @@ import { createNotification, createSystemNotification } from '@/lib/notification
 // GET: Fetch bookings and all facility settings
 export async function GET(request: Request) {
     try {
+        // Auto-cleanup: Reject any Pending bookings where the date and time have passed
+        await pool.query(`
+            UPDATE court_bookings 
+            SET status = 'Rejected' 
+            WHERE status = 'Pending' 
+            AND STR_TO_DATE(CONCAT(date, ' ', time_slot), '%Y-%m-%d %H:%i') < NOW()
+        `);
+
         // Fetch Bookings (for court)
         const { searchParams } = new URL(request.url);
         const studentId = searchParams.get('studentId');

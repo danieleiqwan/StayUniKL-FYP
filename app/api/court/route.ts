@@ -37,6 +37,14 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        // Auto-cleanup: Reject any Pending bookings where the date and time have passed
+        await pool.query(`
+            UPDATE court_bookings 
+            SET status = 'Rejected' 
+            WHERE status = 'Pending' 
+            AND STR_TO_DATE(CONCAT(date, ' ', time_slot), '%Y-%m-%d %H:%i') < NOW()
+        `);
+
         // Fetch Bookings
         const { searchParams } = new URL(request.url);
         const studentId = searchParams.get('studentId');
