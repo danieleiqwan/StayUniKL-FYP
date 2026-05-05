@@ -7,6 +7,8 @@ import {
     ShieldCheck, Clock, MapPin, ExternalLink
 } from 'lucide-react';
 
+import AssignStudentToBedModal from './AssignStudentToBedModal';
+
 interface BedData {
     id: string;
     label: string;
@@ -52,8 +54,9 @@ function AssetItem({ label, count, status }: { label: string, count: number, sta
     );
 }
 
-export default function RoomDetailModal({ room, onClose }: RoomDetailModalProps) {
+export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailModalProps & { onUpdate?: () => void }) {
     const [isMaintenance, setIsMaintenance] = useState(room?.status === 'Maintenance');
+    const [assigningBed, setAssigningBed] = useState<{ id: string, label: string } | null>(null);
 
     if (!room) return null;
 
@@ -181,7 +184,10 @@ export default function RoomDetailModal({ room, onClose }: RoomDetailModalProps)
                                                 </p>
                                             </div>
                                         ) : (
-                                            <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-black text-[#F26C22] uppercase tracking-widest hover:bg-[#F26C22] hover:text-white transition-all shadow-sm">
+                                            <button 
+                                                onClick={() => setAssigningBed({ id: bed.id, label: bed.label })}
+                                                className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-black text-[#F26C22] uppercase tracking-widest hover:bg-[#F26C22] hover:text-white transition-all shadow-sm"
+                                            >
                                                 <Plus className="h-3 w-3" /> Assign Student
                                             </button>
                                         )}
@@ -251,6 +257,25 @@ export default function RoomDetailModal({ room, onClose }: RoomDetailModalProps)
                     </button>
                 </div>
             </div>
+            
+            {/* Assign Student Modal */}
+            {assigningBed && room && (
+                <AssignStudentToBedModal
+                    roomId={room.id}
+                    roomLabel={room.label}
+                    roomType={room.roomType}
+                    roomGender={room.gender}
+                    floorId={room.floorId}
+                    bedId={assigningBed.id}
+                    bedLabel={assigningBed.label}
+                    onClose={() => setAssigningBed(null)}
+                    onSuccess={() => {
+                        setAssigningBed(null);
+                        onUpdate?.();
+                        onClose();
+                    }}
+                />
+            )}
         </div>
     );
 }

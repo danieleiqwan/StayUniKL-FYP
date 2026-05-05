@@ -144,7 +144,7 @@ export default function AdminRoomsPage() {
                         <p className="text-slate-500 font-bold text-sm uppercase tracking-widest animate-pulse">Synchronizing Room Data...</p>
                     </div>
                 ) : (
-                    <RoomAvailabilityGrid rooms={rooms} selectedFloor={selectedFloor} />
+                    <RoomAvailabilityGrid rooms={rooms} selectedFloor={selectedFloor} onRefresh={fetchData} />
                 )}
         </div>
     );

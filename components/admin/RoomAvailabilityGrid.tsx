@@ -27,6 +27,7 @@ interface Room {
 interface RoomAvailabilityGridProps {
     rooms: Room[];
     selectedFloor: number | 'All';
+    onRefresh?: () => void;
 }
 
 // Derive card colour based on occupancy
@@ -182,7 +183,7 @@ function FloorAccordion({ floor, rooms, defaultOpen, onRoomClick }: { floor: num
     );
 }
 
-export default function RoomAvailabilityGrid({ rooms, selectedFloor }: RoomAvailabilityGridProps) {
+export default function RoomAvailabilityGrid({ rooms, selectedFloor, onRefresh }: RoomAvailabilityGridProps) {
     const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
     const filteredRooms = selectedFloor === 'All' ? rooms : rooms.filter(r => r.floorId === selectedFloor);
     const floors = Array.from(new Set(filteredRooms.map(r => r.floorId))).sort((a, b) => a - b);
@@ -212,6 +213,7 @@ export default function RoomAvailabilityGrid({ rooms, selectedFloor }: RoomAvail
             <RoomDetailModal 
                 room={selectedRoom as any} 
                 onClose={() => setSelectedRoom(null)} 
+                onUpdate={onRefresh}
             />
         </div>
     );
