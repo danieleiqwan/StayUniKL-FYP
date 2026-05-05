@@ -52,7 +52,8 @@ export async function GET(request: Request) {
 
         const complaints = rows.map((row: any) => ({
             id: row.id,
-            studentId: row.official_id || row.student_id,
+            studentId: row.student_id,
+            officialId: row.official_id,
             studentName: row.student_name,
             title: row.title,
             description: row.description,
