@@ -956,12 +956,23 @@ function AdminDashboard() {
                                                         )}
                                                     </td>
                                                     <td className="p-4">
-                                                        <div className="group relative">
+                                                        <div className="group relative flex flex-col">
                                                             <p className="text-sm text-slate-600 dark:text-slate-400 truncate max-w-[200px]">
                                                                 {req.reason}
                                                             </p>
+                                                            {req.attachment_url && (
+                                                                <a 
+                                                                    href={req.attachment_url} 
+                                                                    target="_blank" 
+                                                                    rel="noreferrer"
+                                                                    className="inline-flex items-center gap-1.5 w-fit mt-2 px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40 rounded border border-blue-100 dark:border-blue-800 text-[10px] font-bold transition-colors"
+                                                                    title="View Supported Document"
+                                                                >
+                                                                    <FileText className="h-3 w-3" /> View Document
+                                                                </a>
+                                                            )}
                                                             {/* Tooltip on hover */}
-                                                            <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-3 bg-slate-900 text-white text-xs rounded-xl shadow-xl z-50">
+                                                            <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 p-3 bg-slate-900 text-white text-xs rounded-xl shadow-xl z-50 whitespace-pre-wrap">
                                                                 {req.reason}
                                                             </div>
                                                         </div>
