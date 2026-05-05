@@ -124,6 +124,11 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
                             <div className="h-12 w-12 border-4 border-[#F26C22] border-t-transparent rounded-full animate-spin"></div>
                             <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Synchronizing Records...</p>
                         </div>
+                    ) : !data ? (
+                        <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+                            <AlertCircle className="h-12 w-12 text-rose-500" />
+                            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Failed to load student records</p>
+                        </div>
                     ) : (
                         <>
                             {/* Navigation Tabs */}

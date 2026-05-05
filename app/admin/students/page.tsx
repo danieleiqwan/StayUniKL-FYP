@@ -8,7 +8,7 @@ import StudentDetailModal from '@/components/admin/StudentDetailModal';
 import { 
     Search, Filter, User, Mail, Phone, MoreHorizontal, 
     ChevronLeft, ChevronRight, Eye, Users, Building, 
-    ArrowUpDown, Download, Plus
+    ArrowUpDown, Download, Plus, CheckCircle
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
