@@ -347,33 +347,44 @@ export default function AdminReportsPage() {
                     </div>
                 </div>
 
-                {/* Third Row: Check-in Efficiency & Projections */}
-                <div className="grid gap-6 lg:grid-cols-3 mt-8">
+                {/* Third Row: Check-in Efficiency */}
+                <div className="grid gap-6 grid-cols-1 mt-8">
                      {/* Check-in Method Distribution */}
                      <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-800">
-                        <h3 className="text-lg font-black text-slate-900 dark:text-white mb-6">Check-in Efficiency</h3>
-                        <div className="space-y-6">
-                            {reportData.checkinMethods.map((m: any) => {
-                                const total = reportData.checkinMethods.reduce((acc: number, curr: any) => acc + curr.value, 0);
-                                const pct = total > 0 ? (m.value / total) * 100 : 0;
-                                return (
-                                    <div key={m.label}>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">{m.label}</span>
-                                            <span className="text-xs font-black text-slate-900 dark:text-white">{Math.round(pct)}%</span>
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                            <div className="max-w-md">
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Check-in Efficiency</h3>
+                                <p className="text-sm text-slate-500 font-medium">Comparison between automated QR self-checkin adoption and traditional manual processing.</p>
+                            </div>
+                            
+                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                {reportData.checkinMethods.map((m: any) => {
+                                    const total = reportData.checkinMethods.reduce((acc: number, curr: any) => acc + curr.value, 0);
+                                    const pct = total > 0 ? (m.value / total) * 100 : 0;
+                                    const isQR = m.label.includes('QR');
+                                    
+                                    return (
+                                        <div key={m.label} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-[#F26C22]/30 transition-all">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`h-2 w-2 rounded-full ${isQR ? 'bg-[#F26C22]' : 'bg-slate-400'}`} />
+                                                    <span className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">{m.label}</span>
+                                                </div>
+                                                <span className="text-sm font-black text-slate-900 dark:text-white">{Math.round(pct)}%</span>
+                                            </div>
+                                            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                <div 
+                                                    className={`h-full transition-all duration-1000 ${isQR ? 'bg-[#F26C22] shadow-[0_0_10px_rgba(242,108,34,0.3)]' : 'bg-slate-400'}`} 
+                                                    style={{ width: `${pct}%` }}
+                                                />
+                                            </div>
+                                            <p className="text-[10px] font-bold text-slate-400 mt-3 uppercase tracking-tighter">Total: {m.value} Students</p>
                                         </div>
-                                        <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                            <div 
-                                                className={`h-full transition-all duration-1000 ${m.label.includes('QR') ? 'bg-[#F26C22]' : 'bg-slate-400'}`} 
-                                                style={{ width: `${pct}%` }}
-                                            />
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
-
                 </div>
 
                 {reportData.debug_errors && Object.keys(reportData.debug_errors).length > 0 && (
