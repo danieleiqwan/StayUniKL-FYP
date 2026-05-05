@@ -16,6 +16,7 @@ export async function GET() {
             [rows] = await pool.query(
                 `SELECT 
                     id, name, email, role, gender, student_id, nric, profile_image, 
+                    phone_number,
                     alert_booking, alert_maintenance, alert_announcement,
                     address, city, state, postcode,
                     emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone,
