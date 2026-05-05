@@ -124,7 +124,7 @@ export default function AdminReportsPage() {
                                 {reportData.revenue.length > 0 ? reportData.revenue.map((r: any) => (
                                     <div key={r.month} className="flex-1 flex flex-col items-center gap-2 group">
                                         <div
-                                            className="w-full bg-slate-100 dark:bg-slate-800 rounded-t-lg transition-all group-hover:bg-emerald-500 relative"
+                                            className="w-full bg-[#F26C22] rounded-t-lg transition-all hover:bg-[#F26C22]/80 relative shadow-[0_0_15px_rgba(242,108,34,0.15)]"
                                             style={{ height: `${(parseFloat(r.total) / (Math.max(...reportData.revenue.map((x: any) => parseFloat(x.total))) || 1)) * 100}%`, minHeight: '10%' }}
                                         >
                                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">

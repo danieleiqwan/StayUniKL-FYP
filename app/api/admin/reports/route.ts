@@ -36,14 +36,28 @@ export async function GET(request: Request) {
             `);
             revenueData = rows;
 
-            // If payments table is empty, fallback to counting Approved applications as revenue
+            // If payments table is empty, fallback to counting Invoices, then Applications
+            if (revenueData.length === 0) {
+                const [invRows]: any = await pool.query(`
+                    SELECT 
+                        DATE_FORMAT(created_at, '%b %Y') as month,
+                        SUM(amount) as total
+                    FROM invoices 
+                    WHERE status = 'Paid'
+                    GROUP BY month
+                    ORDER BY MIN(created_at) ASC
+                    LIMIT 6
+                `);
+                revenueData = invRows;
+            }
+
             if (revenueData.length === 0) {
                 const [appRows]: any = await pool.query(`
                     SELECT 
                         DATE_FORMAT(date, '%b %Y') as month,
                         SUM(total_price) as total
                     FROM applications 
-                    WHERE status LIKE 'Approved%' OR status = 'Checked in'
+                    WHERE (status LIKE 'Approved%' OR status = 'Checked in') AND total_price > 0
                     GROUP BY month
                     ORDER BY MIN(date) ASC
                     LIMIT 6
