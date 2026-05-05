@@ -122,7 +122,7 @@ export default function AdminReportsPage() {
                             <h3 className="text-lg font-bold mb-6 text-slate-800 dark:text-white">Monthly Revenue Trend</h3>
                             <div className="h-48 flex items-end gap-3 px-2">
                                 {reportData.revenue.length > 0 ? reportData.revenue.map((r: any) => (
-                                    <div key={r.month} className="flex-1 flex flex-col items-center gap-2 group">
+                                    <div key={r.month} className="flex-1 h-full flex flex-col justify-end items-center gap-2 group">
                                         <div
                                             className="w-full bg-[#F26C22] rounded-t-lg transition-all hover:bg-[#F26C22]/80 relative shadow-[0_0_15px_rgba(242,108,34,0.15)]"
                                             style={{ height: `${(parseFloat(r.total) / (Math.max(...reportData.revenue.map((x: any) => parseFloat(x.total))) || 1)) * 100}%`, minHeight: '10%' }}
