@@ -15,7 +15,9 @@ export default function AdminReportsPage() {
         revenue: [],
         intake: [],
         complaints: { total: 0, pending: 0, avgResolutionTime: 0 },
-        semesterStats: []
+        semesterStats: [],
+        demographics: { gender: [], nationality: [] },
+        invoiceStats: []
     });
     const [loading, setLoading] = useState(true);
 
@@ -147,6 +149,107 @@ export default function AdminReportsPage() {
                                     <div className="w-full text-center text-slate-400 text-sm">No intake data found.</div>
                                 )}
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* New Analysis Sections */}
+                <div className="grid gap-6 lg:grid-cols-2 mt-8">
+                    {/* Demographics Analysis */}
+                    <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-800">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="p-2.5 bg-rose-50 dark:bg-rose-900/20 rounded-xl text-rose-500">
+                                <Users className="h-5 w-5" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Student Demographics</h3>
+                        </div>
+
+                        <div className="space-y-8">
+                            {/* Gender Distribution */}
+                            <div>
+                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Gender Balance</p>
+                                <div className="flex items-center gap-2 h-4 w-full rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                    {reportData.demographics.gender.map((g: any, i: number) => {
+                                        const total = reportData.demographics.gender.reduce((acc: number, curr: any) => acc + curr.value, 0);
+                                        const pct = (g.value / total) * 100;
+                                        return (
+                                            <div 
+                                                key={g.label} 
+                                                className={`h-full transition-all duration-1000 ${g.label === 'Male' ? 'bg-blue-500' : 'bg-rose-500'}`} 
+                                                style={{ width: `${pct}%` }}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                                <div className="flex gap-6 mt-4">
+                                    {reportData.demographics.gender.map((g: any) => (
+                                        <div key={g.label} className="flex items-center gap-2">
+                                            <div className={`h-2.5 w-2.5 rounded-full ${g.label === 'Male' ? 'bg-blue-500' : 'bg-rose-500'}`} />
+                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{g.label}</span>
+                                            <span className="text-sm font-black text-slate-400">{g.value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Nationality Distribution */}
+                            <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Nationality Mix</p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {reportData.demographics.nationality.map((n: any) => (
+                                        <div key={n.label} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{n.label || 'Unknown'}</p>
+                                            <p className="text-xl font-black text-slate-900 dark:text-white mt-1">{n.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Financial Pipeline */}
+                    <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-800">
+                        <div className="flex items-center gap-3 mb-8">
+                            <div className="p-2.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-emerald-500">
+                                <DollarSign className="h-5 w-5" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Collection Pipeline</h3>
+                        </div>
+
+                        <div className="space-y-6">
+                            {reportData.invoiceStats.map((stat: any) => {
+                                const totalCount = reportData.invoiceStats.reduce((acc: number, curr: any) => acc + curr.value, 0);
+                                const pct = (stat.value / totalCount) * 100;
+                                const color = stat.label === 'Paid' ? 'bg-emerald-500' : 
+                                              stat.label === 'Overdue' ? 'bg-rose-500' : 
+                                              stat.label === 'Pending' ? 'bg-amber-500' : 'bg-slate-400';
+                                
+                                return (
+                                    <div key={stat.label}>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">{stat.label}</span>
+                                            <span className="text-xs font-black text-slate-900 dark:text-white">RM {parseFloat(stat.total_amount).toLocaleString()}</span>
+                                        </div>
+                                        <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                            <div 
+                                                className={`h-full ${color} transition-all duration-1000`} 
+                                                style={{ width: `${pct}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex justify-between mt-1.5">
+                                            <span className="text-[10px] font-bold text-slate-400">{stat.value} Invoices</span>
+                                            <span className="text-[10px] font-bold text-slate-400">{Math.round(pct)}%</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {reportData.invoiceStats.length === 0 && (
+                                <div className="flex flex-col items-center justify-center py-12 text-center opacity-50">
+                                    <DollarSign className="h-12 w-12 mb-4 text-slate-300" />
+                                    <p className="text-sm font-bold text-slate-500">No invoice data available for analysis.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

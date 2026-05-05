@@ -112,6 +112,33 @@ export async function GET(request: Request) {
             debug_errors.semesterStats = String(e);
         }
 
+        // 6. Demographics (New)
+        let demographics = { gender: [], nationality: [] };
+        try {
+            const [genderRows]: any = await pool.query(`
+                SELECT gender as label, COUNT(*) as value FROM users WHERE role = 'student' GROUP BY gender
+            `);
+            const [natRows]: any = await pool.query(`
+                SELECT nationality as label, COUNT(*) as value FROM users WHERE role = 'student' GROUP BY nationality
+            `);
+            demographics = { gender: genderRows, nationality: natRows };
+        } catch (e: any) {
+            console.error("Demographics query failed", e);
+            debug_errors.demographics = String(e);
+        }
+
+        // 7. Invoice Status (New)
+        let invoiceStats = [];
+        try {
+            const [rows]: any = await pool.query(`
+                SELECT status as label, COUNT(*) as value, SUM(amount) as total_amount FROM invoices GROUP BY status
+            `);
+            invoiceStats = rows;
+        } catch (e: any) {
+            console.error("Invoice status query failed", e);
+            debug_errors.invoices = String(e);
+        }
+
         const totalBeds = occupancy.total_beds || 0;
         const occupiedBeds = occupancy.occupied_beds || 0;
         const occupancyRate = totalBeds > 0 ? (occupiedBeds / totalBeds * 100).toFixed(1) : "0.0";
@@ -128,6 +155,8 @@ export async function GET(request: Request) {
                 avgResolutionTime: Math.round(avgResolutionHours)
             },
             semesterStats: semesterStats || [],
+            demographics: demographics,
+            invoiceStats: invoiceStats || [],
             debug_errors
         });
     } catch (error: any) {
