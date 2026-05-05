@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 const bookingSchema = z.object({
     studentId: z.string().min(1),
-    sport: z.enum(['Badminton', 'Volleyball', 'Basketball', 'Football']),
+    sport: z.string().min(1, "Sport is required"),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     timeSlot: z.string().regex(/^\d{2}:\d{2}$/),
 });
