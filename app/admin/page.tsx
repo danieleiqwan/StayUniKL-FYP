@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useData, CourtBooking } from '@/context/DataContext';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,7 +16,15 @@ import FacilityAnalytics from '@/components/admin/FacilityAnalytics';
 import SportManagement from '@/components/admin/SportManagement';
 import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight } from 'lucide-react';
 
-export default function AdminDashboard() {
+export default function AdminDashboardPage() {
+    return (
+        <Suspense fallback={<div className="p-20 text-center opacity-50 font-black uppercase tracking-widest text-xs">Loading Terminal...</div>}>
+            <AdminDashboard />
+        </Suspense>
+    );
+}
+
+function AdminDashboard() {
     const { user } = useAuth();
     const {
         applications, complaints, courtBookings, facilitySettings, roomChangeRequests, refreshData,
@@ -231,7 +240,8 @@ export default function AdminDashboard() {
     if (!user || user.role !== 'admin') return <div className="p-10 text-center">Access Denied. Admins only.</div>;
 
     return (
-        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
+        <>
+            <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
                     
                     {/* Header Section */}
                     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
@@ -900,6 +910,6 @@ export default function AdminDashboard() {
                     studentId={selectedStudentId}
                     onClose={() => setSelectedStudentId(null)}
                 />
-            </div>
+            </>
     );
 }
