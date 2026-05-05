@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import Navbar from '@/components/layout/Navbar';
 import LiveClock from '@/components/admin/LiveClock';
 import StudentDetailModal from '@/components/admin/StudentDetailModal';
 import { 
@@ -98,10 +97,7 @@ export default function StudentsDirectoryPage() {
     if (!user || user.role !== 'admin') return null;
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors">
-            <Navbar />
-            
-            <div className="container mx-auto px-6 py-10">
+        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
                 {/* Header Section */}
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
                     <div>
@@ -293,7 +289,6 @@ export default function StudentsDirectoryPage() {
                             </button>
                         </div>
                     </div>
-                </div>
             </div>
 
             {/* Student Detail Modal */}

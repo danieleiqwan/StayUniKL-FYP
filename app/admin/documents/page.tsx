@@ -5,7 +5,6 @@ import { FileText, Eye, CheckCircle, XCircle, Clock, Search, Filter, ArrowLeft, 
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import Navbar from '@/components/layout/Navbar';
 
 export default function AdminDocumentsPage() {
     const { user } = useAuth();
@@ -91,9 +90,7 @@ export default function AdminDocumentsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground">
-            <Navbar />
-            <div className="container mx-auto px-4 py-10">
+        <div className="max-w-[1400px] mx-auto px-6 py-12 space-y-10">
                 {/* Header Section */}
                 <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
@@ -412,7 +409,6 @@ export default function AdminDocumentsPage() {
                         </div>
                     </div>
                 )}
-            </div>
 
             <style jsx global>{`
                 .custom-scrollbar::-webkit-scrollbar {

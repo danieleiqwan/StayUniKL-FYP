@@ -2,45 +2,60 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Building2, DollarSign, Zap, Users } from 'lucide-react';
+import { 
+    Users, Building2, DollarSign, Clock, TrendingUp, BarChart3, 
+    ArrowUpRight, ArrowDownRight, PieChart, Activity, ShieldCheck,
+    Calendar, MapPin, Search
+} from 'lucide-react';
 
 export default function AdminReportsPage() {
     const { user } = useAuth();
-    const [reportData, setReportData] = useState<any>(null);
+    const [reportData, setReportData] = useState<any>({
+        occupancy: { total: 0, occupied: 0, rate: 0 },
+        revenue: [],
+        intake: [],
+        complaints: { total: 0, pending: 0, avgResolutionTime: 0 },
+        semesterStats: []
+    });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/api/admin/reports')
-            .then(res => res.json())
-            .then(data => {
-                setReportData(data);
+        const fetchReportData = async () => {
+            try {
+                const res = await fetch('/api/admin/reports');
+                const data = await res.json();
+                if (data.success) {
+                    setReportData(data.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch report data:', error);
+            } finally {
                 setLoading(false);
-            })
-            .catch(err => console.error("Report load failed", err));
-    }, []);
+            }
+        };
 
-    if (!user || user.role !== 'admin') return <div className="p-10 text-center">Access Denied. Admins only.</div>;
+        if (user && user.role === 'admin') {
+            fetchReportData();
+        }
+    }, [user]);
 
-    if (loading) return (
-        <div className="flex items-center justify-center p-20 text-slate-500">
-            <div className="flex flex-col items-center gap-4">
-                <div className="animate-spin h-8 w-8 border-4 border-[#F26C22] border-t-transparent rounded-full"></div>
-                <p className="font-medium">Loading analytics...</p>
+    if (!user || user.role !== 'admin') {
+        return <div className="p-10 text-center font-bold text-rose-500">Access Denied. Admins only.</div>;
+    }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Activity className="h-8 w-8 text-[#F26C22] animate-spin" />
             </div>
-        </div>
-    );
-
-    if (!reportData || reportData.error) return (
-        <div className="p-20 text-center text-red-500">Failed to load report data.</div>
-    );
+        );
+    }
 
     return (
-        <div className="max-w-[1400px] mx-auto px-10 py-8">
-
-            <div className="container mx-auto px-4 py-8">
+        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">System Insights</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Comprehensive overview of hostel performance and student data.</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight uppercase">System Insights</h1>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Comprehensive overview of hostel performance and student data.</p>
                 </div>
 
                 {/* KPI Cards */}
@@ -60,10 +75,10 @@ export default function AdminReportsPage() {
                         color="text-emerald-600"
                     />
                     <StatCard
-                        title="Avg Resolution"
-                        value={`${reportData.complaints.avgResolutionTime}h`}
-                        sub="Resolution Time"
-                        icon={<Zap className="h-6 w-6 text-amber-600" />}
+                        title="Pending Tasks"
+                        value={reportData.complaints.pending}
+                        sub="Maintenance & Complaints"
+                        icon={<Clock className="h-6 w-6 text-amber-600" />}
                         color="text-amber-600"
                     />
                     <StatCard
@@ -99,7 +114,7 @@ export default function AdminReportsPage() {
                     <div className="lg:col-span-2 space-y-6">
                         {/* Revenue Flow */}
                         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-800">
-                            <h3 className="text-lg font-bold mb-6 text-slate-800 dark:text-white">Monthly Revenue trend</h3>
+                            <h3 className="text-lg font-bold mb-6 text-slate-800 dark:text-white">Monthly Revenue Trend</h3>
                             <div className="h-48 flex items-end gap-3 px-2">
                                 {reportData.revenue.length > 0 ? reportData.revenue.map((r: any) => (
                                     <div key={r.month} className="flex-1 flex flex-col items-center gap-2 group">
@@ -183,7 +198,6 @@ export default function AdminReportsPage() {
                     <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
                     <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-white/5 rounded-full blur-3xl -ml-16 -mb-16"></div>
                 </div>
-            </div>
         </div>
     );
 }
@@ -205,21 +219,22 @@ function StatCard({ title, value, sub, icon, color }: any) {
 }
 
 function FloorProgress({ label, current, total, color }: any) {
-    const percentage = Math.round((current / (total || 1)) * 100);
+    const pct = total > 0 ? (current / total) * 100 : 0;
     return (
         <div>
-            <div className="flex justify-between items-end mb-2">
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{label}</span>
-                <span className="text-lg font-black text-slate-900 dark:text-white">{percentage}%</span>
+            <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{label}</span>
+                <span className="text-xs font-black text-slate-900 dark:text-white">{Math.round(pct)}%</span>
             </div>
-            <div className="h-4 bg-slate-100 rounded-full dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 p-0.5 overflow-hidden shadow-inner">
-                <div className={`h-full ${color} rounded-full transition-all duration-1000 ease-out shadow-sm`} style={{ width: `${percentage}%` }}></div>
+            <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-800">
+                <div 
+                    className={`h-full ${color} transition-all duration-1000 shadow-[0_0_10px_rgba(242,108,34,0.3)]`} 
+                    style={{ width: `${pct}%` }}
+                />
             </div>
-            <div className="flex justify-between mt-2">
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{current} Occ. / {total} Total</p>
-                <p className={`text-[10px] font-bold ${percentage > 90 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                    {percentage > 90 ? 'REACHING LIMIT' : 'AVAILABLE'}
-                </p>
+            <div className="flex justify-between mt-1">
+                <span className="text-[10px] text-slate-400 font-bold uppercase">{current} Occupied</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase">{total} Total</span>
             </div>
         </div>
     );

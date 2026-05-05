@@ -1,7 +1,6 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import Navbar from '@/components/layout/Navbar';
 import { useEffect, useState, useMemo } from 'react';
 import {
     Search,
@@ -81,9 +80,7 @@ export default function AuditLogViewerPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors">
-            <Navbar />
-            <div className="container mx-auto px-4 py-8">
+        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
                         <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
@@ -227,6 +224,5 @@ export default function AuditLogViewerPage() {
                     </div>
                 </div>
             </div>
-        </div>
     );
 }

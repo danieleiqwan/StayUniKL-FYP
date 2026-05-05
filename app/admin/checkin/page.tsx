@@ -2,7 +2,6 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import Navbar from '@/components/layout/Navbar';
 import { useState, useEffect, useRef } from 'react';
 import QRCode from 'react-qr-code';
 import { Html5Qrcode } from 'html5-qrcode';
@@ -18,9 +17,7 @@ export default function AdminCheckinPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-            <Navbar />
-            <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
                 
                 {/* Header */}
                 <div className="mb-8 text-center">
@@ -60,7 +57,6 @@ export default function AdminCheckinPage() {
                     {activeTab === 'generate' ? <GeneratorMode /> : <ScannerMode />}
                 </div>
 
-            </div>
         </div>
     );
 }

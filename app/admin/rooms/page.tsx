@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
-import Navbar from '@/components/layout/Navbar';
 import { useEffect, useState } from 'react';
 import RoomAvailabilityGrid from '@/components/admin/RoomAvailabilityGrid';
 import { BedDouble, Home, Users, Wrench, RefreshCw } from 'lucide-react';
@@ -49,9 +48,7 @@ export default function AdminRoomsPage() {
     if (!user || user.role !== 'admin') return <div className="p-10 text-center">Access Denied. Admins only.</div>;
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-            <Navbar />
-            <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
 
                 {/* ── Page Header ── */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
@@ -149,7 +146,6 @@ export default function AdminRoomsPage() {
                 ) : (
                     <RoomAvailabilityGrid rooms={rooms} selectedFloor={selectedFloor} />
                 )}
-            </div>
         </div>
     );
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import Navbar from '@/components/layout/Navbar';
 import AdminFilterBar, { FilterState } from '@/components/admin/AdminFilterBar';
 import { useAuth } from '@/context/AuthContext';
 
@@ -98,9 +97,7 @@ export default function AssetManagementPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-            <Navbar />
-            <div className="container mx-auto px-4 py-8">
+        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Facility & Asset Management</h1>
@@ -243,6 +240,5 @@ export default function AssetManagementPage() {
                     </div>
                 )}
             </div>
-        </div>
     );
 }

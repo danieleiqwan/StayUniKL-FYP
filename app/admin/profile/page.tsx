@@ -2,7 +2,6 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
-import Navbar from '@/components/layout/Navbar';
 import { useEffect, useState } from 'react';
 import {
     Shield,
@@ -49,8 +48,7 @@ export default function AdminProfilePage() {
     const bookingsToday = courtBookings.filter(b => b.date === new Date().toISOString().split('T')[0]).length;
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
-            <Navbar />
+        <div className="flex-1">
 
             {/* Premium Header Banner */}
             <div className="relative bg-[#F26C22] h-48 md:h-64 overflow-hidden">

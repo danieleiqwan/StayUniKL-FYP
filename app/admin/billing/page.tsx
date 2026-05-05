@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Navbar from '@/components/layout/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import {
     CreditCard, CheckCircle2, Clock, AlertCircle, RefreshCw,
@@ -203,9 +202,7 @@ export default function AdminBillingPage() {
     const statusFilters = ['All', 'Unpaid', 'Overdue', 'Paid', 'Cancelled'];
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors">
-            <Navbar />
-            <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
 
                 {/* Page Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -432,7 +429,6 @@ export default function AdminBillingPage() {
                         )}
                     </div>
                 </div>
-            </div>
 
             {/* Create Invoice Modal */}
             {showCreate && (
