@@ -136,9 +136,6 @@ export default function StudentsDirectoryPage() {
                         <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Student Management</h1>
                         <p className="text-sm text-slate-500 mt-1">Manage and monitor all student records in one place.</p>
                     </div>
-                    <button className="flex items-center gap-2 bg-[#F26C22] hover:bg-[#d65a16] text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95">
-                        <Plus className="h-4 w-4" /> Add New Student
-                    </button>
                 </div>
 
                 {/* ── KPI Stats Cards ── */}
