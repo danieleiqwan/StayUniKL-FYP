@@ -57,6 +57,20 @@ function AssetItem({ label, count, status }: { label: string, count: number, sta
 export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailModalProps & { onUpdate?: () => void }) {
     const [isMaintenance, setIsMaintenance] = useState(room?.status === 'Maintenance');
     const [assigningBed, setAssigningBed] = useState<{ id: string, label: string } | null>(null);
+    const [complaints, setComplaints] = useState<any[]>([]);
+
+    React.useEffect(() => {
+        if (room?.id) {
+            fetch(`/api/complaints?roomId=${room.id}&status=Pending,In Progress`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        setComplaints(data.complaints);
+                    }
+                })
+                .catch(err => console.error('Error fetching room complaints:', err));
+        }
+    }, [room?.id]);
 
     if (!room) return null;
 
@@ -206,7 +220,9 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
                         </h3>
                         <div className="flex items-center gap-2">
                             <Clock className="h-3.5 w-3.5 text-slate-400" />
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Last checked: 28 April 2026</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                Last checked: {complaints.length > 0 ? new Date(Math.max(...complaints.map(c => new Date(c.created_at).getTime()))).toLocaleDateString() : '28 April 2026'}
+                            </p>
                         </div>
                     </div>
 
@@ -214,16 +230,52 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
                         {/* Furniture Group */}
                         <div className="space-y-3">
                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Furniture</p>
-                            <AssetItem label="Bed Frames" count={room.capacity} status="Good" />
-                            <AssetItem label="Study Tables" count={room.capacity} status="Good" />
-                            <AssetItem label="Wardrobes" count={room.capacity} status="Damaged" />
+                            <AssetItem 
+                                label="Bed Frames" 
+                                count={room.capacity} 
+                                status={complaints.some(c => 
+                                    (c.title?.toLowerCase().includes('bed') || c.asset?.toLowerCase().includes('bed'))
+                                ) ? 'Damaged' : 'Good'} 
+                            />
+                            <AssetItem 
+                                label="Study Tables" 
+                                count={room.capacity} 
+                                status={complaints.some(c => 
+                                    (c.title?.toLowerCase().includes('table') || c.asset?.toLowerCase().includes('table'))
+                                ) ? 'Damaged' : 'Good'} 
+                            />
+                            <AssetItem 
+                                label="Wardrobes" 
+                                count={room.capacity} 
+                                status={complaints.some(c => 
+                                    (c.title?.toLowerCase().includes('wardrobe') || c.asset?.toLowerCase().includes('wardrobe'))
+                                ) ? 'Damaged' : 'Good'} 
+                            />
                         </div>
                         {/* Electronics Group */}
                         <div className="space-y-3">
                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Electronics</p>
-                            <AssetItem label="Ceiling Fan" count={1} status="Good" />
-                            <AssetItem label="LED Lights" count={2} status="Good" />
-                            <AssetItem label="AC Unit" count={room.roomType.includes('Single') ? 1 : 0} status="Good" />
+                            <AssetItem 
+                                label="Ceiling Fan" 
+                                count={1} 
+                                status={complaints.some(c => 
+                                    (c.title?.toLowerCase().includes('fan') || c.asset?.toLowerCase().includes('fan'))
+                                ) ? 'Damaged' : 'Good'} 
+                            />
+                            <AssetItem 
+                                label="LED Lights" 
+                                count={2} 
+                                status={complaints.some(c => 
+                                    (c.title?.toLowerCase().includes('light') || c.asset?.toLowerCase().includes('light'))
+                                ) ? 'Damaged' : 'Good'} 
+                            />
+                            <AssetItem 
+                                label="AC Unit" 
+                                count={room.roomType.includes('Single') ? 1 : 0} 
+                                status={complaints.some(c => 
+                                    (c.title?.toLowerCase().includes('ac') || c.asset?.toLowerCase().includes('ac'))
+                                ) ? 'Damaged' : 'Good'} 
+                            />
                         </div>
                     </div>
 

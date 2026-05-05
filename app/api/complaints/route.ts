@@ -25,6 +25,8 @@ export async function GET(request: Request) {
 
         const { searchParams } = new URL(request.url);
         const studentId = searchParams.get('studentId');
+        const roomId = searchParams.get('roomId');
+        const status = searchParams.get('status');
 
         // Security check: If not admin, you can only see your own complaints
         if (user.role !== 'admin' && studentId && user.id !== studentId) {
@@ -44,10 +46,30 @@ export async function GET(request: Request) {
             LEFT JOIN users u ON c.student_id = u.id
         `;
         let params: any[] = [];
+        let whereClauses = [];
 
         if (activeId) {
-            query += ' WHERE c.student_id = ?';
+            whereClauses.push('c.student_id = ?');
             params.push(activeId);
+        }
+
+        if (roomId) {
+            // Join with applications to find students who were in this room
+            whereClauses.push(`c.student_id IN (
+                SELECT student_id FROM applications WHERE room_id = ?
+            )`);
+            params.push(roomId);
+        }
+
+        if (status) {
+            const statusList = status.split(',');
+            const placeholders = statusList.map(() => '?').join(',');
+            whereClauses.push(`c.status IN (${placeholders})`);
+            params.push(...statusList);
+        }
+
+        if (whereClauses.length > 0) {
+            query += ' WHERE ' + whereClauses.join(' AND ');
         }
 
         query += ' ORDER BY c.date DESC';
