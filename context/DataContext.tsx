@@ -122,22 +122,22 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
         try {
             // Fetch Applications
-            const appRes = await fetch(`/api/applications${user.role === 'student' ? `?studentId=${user.id}` : ''}`);
+            const appRes = await fetch(`/api/applications${user.role === 'student' ? `?studentId=${user.id}` : ''}`, { cache: 'no-store' });
             const appData = await appRes.json();
             if (appData.applications) setApplications(appData.applications);
 
             // Fetch Rooms (Inventory)
-            const roomRes = await fetch('/api/rooms');
+            const roomRes = await fetch('/api/rooms', { cache: 'no-store' });
             const roomData = await roomRes.json();
             if (roomData.rooms) setRooms(roomData.rooms);
 
             // Fetch Complaints
-            const compRes = await fetch(`/api/complaints${user.role === 'student' ? `?studentId=${user.id}` : ''}`);
+            const compRes = await fetch(`/api/complaints${user.role === 'student' ? `?studentId=${user.id}` : ''}`, { cache: 'no-store' });
             const compData = await compRes.json();
             if (compData.complaints) setComplaints(compData.complaints);
 
             // Fetch Court/Facility Data
-            const courtRes = await fetch('/api/facilities');
+            const courtRes = await fetch('/api/facilities', { cache: 'no-store' });
             const courtData = await courtRes.json();
             if (courtData.bookings) setCourtBookings(courtData.bookings);
             if (courtData.settings) {
@@ -150,17 +150,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
             }
 
             // Fetch Payments & Invoices
-            const payRes = await fetch(`/api/payments?userId=${user.id}`);
+            const payRes = await fetch(`/api/payments?userId=${user.id}`, { cache: 'no-store' });
             const payData = await payRes.json();
             if (payData.payments) setPayments(payData.payments);
 
-            const invRes = await fetch(`/api/billing/invoices?userId=${user.id}`);
+            const invRes = await fetch(`/api/billing/invoices?userId=${user.id}`, { cache: 'no-store' });
             const invData = await invRes.json();
             if (invData.invoices) setInvoices(invData.invoices);
 
             // Fetch Room Change Request (Student)
             if (user.role === 'student') {
-                const rcrRes = await fetch(`/api/room-change-requests?studentId=${user.id}`);
+                const rcrRes = await fetch(`/api/room-change-requests?studentId=${user.id}`, { cache: 'no-store' });
                 const rcrData = await rcrRes.json();
                 if (rcrData.requests && rcrData.requests.length > 0) {
                     // Find active request
@@ -173,12 +173,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 }
 
                 // Fetch student documents
-                const docRes = await fetch('/api/documents');
+                const docRes = await fetch('/api/documents', { cache: 'no-store' });
                 const docData = await docRes.json();
                 if (docData.documents) setMyDocuments(docData.documents);
 
                 // Fetch Notifications
-                const notifRes = await fetch(`/api/notifications?userId=${user.id}`);
+                const notifRes = await fetch(`/api/notifications?userId=${user.id}`, { cache: 'no-store' });
                 const notifData = await notifRes.json();
                 if (notifData.notifications) {
                     setNotifications(notifData.notifications);
@@ -188,7 +188,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
             // Fetch All Room Change Requests (Admin Only)
             if (user.role === 'admin') {
-                const rcrRes = await fetch('/api/room-change-requests');
+                const rcrRes = await fetch('/api/room-change-requests', { cache: 'no-store' });
                 const rcrData = await rcrRes.json();
                 if (rcrData.success) {
                     setRoomChangeRequests(rcrData.requests || []);
@@ -196,7 +196,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             }
 
             // Fetch Sports (active only for students, all for context)
-            const sportsRes = await fetch('/api/sports?admin=true');
+            const sportsRes = await fetch('/api/sports?admin=true', { cache: 'no-store' });
             const sportsData = await sportsRes.json();
             if (sportsData.sports) {
                 setAllSports(sportsData.sports);
@@ -293,9 +293,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
                     description, 
                     asset,
                     imagePaths: imagePaths || [] 
-                })
             });
-            fetchData();
+            await fetchData();
         } catch (e) { console.error(e); }
     };
 
