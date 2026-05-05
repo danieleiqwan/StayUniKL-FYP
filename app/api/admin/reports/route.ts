@@ -73,16 +73,22 @@ export async function GET(request: Request) {
             debug_errors.intake = String(e);
         }
 
-        // 4. Complaint Resolution Time
+        // 4. Complaint Stats
         let avgResolutionHours = 0;
+        let pendingComplaints = 0;
         try {
-            const [rows]: any = await pool.query(`
+            const [resRows]: any = await pool.query(`
                 SELECT 
                     AVG(TIMESTAMPDIFF(HOUR, date, resolved_at)) as avg_resolution_hours
                 FROM complaints
                 WHERE status = 'Resolved' AND resolved_at IS NOT NULL
             `);
-            if (rows && rows[0]) avgResolutionHours = rows[0].avg_resolution_hours || 0;
+            if (resRows && resRows[0]) avgResolutionHours = resRows[0].avg_resolution_hours || 0;
+
+            const [countRows]: any = await pool.query(`
+                SELECT COUNT(*) as pending FROM complaints WHERE status != 'Resolved'
+            `);
+            if (countRows && countRows[0]) pendingComplaints = countRows[0].pending || 0;
         } catch (e: any) { 
             console.error("Complaints query failed", e); 
             debug_errors.complaints = String(e);
@@ -194,22 +200,26 @@ export async function GET(request: Request) {
         const occupancyRate = totalBeds > 0 ? (occupiedBeds / totalBeds * 100).toFixed(1) : "0.0";
 
         return NextResponse.json({
-            occupancy: {
-                total: totalBeds,
-                occupied: occupiedBeds,
-                rate: occupancyRate
+            success: true,
+            data: {
+                occupancy: {
+                    total: totalBeds,
+                    occupied: occupiedBeds,
+                    rate: occupancyRate
+                },
+                revenue: revenueData || [],
+                intake: intakeData || [],
+                complaints: {
+                    avgResolutionTime: Math.round(avgResolutionHours),
+                    pending: pendingComplaints // Added this to fix the counter
+                },
+                semesterStats: semesterStats || [],
+                demographics: demographics,
+                invoiceStats: invoiceStats || [],
+                maintenanceHotspots: maintenanceHotspots || [],
+                facilityUsage: facilityUsage || [],
+                checkinMethods: checkinMethods || []
             },
-            revenue: revenueData || [],
-            intake: intakeData || [],
-            complaints: {
-                avgResolutionTime: Math.round(avgResolutionHours)
-            },
-            semesterStats: semesterStats || [],
-            demographics: demographics,
-            invoiceStats: invoiceStats || [],
-            maintenanceHotspots: maintenanceHotspots || [],
-            facilityUsage: facilityUsage || [],
-            checkinMethods: checkinMethods || [],
             debug_errors
         });
     } catch (error: any) {
