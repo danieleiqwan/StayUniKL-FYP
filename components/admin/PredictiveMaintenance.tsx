@@ -12,13 +12,14 @@ export default function PredictiveMaintenance() {
         const roomCounts: Record<string, { count: number, issues: string[] }> = {};
         const activeComplaints = complaints.filter(c => c.status !== 'Resolved');
 
-        complaints.forEach(c => {
-            const app = applications.find(a => a.studentId === c.studentId && ['Checked in', 'Approved'].includes(a.status));
+        activeComplaints.forEach(c => {
+            const app = applications.find(a => a.studentId === c.studentId && ['Checked in', 'Approved', 'Payment Pending'].includes(a.status));
             if (app && app.roomId) {
                 if (!roomCounts[app.roomId]) {
                     roomCounts[app.roomId] = { count: 0, issues: [] };
                 }
                 roomCounts[app.roomId].count++;
+                // Avoid duplicate issue titles in the summary list if possible, or just keep them
                 roomCounts[app.roomId].issues.push(c.title);
             }
         });
