@@ -69,7 +69,7 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
             fetch(`/api/complaints?roomId=${room.id}&roomLabel=${room.label}&residentIds=${residentIds}&status=Pending,In Progress`)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success) {
+                    if (data.complaints) {
                         setComplaints(data.complaints);
                     }
                 })
