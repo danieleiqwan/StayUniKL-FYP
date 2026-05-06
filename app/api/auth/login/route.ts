@@ -37,16 +37,43 @@ export async function POST(request: Request) {
 
         const user = rows[0];
 
+        // 2. Check if account is locked
+        if (user.locked_until && new Date(user.locked_until) > new Date()) {
+            const minutesLeft = Math.ceil((new Date(user.locked_until).getTime() - new Date().getTime()) / 60000);
+            return NextResponse.json({ 
+                error: `Account is locked due to too many failed attempts. Try again in ${minutesLeft} minutes.` 
+            }, { status: 403 });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         const isPlainMatch = password === user.password;
 
         if (!isMatch && !isPlainMatch) {
-            return NextResponse.json({ error: 'Invalid credentials or user not found' }, { status: 401 });
+            // Increment failed attempts
+            const newAttempts = (user.login_attempts || 0) + 1;
+            let updateQuery = 'UPDATE users SET login_attempts = ? WHERE id = ?';
+            const params = [newAttempts, user.id];
+
+            if (newAttempts >= 5) {
+                // Lock account for 15 minutes
+                updateQuery = 'UPDATE users SET login_attempts = ?, locked_until = DATE_ADD(NOW(), INTERVAL 15 MINUTE) WHERE id = ?';
+                return NextResponse.json({ 
+                    error: 'Invalid credentials. Account locked for 15 minutes due to 5 failed attempts.' 
+                }, { status: 401 });
+            }
+
+            await pool.query(updateQuery, params);
+            return NextResponse.json({ 
+                error: `Invalid credentials. ${5 - newAttempts} attempts remaining.` 
+            }, { status: 401 });
         }
 
         if (!isMatch && isPlainMatch) {
             const hashedPassword = await bcrypt.hash(password, 10);
-            await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, user.id]);
+            await pool.query('UPDATE users SET password = ?, login_attempts = 0, locked_until = NULL WHERE id = ?', [hashedPassword, user.id]);
+        } else {
+            // Reset attempts on successful login
+            await pool.query('UPDATE users SET login_attempts = 0, locked_until = NULL WHERE id = ?', [user.id]);
         }
 
         // 1. Create a secure JWT token

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { getAuthUser, isAdmin } from '@/lib/auth';
 import { createSystemNotification } from '@/lib/notifications';
+import { logAction } from '@/lib/audit';
 
 // GET: Fetch announcements (admin gets all, students get active non-expired ones)
 export async function GET(request: Request) {
@@ -64,6 +65,15 @@ export async function POST(request: Request) {
             });
         }
 
+        await logAction({
+            actorId: admin.id,
+            actorName: admin.name,
+            action: 'CREATE_ANNOUNCEMENT',
+            entityType: 'Announcement',
+            entityId: id,
+            details: { title, priority }
+        });
+
         return NextResponse.json({ success: true, id });
     } catch (error: any) {
         console.error('[Announcements POST]', error);
@@ -81,6 +91,16 @@ export async function PUT(request: Request) {
         const { id, is_active } = body;
 
         await pool.query('UPDATE announcements SET is_active = ? WHERE id = ?', [is_active ? 1 : 0, id]);
+        
+        await logAction({
+            actorId: admin.id,
+            actorName: admin.name,
+            action: is_active ? 'ACTIVATE_ANNOUNCEMENT' : 'DEACTIVATE_ANNOUNCEMENT',
+            entityType: 'Announcement',
+            entityId: id,
+            details: {}
+        });
+        
         return NextResponse.json({ success: true });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -110,6 +130,16 @@ export async function DELETE(request: Request) {
         }
 
         await pool.query('DELETE FROM announcements WHERE id = ?', [id]);
+        
+        await logAction({
+            actorId: admin.id,
+            actorName: admin.name,
+            action: 'DELETE_ANNOUNCEMENT',
+            entityType: 'Announcement',
+            entityId: id,
+            details: rows.length > 0 ? { title: rows[0].title } : {}
+        });
+        
         return NextResponse.json({ success: true });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

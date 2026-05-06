@@ -373,7 +373,11 @@ function NavContent({
                     )}
                 </Link>
                 <button
-                    onClick={logout}
+                    onClick={() => {
+                        if (window.confirm('Are you sure you want to log out?')) {
+                            logout();
+                        }
+                    }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-rose-400/70 hover:bg-rose-500/10 hover:text-rose-400 font-bold transition-all relative group ${collapsed ? 'justify-center' : ''}`}
                 >
                     <LogOut style={{ height: '18px', width: '18px' }} className="shrink-0 transition-transform group-hover:translate-x-1" />

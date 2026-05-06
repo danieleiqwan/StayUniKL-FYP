@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { isAdmin } from '@/lib/auth';
+import { logAction } from '@/lib/audit';
 
 // GET /api/admin/documents - fetch all documents
 export async function GET(request: Request) {
@@ -41,6 +42,15 @@ export async function PUT(request: Request) {
             'UPDATE documents SET status = ?, rejection_reason = ? WHERE id = ?',
             [status, status === 'Rejected' ? rejectionReason : null, id]
         );
+
+        await logAction({
+            actorId: admin.id,
+            actorName: admin.name,
+            action: `DOCUMENT_${status.toUpperCase()}`,
+            entityType: 'Document',
+            entityId: id,
+            details: { status, rejectionReason }
+        });
 
         return NextResponse.json({ success: true });
     } catch (error: any) {

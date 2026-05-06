@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
+import { isAdmin } from '@/lib/auth';
+import { logAction } from '@/lib/audit';
 
 export async function GET() {
     try {
@@ -81,8 +83,14 @@ export async function GET() {
     }
 }
 
+
 export async function PUT(request: Request) {
     try {
+        const admin = await isAdmin();
+        if (!admin) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const body = await request.json();
         const { roomId, status } = body;
 
@@ -91,6 +99,15 @@ export async function PUT(request: Request) {
         }
 
         await pool.query('UPDATE rooms SET status = ? WHERE id = ?', [status, roomId]);
+
+        await logAction({
+            actorId: admin.id,
+            actorName: admin.name,
+            action: 'UPDATE_ROOM_STATUS',
+            entityType: 'Room',
+            entityId: roomId,
+            details: { newStatus: status }
+        });
 
         return NextResponse.json({ success: true });
     } catch (error: any) {

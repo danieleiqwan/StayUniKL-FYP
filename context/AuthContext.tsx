@@ -67,6 +67,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .catch(err => console.error('Silent session sync failed:', err));
     }, []);
 
+    // Inactivity Timeout
+    useEffect(() => {
+        if (!user) return; // Only track inactivity when logged in
+
+        let timeoutId: NodeJS.Timeout;
+
+        const resetTimer = () => {
+            clearTimeout(timeoutId);
+            // Set inactivity timeout to 15 minutes
+            timeoutId = setTimeout(() => {
+                alert('You have been logged out due to inactivity.');
+                logout();
+            }, 15 * 60 * 1000);
+        };
+
+        // Initialize the timer
+        resetTimer();
+
+        // Listen for user activity
+        const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+        events.forEach(event => window.addEventListener(event, resetTimer));
+
+        // Cleanup listeners on unmount
+        return () => {
+            clearTimeout(timeoutId);
+            events.forEach(event => window.removeEventListener(event, resetTimer));
+        };
+    }, [user]);
+
     const login = async (role: 'student' | 'admin', email?: string, password?: string, rememberMe: boolean = false) => {
         if (!email) {
             alert("Email is required for login");

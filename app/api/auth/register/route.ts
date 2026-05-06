@@ -13,7 +13,12 @@ const registerSchema = z.object({
     email: z.string().email().endsWith('@s.unikl.edu.my', { message: 'Only UniKL student email addresses are allowed (@s.unikl.edu.my)' }),
     gender: z.enum(['Male', 'Female']),
     role: z.enum(['student', 'admin']),
-    password: z.string().min(6),
+    password: z.string()
+        .min(8, { message: 'Password must be at least 8 characters long' })
+        .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
+        .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
+        .regex(/[0-9]/, { message: 'Password must contain at least one number' })
+        .regex(/[^A-Za-z0-9]/, { message: 'Password must contain at least one special character' }),
     nationality: z.string().optional(),
     dob: z.string().optional(),
 });

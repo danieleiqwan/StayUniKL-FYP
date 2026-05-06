@@ -145,8 +145,28 @@ export default function RegisterPage() {
             return;
         }
 
-        if (formData.password.length < 6) {
-            setPasswordError('Password must be at least 6 characters');
+        if (formData.password.length < 8) {
+            setPasswordError('Password must be at least 8 characters');
+            setShakingFields(['password']);
+            return;
+        }
+        if (!/[A-Z]/.test(formData.password)) {
+            setPasswordError('Password must contain at least one uppercase letter');
+            setShakingFields(['password']);
+            return;
+        }
+        if (!/[a-z]/.test(formData.password)) {
+            setPasswordError('Password must contain at least one lowercase letter');
+            setShakingFields(['password']);
+            return;
+        }
+        if (!/[0-9]/.test(formData.password)) {
+            setPasswordError('Password must contain at least one number');
+            setShakingFields(['password']);
+            return;
+        }
+        if (!/[^A-Za-z0-9]/.test(formData.password)) {
+            setPasswordError('Password must contain at least one special character');
             setShakingFields(['password']);
             return;
         }

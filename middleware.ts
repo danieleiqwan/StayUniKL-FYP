@@ -15,7 +15,11 @@ function isRateLimited(ip: string, path: string) {
     
     // Define limits
     let limit = 20; // Default limit
-    if (path.includes('/api/auth')) limit = 10; // Strict limit for login/register
+    if (path.includes('/api/auth/login') || path.includes('/api/auth/register')) {
+        limit = 5; // Strict limit to prevent brute force
+    } else if (path.includes('/api/auth')) {
+        limit = 10; // Generic auth limit
+    }
     if (path.includes('/api/complaints')) limit = 50; // Increased limit for dashboard interactions
     
     const key = `${ip}:${path}`;
