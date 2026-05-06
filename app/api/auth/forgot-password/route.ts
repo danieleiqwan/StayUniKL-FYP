@@ -27,6 +27,7 @@ export async function POST(request: Request) {
         }
 
         const user = rows[0];
+        console.log(`[Forgot Password] User found: ${user.email}. Generating token...`);
 
         const token = await createPasswordResetToken({
             id: user.id,
@@ -38,9 +39,11 @@ export async function POST(request: Request) {
 
         // Send the email using Nodemailer
         try {
+            console.log(`[Forgot Password] Attempting to send email to ${email}...`);
             await sendPasswordResetEmail(email, resetLink);
+            console.log(`[Forgot Password] Email sent successfully to ${email}`);
         } catch (emailError) {
-            console.error("Failed to send email, but continuing execution:", emailError);
+            console.error("[Forgot Password] Failed to send email:", emailError);
             // We don't return a 500 error here to prevent email enumeration attacks
         }
 
