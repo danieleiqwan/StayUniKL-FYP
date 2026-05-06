@@ -15,7 +15,8 @@ import {
     ChevronRight,
     Settings,
     ShieldCheck,
-    ScanLine
+    ScanLine,
+    GraduationCap
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -49,6 +50,7 @@ export default function AdminSidebar({ activeTab, onTabChange, counts }: AdminSi
         { id: 'checkin', label: 'QR Check-in Hub', icon: ScanLine, path: '/admin/checkin' },
         { id: 'rooms', label: 'Room Management', icon: Building2, path: '/admin/rooms' },
         { id: 'docs', label: 'Document Verify', icon: ShieldCheck, path: '/admin/documents' },
+        { id: 'academic', label: 'Academic Settings', icon: GraduationCap, path: '/admin/academic' },
     ];
 
     return (
