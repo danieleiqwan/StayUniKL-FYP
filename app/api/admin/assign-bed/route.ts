@@ -46,6 +46,32 @@ export async function POST(request: Request) {
                 }, { status: 400 });
             }
 
+            // --- GENDER VALIDATION ---
+            // 1. Fetch student gender
+            const [studentRows]: any = await connection.query('SELECT gender FROM users WHERE id = ?', [studentId]);
+            if (studentRows.length === 0) {
+                await connection.rollback();
+                return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+            }
+            const studentGender = studentRows[0].gender;
+
+            // 2. Fetch room gender
+            const [roomRows]: any = await connection.query('SELECT gender FROM rooms WHERE id = ?', [roomId]);
+            if (roomRows.length === 0) {
+                await connection.rollback();
+                return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+            }
+            const roomGender = roomRows[0].gender;
+
+            // 3. Compare
+            if (studentGender !== roomGender) {
+                await connection.rollback();
+                return NextResponse.json({ 
+                    error: `Gender Mismatch: This student (${studentGender}) cannot be assigned to a ${roomGender} room.` 
+                }, { status: 400 });
+            }
+            // -------------------------
+
             const appId = `app_${Date.now()}`;
             // Set base price based on room type
             let totalPrice = 120.00;

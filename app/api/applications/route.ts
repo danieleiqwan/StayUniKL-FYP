@@ -123,6 +123,29 @@ export async function POST(request: Request) {
             }, { status: 400 });
         }
 
+        // --- GENDER VALIDATION ---
+        // 1. Fetch student gender
+        const [studentRows]: any = await pool.query('SELECT gender FROM users WHERE id = ?', [studentId]);
+        if (studentRows.length === 0) {
+            return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+        }
+        const studentGender = studentRows[0].gender;
+
+        // 2. Fetch room gender
+        const [roomRows]: any = await pool.query('SELECT gender FROM rooms WHERE id = ?', [roomId]);
+        if (roomRows.length === 0) {
+            return NextResponse.json({ error: 'Room not found' }, { status: 404 });
+        }
+        const roomGender = roomRows[0].gender;
+
+        // 3. Compare
+        if (studentGender !== roomGender) {
+            return NextResponse.json({ 
+                error: `Gender Mismatch: You (${studentGender}) cannot apply for a ${roomGender} room.` 
+            }, { status: 400 });
+        }
+        // -------------------------
+
         const id = `app_${Date.now()}`;
         const resolvedDurationType = durationType || (stayDuration === 4 ? '1_semester' : '1_month');
 
