@@ -100,9 +100,13 @@ export async function POST(request: Request) {
 
         const { studentId, roomType, stayDuration, durationType, totalPrice, floorId, roomId, bedId } = validation.data;
         
-        // Fetch student name from DB
-        const [studentRows]: any = await pool.query('SELECT name FROM users WHERE id = ?', [studentId]);
+        // Fetch student name and gender from DB
+        const [studentRows]: any = await pool.query('SELECT name, gender FROM users WHERE id = ?', [studentId]);
+        if (studentRows.length === 0) {
+            return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+        }
         const studentName = studentRows[0]?.name || 'Student';
+        const studentGender = studentRows[0].gender;
 
         // Security: Can't apply for someone else
         if (user.role === 'student' && studentId !== user.id) {
@@ -124,13 +128,6 @@ export async function POST(request: Request) {
         }
 
         // --- GENDER VALIDATION ---
-        // 1. Fetch student gender
-        const [studentRows]: any = await pool.query('SELECT gender FROM users WHERE id = ?', [studentId]);
-        if (studentRows.length === 0) {
-            return NextResponse.json({ error: 'Student not found' }, { status: 404 });
-        }
-        const studentGender = studentRows[0].gender;
-
         // 2. Fetch room gender
         const [roomRows]: any = await pool.query('SELECT gender FROM rooms WHERE id = ?', [roomId]);
         if (roomRows.length === 0) {
