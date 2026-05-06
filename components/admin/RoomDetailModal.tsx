@@ -239,21 +239,21 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
                                 label="Bed Frames" 
                                 count={room.capacity} 
                                 status={complaints.some(c => 
-                                    (c.title?.toLowerCase().includes('bed') || c.asset?.toLowerCase().includes('bed'))
+                                    c.status !== 'Resolved' && (c.title?.toLowerCase().includes('bed') || c.asset?.toLowerCase().includes('bed'))
                                 ) ? 'Damaged' : 'Good'} 
                             />
                             <AssetItem 
                                 label="Study Tables" 
                                 count={room.capacity} 
                                 status={complaints.some(c => 
-                                    (c.title?.toLowerCase().includes('table') || c.asset?.toLowerCase().includes('table'))
+                                    c.status !== 'Resolved' && (c.title?.toLowerCase().includes('table') || c.asset?.toLowerCase().includes('table'))
                                 ) ? 'Damaged' : 'Good'} 
                             />
                             <AssetItem 
                                 label="Wardrobes" 
                                 count={room.capacity} 
                                 status={complaints.some(c => 
-                                    (c.title?.toLowerCase().includes('wardrobe') || c.asset?.toLowerCase().includes('wardrobe'))
+                                    c.status !== 'Resolved' && (c.title?.toLowerCase().includes('wardrobe') || c.asset?.toLowerCase().includes('wardrobe'))
                                 ) ? 'Damaged' : 'Good'} 
                             />
                         </div>
@@ -264,21 +264,21 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
                                 label="Ceiling Fan" 
                                 count={1} 
                                 status={complaints.some(c => 
-                                    (c.title?.toLowerCase().includes('fan') || c.asset?.toLowerCase().includes('fan'))
+                                    c.status !== 'Resolved' && (c.title?.toLowerCase().includes('fan') || c.asset?.toLowerCase().includes('fan'))
                                 ) ? 'Damaged' : 'Good'} 
                             />
                             <AssetItem 
                                 label="LED Lights" 
                                 count={2} 
                                 status={complaints.some(c => 
-                                    (c.title?.toLowerCase().includes('light') || c.asset?.toLowerCase().includes('light'))
+                                    c.status !== 'Resolved' && (c.title?.toLowerCase().includes('light') || c.asset?.toLowerCase().includes('light'))
                                 ) ? 'Damaged' : 'Good'} 
                             />
                             <AssetItem 
                                 label="AC Unit" 
                                 count={room.roomType.includes('Single') ? 1 : 0} 
                                 status={complaints.some(c => 
-                                    (c.title?.toLowerCase().includes('ac') || c.asset?.toLowerCase().includes('ac'))
+                                    c.status !== 'Resolved' && (c.title?.toLowerCase().includes('ac') || c.asset?.toLowerCase().includes('ac'))
                                 ) ? 'Damaged' : 'Good'} 
                             />
                         </div>
