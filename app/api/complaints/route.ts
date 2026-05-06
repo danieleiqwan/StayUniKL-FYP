@@ -74,9 +74,12 @@ export async function GET(request: Request) {
             }
 
             if (roomLabel) {
-                // Fallback: Check if room label is mentioned in title, description, or asset
-                roomConditions.push(`(c.title LIKE ? OR c.description LIKE ? OR c.asset LIKE ?)`);
-                params.push(`%${roomLabel}%`, `%${roomLabel}%`, `%${roomLabel}%`);
+                // Extract just the number if it's like "Room 304"
+                const roomNumber = roomLabel.replace('Room', '').trim();
+                
+                // Fallback: Check if room number or full label is mentioned
+                roomConditions.push(`(c.title LIKE ? OR c.description LIKE ? OR c.asset LIKE ? OR c.title LIKE ? OR c.description LIKE ? OR c.asset LIKE ?)`);
+                params.push(`%${roomLabel}%`, `%${roomLabel}%`, `%${roomLabel}%`, `%${roomNumber}%`, `%${roomNumber}%`, `%${roomNumber}%`);
             }
 
             whereClauses.push(`(${roomConditions.join(' OR ')})`);
