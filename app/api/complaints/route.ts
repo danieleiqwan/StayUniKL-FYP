@@ -26,6 +26,8 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const studentId = searchParams.get('studentId');
         const roomId = searchParams.get('roomId');
+        const roomLabel = searchParams.get('roomLabel');
+        const residentIds = searchParams.get('residentIds');
         const status = searchParams.get('status');
 
         // Security check: If not admin, you can only see your own complaints
@@ -53,12 +55,31 @@ export async function GET(request: Request) {
             params.push(activeId);
         }
 
-        if (roomId) {
-            // Join with applications to find students who were in this room
-            whereClauses.push(`c.student_id IN (
-                SELECT student_id FROM applications WHERE room_id = ?
-            )`);
-            params.push(roomId);
+        if (roomId || roomLabel || residentIds) {
+            let roomConditions = [];
+            
+            if (roomId) {
+                // Join with applications to find students who were in this room
+                roomConditions.push(`c.student_id IN (
+                    SELECT student_id FROM applications WHERE room_id = ?
+                )`);
+                params.push(roomId);
+            }
+
+            if (residentIds) {
+                const idList = residentIds.split(',');
+                const placeholders = idList.map(() => '?').join(',');
+                roomConditions.push(`c.student_id IN (${placeholders})`);
+                params.push(...idList);
+            }
+
+            if (roomLabel) {
+                // Fallback: Check if room label is mentioned in title, description, or asset
+                roomConditions.push(`(c.title LIKE ? OR c.description LIKE ? OR c.asset LIKE ?)`);
+                params.push(`%${roomLabel}%`, `%${roomLabel}%`, `%${roomLabel}%`);
+            }
+
+            whereClauses.push(`(${roomConditions.join(' OR ')})`);
         }
 
         if (status) {

@@ -61,7 +61,12 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
 
     React.useEffect(() => {
         if (room?.id) {
-            fetch(`/api/complaints?roomId=${room.id}&status=Pending,In Progress`)
+            const residentIds = room.beds
+                .filter(b => b.isOccupied && b.occupantId)
+                .map(b => b.occupantId)
+                .join(',');
+
+            fetch(`/api/complaints?roomId=${room.id}&roomLabel=${room.label}&residentIds=${residentIds}&status=Pending,In Progress`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -70,7 +75,7 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
                 })
                 .catch(err => console.error('Error fetching room complaints:', err));
         }
-    }, [room?.id]);
+    }, [room?.id, room?.label, room?.beds]);
 
     if (!room) return null;
 
