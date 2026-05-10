@@ -12,9 +12,15 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     useEffect(() => {
-        const timer = setTimeout(() => setIsCheckingAuth(false), 600);
+        const timer = setTimeout(() => setIsCheckingAuth(false), 800);
         return () => clearTimeout(timer);
     }, [user]);
+
+    useEffect(() => {
+        if (!isCheckingAuth && (!user || user.role !== 'superadmin')) {
+            router.push('/login?role=admin');
+        }
+    }, [isCheckingAuth, user, router]);
 
     if (isCheckingAuth) {
         return (
@@ -32,7 +38,6 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
     }
 
     if (!user || user.role !== 'superadmin') {
-        if (typeof window !== 'undefined') router.push('/login?role=admin');
         return null;
     }
 
