@@ -100,13 +100,15 @@ export default function AuditLogViewerPage() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <div className="relative">
                         <User className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                        <input
-                            type="text"
-                            placeholder="Filter by Actor ID"
-                            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm outline-none focus:ring-2 focus:ring-orange-500/20"
-                            value={filters.actorId}
-                            onChange={(e) => setFilters(prev => ({ ...prev, actorId: e.target.value }))}
-                        />
+                        <select
+                            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm outline-none focus:ring-2 focus:ring-orange-500/20 appearance-none"
+                            value={filters.role}
+                            onChange={(e) => setFilters(prev => ({ ...prev, role: e.target.value }))}
+                        >
+                            <option value="">All Actors</option>
+                            <option value="admin">Admins Only</option>
+                            <option value="student">Students Only</option>
+                        </select>
                     </div>
                     <div className="relative">
                         <Database className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -122,14 +124,24 @@ export default function AuditLogViewerPage() {
                             <option value="User">Users</option>
                         </select>
                     </div>
-                    <div className="relative md:col-span-2">
+                    <div className="relative">
                         <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Search by action (e.g., 'Approved')"
+                            placeholder="Action (e.g., 'Approved')"
                             className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm outline-none focus:ring-2 focus:ring-orange-500/20"
                             value={filters.action}
                             onChange={(e) => setFilters(prev => ({ ...prev, action: e.target.value }))}
+                        />
+                    </div>
+                    <div className="relative">
+                        <User className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Actor ID"
+                            className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm outline-none focus:ring-2 focus:ring-orange-500/20"
+                            value={filters.actorId}
+                            onChange={(e) => setFilters(prev => ({ ...prev, actorId: e.target.value }))}
                         />
                     </div>
                 </div>
@@ -160,7 +172,7 @@ export default function AuditLogViewerPage() {
                                         <td colSpan={6} className="px-6 py-20 text-center text-slate-500">No logs found matching your criteria.</td>
                                     </tr>
                                 ) : (
-                                    logs.map((log) => (
+                                    logs.map((log: any) => (
                                         <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex flex-col">
@@ -170,11 +182,22 @@ export default function AuditLogViewerPage() {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="h-7 w-7 rounded bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-[#F26C22] font-bold text-[10px]">
+                                                    <div className={`h-7 w-7 rounded flex items-center justify-center font-bold text-[10px] ${
+                                                        log.actor_role === 'admin' 
+                                                            ? 'bg-orange-100 text-[#F26C22] dark:bg-orange-900/30' 
+                                                            : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30'
+                                                    }`}>
                                                         {log.actor_name.charAt(0)}
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="font-bold text-slate-900 dark:text-white">{log.actor_name}</span>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="font-bold text-slate-900 dark:text-white">{log.actor_name}</span>
+                                                            <span className={`text-[8px] font-black uppercase tracking-tighter px-1 rounded ${
+                                                                log.actor_role === 'admin' 
+                                                                    ? 'bg-[#F26C22] text-white' 
+                                                                    : 'bg-blue-500 text-white'
+                                                            }`}>{log.actor_role || 'System'}</span>
+                                                        </div>
                                                         <span className="text-[10px] text-slate-400 font-mono italic">{log.actor_id}</span>
                                                     </div>
                                                 </div>

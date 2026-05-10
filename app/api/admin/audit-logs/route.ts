@@ -13,30 +13,39 @@ export async function GET(request: Request) {
         const actorId = searchParams.get('actorId');
         const entityType = searchParams.get('entityType');
         const action = searchParams.get('action');
+        const role = searchParams.get('role');
         const limit = parseInt(searchParams.get('limit') || '50');
 
-        let query = 'SELECT * FROM audit_logs';
+        let query = `
+            SELECT al.*, u.role as actor_role 
+            FROM audit_logs al
+            LEFT JOIN users u ON al.actor_id = u.id
+        `;
         let params: any[] = [];
         let whereClauses: string[] = [];
 
         if (actorId) {
-            whereClauses.push('actor_id = ?');
+            whereClauses.push('al.actor_id = ?');
             params.push(actorId);
         }
         if (entityType) {
-            whereClauses.push('entity_type = ?');
+            whereClauses.push('al.entity_type = ?');
             params.push(entityType);
         }
         if (action) {
-            whereClauses.push('action LIKE ?');
+            whereClauses.push('al.action LIKE ?');
             params.push(`%${action}%`);
+        }
+        if (role) {
+            whereClauses.push('u.role = ?');
+            params.push(role);
         }
 
         if (whereClauses.length > 0) {
             query += ' WHERE ' + whereClauses.join(' AND ');
         }
 
-        query += ' ORDER BY created_at DESC LIMIT ?';
+        query += ' ORDER BY al.created_at DESC LIMIT ?';
         params.push(limit);
 
         const [rows]: any = await pool.query(query, params);
