@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Settings, Bell } from 'lucide-react';
 import Link from 'next/link';
@@ -9,6 +9,9 @@ import Link from 'next/link';
 export default function AdminNavbar() {
     const { user, logout } = useAuth();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const activeTab = searchParams.get('tab') || 'overview';
 
     const navLinks = [
         { name: 'Overview', path: '/admin' },
@@ -30,11 +33,21 @@ export default function AdminNavbar() {
 
                 <div className="flex items-center gap-6">
                     {navLinks.map((link) => {
-                        const isActive = pathname === link.path;
+                        // Overview is only "active" if we are on /admin AND tab is overview (or no tab)
+                        const isActive = link.path === '/admin' 
+                            ? (pathname === '/admin' && activeTab === 'overview')
+                            : pathname === link.path;
+
                         return (
                             <Link
                                 key={link.path}
                                 href={link.path}
+                                onClick={(e) => {
+                                    if (link.path === '/admin') {
+                                        e.preventDefault();
+                                        router.push('/admin'); // This will clear query params
+                                    }
+                                }}
                                 className={`text-xs font-bold transition-all uppercase tracking-widest ${
                                     isActive 
                                         ? 'text-slate-900 dark:text-white border-b-2 border-[#F26C22] pb-1' 

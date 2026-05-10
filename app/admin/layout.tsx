@@ -8,14 +8,26 @@ import AdminSidebar from '@/components/layout/AdminSidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Bell, Search, Clock } from 'lucide-react';
 import AdminNavbar from '@/components/layout/AdminNavbar';
+import { useSearchParams } from 'next/navigation';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-slate-50 dark:bg-slate-950" />}>
+            <AdminLayoutContent>{children}</AdminLayoutContent>
+        </Suspense>
+    );
+}
+
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
     const { applications, complaints, courtBookings, roomChangeRequests } = useData();
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false);
+
+    const activeTab = searchParams.get('tab') || (pathname === '/admin' ? 'overview' : undefined);
 
     useEffect(() => {
         const timer = setTimeout(() => setIsCheckingAuth(false), 500);
@@ -46,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-foreground transition-colors duration-300">
             {/* Sidebar */}
             <AdminSidebar 
-                activeTab={pathname === '/admin' ? 'dashboard' : undefined} 
+                activeTab={activeTab} 
                 counts={counts}
                 isCollapsed={isCollapsed}
                 setIsCollapsed={setIsCollapsed}

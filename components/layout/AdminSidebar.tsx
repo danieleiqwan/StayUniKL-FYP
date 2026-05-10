@@ -43,7 +43,8 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
     const router = useRouter();
 
     const menuItems = [
-        { id: 'dashboard', label: 'Analytics', icon: BarChart3, path: '/admin/reports' },
+        { id: 'overview', label: 'Overview', icon: LayoutDashboard, tab: 'overview' },
+        { id: 'dashboard', label: 'Detailed Reports', icon: BarChart3, path: '/admin/reports' },
         { id: 'applications', label: 'Student Applications', icon: FileText, tab: 'applications' },
         { id: 'complaints', label: 'Facility Complaints', icon: Wrench, tab: 'complaints' },
         { id: 'facilities', label: 'Sport & Facilities', icon: CalendarDays, tab: 'facilities' },
