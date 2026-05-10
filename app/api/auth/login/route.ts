@@ -26,9 +26,13 @@ export async function POST(request: Request) {
 
         const { email, password, role, rememberMe } = validation.data;
 
+        // Allow superadmin to log in when 'admin' role is selected
+        const roleQuery = role === 'admin' ? "('admin', 'superadmin')" : "(?)";
+        const queryParams = role === 'admin' ? [email] : [email, role];
+
         const [rows]: any = await pool.query(
-            'SELECT * FROM users WHERE email = ? AND role = ?',
-            [email, role]
+            `SELECT * FROM users WHERE email = ? AND role IN ${roleQuery}`,
+            queryParams
         );
 
         if (rows.length === 0) {
