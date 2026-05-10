@@ -36,6 +36,7 @@ export default function AuditLogViewerPage() {
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
         actorId: '',
+        role: '',
         entityType: '',
         action: ''
     });
@@ -45,6 +46,7 @@ export default function AuditLogViewerPage() {
         try {
             const params = new URLSearchParams();
             if (filters.actorId) params.append('actorId', filters.actorId);
+            if (filters.role) params.append('role', filters.role);
             if (filters.entityType) params.append('entityType', filters.entityType);
             if (filters.action) params.append('action', filters.action);
             params.append('limit', '100');
