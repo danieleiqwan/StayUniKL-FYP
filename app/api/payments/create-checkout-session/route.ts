@@ -3,11 +3,12 @@ import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-01-27-acacia' as any,
-});
+const stripe = process.env.STRIPE_SECRET_KEY 
+    ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-01-27-acacia' as any })
+    : null;
 
 export async function POST(request: NextRequest) {
+    if (!stripe) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
     try {
         const { amount, description, metadata } = await request.json();
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';

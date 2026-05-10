@@ -5,13 +5,14 @@ import { logAction } from '@/lib/audit';
 import { createNotification } from '@/lib/notifications';
 import { headers } from 'next/headers';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2025-01-27-acacia' as any,
-});
+const stripe = process.env.STRIPE_SECRET_KEY 
+    ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-01-27-acacia' as any })
+    : null;
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+    if (!stripe) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
     const body = await request.text();
     const headersList = await headers();
     const signature = headersList.get('stripe-signature') || '';

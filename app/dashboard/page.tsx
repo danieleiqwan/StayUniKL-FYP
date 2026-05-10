@@ -58,41 +58,48 @@ function DashboardContent() {
     const bedLabel = myBed?.label || myApplication?.bedId;
     const displayRoom = myApplication?.roomId ? `${myApplication.roomId}${bedLabel ? '-' + bedLabel : ''}` : 'N/A';
 
-    const searchParams = useSearchParams();
     const [greeting, setGreeting] = useState('Welcome');
-    const [verifyingPayment, setVerifyingPayment] = useState(false);
 
     useEffect(() => {
         const hour = new Date().getHours();
         if (hour < 12) setGreeting('Good morning');
         else if (hour < 17) setGreeting('Good afternoon');
         else setGreeting('Good evening');
+    }, []);
 
-        // Verify Payment if returning from Stripe
-        const paymentStatus = searchParams.get('payment');
-        const sessionId = searchParams.get('session_id');
+    function PaymentVerifier() {
+        const searchParams = useSearchParams();
+        const router = useRouter();
+        const { refreshData } = useData();
+        const [verifying, setVerifying] = useState(false);
 
-        if (paymentStatus === 'success' && sessionId && !verifyingPayment) {
-            setVerifyingPayment(true);
-            const verify = async () => {
-                try {
-                    const res = await fetch(`/api/payments/verify-session?session_id=${sessionId}`);
-                    const data = await res.json();
-                    if (data.success) {
-                        alert('Payment confirmed! Your status has been updated.');
-                        // Clean up URL
-                        router.replace('/dashboard');
-                        refreshData();
+        useEffect(() => {
+            const paymentStatus = searchParams.get('payment');
+            const sessionId = searchParams.get('session_id');
+
+            if (paymentStatus === 'success' && sessionId && !verifying) {
+                setVerifying(true);
+                const verify = async () => {
+                    try {
+                        const res = await fetch(`/api/payments/verify-session?session_id=${sessionId}`);
+                        const data = await res.json();
+                        if (data.success) {
+                            alert('Payment confirmed! Your status has been updated.');
+                            router.replace('/dashboard');
+                            refreshData();
+                        }
+                    } catch (err) {
+                        console.error('Verification failed', err);
+                    } finally {
+                        setVerifying(false);
                     }
-                } catch (err) {
-                    console.error('Verification failed', err);
-                } finally {
-                    setVerifyingPayment(false);
-                }
-            };
-            verify();
-        }
-    }, [searchParams]);
+                };
+                verify();
+            }
+        }, [searchParams, verifying, router, refreshData]);
+
+        return null;
+    }
 
     const getComplaintStatusStyle = (status: string) => {
         if (status === 'Resolved') return { text: 'Resolved', cls: 'bg-emerald-100 text-emerald-700' };
@@ -151,6 +158,9 @@ function DashboardContent() {
 
     return (
         <div className="max-w-[1400px] mx-auto space-y-6">
+            <Suspense fallback={null}>
+                <PaymentVerifier />
+            </Suspense>
 
             {/* Payment Urgent Banner */}
             {isPaymentPending && (
@@ -533,9 +543,5 @@ function DashboardContent() {
 }
 
 export default function StudentDashboard() {
-    return (
-        <Suspense fallback={<div className="p-10 text-center opacity-50 text-sm">Loading dashboard...</div>}>
-            <DashboardContent />
-        </Suspense>
-    );
+    return <DashboardContent />;
 }
