@@ -42,7 +42,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
         roomChanges: (roomChangeRequests || []).filter(r => r.status === 'Pending Review').length
     }), [applications, complaints, courtBookings, roomChangeRequests]);
 
-    if (!user || user.role !== 'admin') {
+    if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
         if (isCheckingAuth) {
             return (
                 <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 animate-pulse text-slate-400 font-bold uppercase tracking-widest text-xs">

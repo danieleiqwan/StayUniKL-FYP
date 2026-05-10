@@ -1,0 +1,145 @@
+import { NextResponse } from 'next/server';
+import pool from '@/lib/db';
+import { isSuperAdmin } from '@/lib/auth';
+import { logAction } from '@/lib/audit';
+import bcrypt from 'bcryptjs';
+
+// GET: List all admin staff members
+export async function GET() {
+    const superadmin = await isSuperAdmin();
+    if (!superadmin) {
+        return NextResponse.json({ error: 'Forbidden: Superadmin access required' }, { status: 403 });
+    }
+
+    try {
+        const [rows]: any = await pool.query(
+            `SELECT id, name, email, role, is_active, last_login, created_at
+             FROM users
+             WHERE role IN ('admin', 'superadmin')
+             ORDER BY role DESC, created_at DESC`
+        );
+        return NextResponse.json({ staff: rows });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}
+
+// POST: Create a new admin account
+export async function POST(request: Request) {
+    const superadmin = await isSuperAdmin();
+    if (!superadmin) {
+        return NextResponse.json({ error: 'Forbidden: Superadmin access required' }, { status: 403 });
+    }
+
+    try {
+        const { name, email, password } = await request.json();
+
+        if (!name || !email || !password) {
+            return NextResponse.json({ error: 'name, email and password are required.' }, { status: 400 });
+        }
+        if (password.length < 8) {
+            return NextResponse.json({ error: 'Password must be at least 8 characters.' }, { status: 400 });
+        }
+
+        const [existing]: any = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+        if (existing.length > 0) {
+            return NextResponse.json({ error: 'This email is already registered.' }, { status: 409 });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const id = `admin_${Date.now()}`;
+
+        await pool.query(
+            `INSERT INTO users (id, name, email, password, role, is_active, created_at)
+             VALUES (?, ?, ?, ?, 'admin', 1, NOW())`,
+            [id, name, email, hashedPassword]
+        );
+
+        await logAction({
+            actorId: superadmin.id,
+            actorName: superadmin.email,
+            action: 'ADMIN_ACCOUNT_CREATED',
+            entityType: 'User',
+            entityId: id,
+            details: { name, email }
+        });
+
+        return NextResponse.json({ success: true, message: `Admin account created for ${email}.`, id });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}
+
+// PATCH: Update admin status (ACTIVE, SUSPENDED, DEACTIVATED) or reset password
+export async function PATCH(request: Request) {
+    const superadmin = await isSuperAdmin();
+    if (!superadmin) {
+        return NextResponse.json({ error: 'Forbidden: Superadmin access required' }, { status: 403 });
+    }
+
+    try {
+        const { id, action, newPassword, name, email } = await request.json();
+        if (!id || !action) {
+            return NextResponse.json({ error: 'id and action are required.' }, { status: 400 });
+        }
+
+        // Prevent superadmin from modifying their own account via this endpoint
+        if (id === superadmin.id) {
+            return NextResponse.json({ error: 'You cannot modify your own superadmin account via this panel.' }, { status: 403 });
+        }
+
+        // Prevent privilege escalation: ensure the target is only an 'admin'
+        const [targetRows]: any = await pool.query('SELECT role FROM users WHERE id = ?', [id]);
+        if (targetRows.length === 0) return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+        if (targetRows[0].role === 'superadmin') {
+            return NextResponse.json({ error: 'Cannot modify another superadmin account.' }, { status: 403 });
+        }
+
+        let auditAction = '';
+
+        switch (action) {
+            case 'SUSPEND':
+                await pool.query('UPDATE users SET is_active = 0 WHERE id = ?', [id]);
+                auditAction = 'ADMIN_ACCOUNT_SUSPENDED';
+                break;
+            case 'ACTIVATE':
+                await pool.query('UPDATE users SET is_active = 1 WHERE id = ?', [id]);
+                auditAction = 'ADMIN_ACCOUNT_ACTIVATED';
+                break;
+            case 'DEACTIVATE':
+                await pool.query('UPDATE users SET is_active = 0 WHERE id = ?', [id]);
+                auditAction = 'ADMIN_ACCOUNT_DEACTIVATED';
+                break;
+            case 'RESET_PASSWORD':
+                if (!newPassword || newPassword.length < 8) {
+                    return NextResponse.json({ error: 'New password must be at least 8 characters.' }, { status: 400 });
+                }
+                const hashed = await bcrypt.hash(newPassword, 12);
+                await pool.query('UPDATE users SET password = ?, login_attempts = 0, locked_until = NULL WHERE id = ?', [hashed, id]);
+                auditAction = 'ADMIN_PASSWORD_RESET';
+                break;
+            case 'UPDATE_DETAILS':
+                if (!name && !email) {
+                    return NextResponse.json({ error: 'name or email required for update.' }, { status: 400 });
+                }
+                await pool.query('UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email) WHERE id = ?', [name || null, email || null, id]);
+                auditAction = 'ADMIN_DETAILS_UPDATED';
+                break;
+            default:
+                return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
+        }
+
+        await logAction({
+            actorId: superadmin.id,
+            actorName: superadmin.email,
+            action: auditAction,
+            entityType: 'User',
+            entityId: id,
+            details: { action }
+        });
+
+        return NextResponse.json({ success: true });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
+}

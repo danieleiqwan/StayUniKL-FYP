@@ -17,6 +17,13 @@ export async function GET() {
     }
 
     try {
+        await pool.query('ALTER TABLE users ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1');
+        results.push('✅ Added is_active column to users table');
+    } catch (e: any) {
+        results.push(`ℹ️ is_active: ${e.message}`);
+    }
+
+    try {
         await pool.query("ALTER TABLE users MODIFY COLUMN role ENUM('student', 'admin', 'superadmin') NOT NULL DEFAULT 'student'");
         results.push('✅ Updated role ENUM to include superadmin');
     } catch (e: any) {

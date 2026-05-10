@@ -52,7 +52,9 @@ export async function middleware(request: NextRequest) {
     }
 
     // 1. Define protected paths
-    const isSuperAdminPath = pathname.startsWith('/superadmin') || pathname.startsWith('/api/superadmin');
+    const isSuperAdminPath = (pathname.startsWith('/superadmin') || pathname.startsWith('/api/superadmin')) && 
+                             !pathname.includes('/api/superadmin/bootstrap') && 
+                             !pathname.includes('/api/superadmin/migrate');
     const isAdminPath = (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) && !isSuperAdminPath;
     const isDashboardPath = pathname.startsWith('/dashboard') || pathname.startsWith('/api/applications') || pathname.startsWith('/api/complaints') || pathname.startsWith('/api/court');
     const isAuthPath = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/forgot-password') || pathname.startsWith('/reset-password');

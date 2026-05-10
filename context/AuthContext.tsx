@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-type UserRole = 'student' | 'admin' | null;
+type UserRole = 'student' | 'admin' | 'superadmin' | null;
 
 interface User {
     id: string;
@@ -35,7 +35,7 @@ interface User {
 
 interface AuthContextType {
     user: User | null;
-    login: (role: 'student' | 'admin', email?: string, password?: string, rememberMe?: boolean) => void;
+    login: (role: 'student' | 'admin' | 'superadmin', email?: string, password?: string, rememberMe?: boolean) => void;
     register: (name: string, studentId: string | undefined, nric: string, email: string, gender: 'Male' | 'Female', password: string, nationality: string, dob?: string) => Promise<boolean>;
     logout: () => void;
     updateProfile: (updates: Partial<User>) => void;
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
     }, [user]);
 
-    const login = async (role: 'student' | 'admin', email?: string, password?: string, rememberMe: boolean = false) => {
+    const login = async (role: 'student' | 'admin' | 'superadmin', email?: string, password?: string, rememberMe: boolean = false) => {
         if (!email) {
             alert("Email is required for login");
             return;
@@ -119,8 +119,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(data.user);
             localStorage.setItem('stayunikl_user', JSON.stringify(data.user)); // Keep session locally
 
-            if (role === 'student') router.push('/dashboard');
-            else router.push('/admin');
+            // Use server-provided redirect path to correctly route superadmin, admin, and students
+            const destination = data.redirectTo || (role === 'student' ? '/dashboard' : '/admin');
+            router.push(destination);
 
         } catch (error) {
             console.error(error);
