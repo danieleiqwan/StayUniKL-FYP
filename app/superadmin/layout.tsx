@@ -12,10 +12,16 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false);
 
+    // CRITICAL FIX: Only run once on mount with empty deps [].
+    // Previously this depended on [user], so every AuthContext re-render
+    // (e.g. triggered by clicking a button that makes an API call) would
+    // reset isCheckingAuth to true, conditionally return the loading spinner,
+    // and UNMOUNT {children} — wiping the StaffManagementPage's entire state.
     useEffect(() => {
         const timer = setTimeout(() => setIsCheckingAuth(false), 800);
         return () => clearTimeout(timer);
-    }, [user]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // ← Empty: only fire once on initial page load
 
     useEffect(() => {
         if (!isCheckingAuth && (!user || user.role !== 'superadmin')) {
@@ -23,27 +29,28 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
         }
     }, [isCheckingAuth, user, router]);
 
-    if (isCheckingAuth) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-white dark:bg-slate-950 transition-colors">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center animate-pulse">
-                        <span className="text-amber-500 text-xl font-bold">⬡</span>
-                    </div>
-                    <p className="text-[10px] font-black text-zinc-400 dark:text-slate-600 uppercase tracking-[0.3em] animate-pulse">
-                        Verifying Authority...
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
-    if (!user || user.role !== 'superadmin') {
+    // If definitely not authorised (after check), render nothing while redirecting
+    if (!isCheckingAuth && (!user || user.role !== 'superadmin')) {
         return null;
     }
 
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 text-zinc-900 dark:text-white flex transition-colors duration-500">
+            {/* Auth overlay — rendered ON TOP of children, never instead of them.
+                This means children stay mounted and never lose their state. */}
+            {isCheckingAuth && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-white dark:bg-slate-950 transition-colors">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center animate-pulse">
+                            <span className="text-amber-500 text-xl font-bold">⬡</span>
+                        </div>
+                        <p className="text-[10px] font-black text-zinc-400 dark:text-slate-600 uppercase tracking-[0.3em] animate-pulse">
+                            Verifying Authority...
+                        </p>
+                    </div>
+                </div>
+            )}
+
             <SuperAdminSidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
             <main className={cn(
                 "flex-1 min-h-screen flex flex-col transition-all duration-500",
