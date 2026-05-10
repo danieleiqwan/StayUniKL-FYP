@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import {
     CreditCard, CheckCircle2, Clock, AlertCircle, RefreshCw,
     Filter, FileText, Users, Banknote, TrendingUp, X,
-    ChevronDown, Receipt, Zap, Plus
+    ChevronDown, Receipt, Zap, Plus, Search, UserCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -68,6 +68,27 @@ export default function AdminBillingPage() {
     const [newInvoice, setNewInvoice] = useState({
         userId: '', type: 'Hostel Fee', description: '', amount: '', dueDate: ''
     });
+    const [verifiedUser, setVerifiedUser] = useState<{name: string, email: string, gender: string} | null>(null);
+    const [verifying, setVerifying] = useState(false);
+
+    const handleVerifyStudent = async () => {
+        if (!newInvoice.userId) return;
+        setVerifying(true);
+        setVerifiedUser(null);
+        try {
+            const res = await fetch(`/api/user/${newInvoice.userId}`);
+            const data = await res.json();
+            if (data.success) {
+                setVerifiedUser(data.user);
+            } else {
+                alert(data.error || 'Student not found.');
+            }
+        } catch (err) {
+            alert('Error verifying student.');
+        } finally {
+            setVerifying(false);
+        }
+    };
 
     const fetchData = async () => {
         setLoading(true);
@@ -137,6 +158,7 @@ export default function AdminBillingPage() {
             if (data.success) {
                 setShowCreate(false);
                 setNewInvoice({ userId: '', type: 'Hostel Fee', description: '', amount: '', dueDate: '' });
+                setVerifiedUser(null);
                 await fetchData();
             } else {
                 alert(data.error || 'Failed to create invoice.');
@@ -443,13 +465,39 @@ export default function AdminBillingPage() {
                         <div className="p-6 space-y-4">
                             <div>
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Student ID *</label>
-                                <input
-                                    value={newInvoice.userId}
-                                    onChange={e => setNewInvoice(p => ({ ...p, userId: e.target.value }))}
-                                    placeholder="e.g. STU-12345"
-                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
-                                />
+                                <div className="flex gap-2">
+                                    <input
+                                        value={newInvoice.userId}
+                                        onChange={e => {
+                                            setNewInvoice(p => ({ ...p, userId: e.target.value }));
+                                            setVerifiedUser(null);
+                                        }}
+                                        placeholder="e.g. STU-12345"
+                                        className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
+                                    />
+                                    <button 
+                                        onClick={handleVerifyStudent}
+                                        disabled={verifying || !newInvoice.userId}
+                                        className="px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all border border-slate-200 dark:border-slate-700"
+                                    >
+                                        <Search className={cn("h-4 w-4 text-slate-500", verifying && "animate-spin")} />
+                                    </button>
+                                </div>
                             </div>
+
+                            {verifiedUser && (
+                                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-xl p-4 animate-in fade-in zoom-in-95 duration-300">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-emerald-600 shadow-sm">
+                                            <UserCheck className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-1">{verifiedUser.name}</p>
+                                            <p className="text-[10px] text-slate-500 dark:text-slate-400">{verifiedUser.email} · {verifiedUser.gender}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             <div>
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Type</label>
                                 <select
@@ -500,10 +548,10 @@ export default function AdminBillingPage() {
                             >
                                 Cancel
                             </button>
-                            <button
+                             <button
                                 onClick={handleCreateInvoice}
-                                disabled={creating}
-                                className="flex-1 py-3 rounded-xl font-black text-sm text-white bg-[#F26C22] hover:bg-[#d65a16] transition-all active:scale-95 disabled:opacity-60"
+                                disabled={creating || !verifiedUser}
+                                className="flex-1 py-3 rounded-xl font-black text-sm text-white bg-[#F26C22] hover:bg-[#d65a16] transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
                             >
                                 {creating ? 'Creating...' : 'Create Invoice'}
                             </button>
