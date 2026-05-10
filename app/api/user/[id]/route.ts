@@ -28,7 +28,7 @@ export async function GET(
 
         // Fetch current active application/room info
         const [appRows]: any = await pool.query(
-            'SELECT roomId, floorId, bedId, roomType, status FROM applications WHERE studentId = ? AND status IN ("Approved", "Checked in", "Payment Pending") ORDER BY date DESC LIMIT 1',
+            'SELECT room_id as roomId, floor_id as floorId, bed_id as bedId, room_type as roomType, status FROM applications WHERE student_id = ? AND status IN ("Approved", "Checked in", "Payment Pending") ORDER BY date DESC LIMIT 1',
             [targetId]
         );
 
