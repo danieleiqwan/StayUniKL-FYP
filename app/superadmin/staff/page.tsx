@@ -286,6 +286,10 @@ export default function StaffManagementPage() {
 
             {/* Staff Table */}
             <div className="rounded-3xl border overflow-hidden bg-white dark:bg-white/[0.01] border-zinc-200 dark:border-zinc-800/50 shadow-sm dark:shadow-none">
+                {/* DEBUG BADGE — remove after fix confirmed */}
+                <div className="px-4 py-1 text-[10px] font-mono bg-yellow-100 text-yellow-800">
+                    DEBUG: staff={staff.length} filtered={filteredStaff.length} loading={loading.toString()} modal={modal.type||'none'}
+                </div>
                 {/* Table Header */}
                 <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b bg-zinc-50/50 dark:bg-transparent text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest border-zinc-200 dark:border-zinc-800/50">
                     <div className="col-span-3">Name</div>
