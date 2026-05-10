@@ -271,7 +271,26 @@ function ScannerMode() {
                 
                 const data = await res.json();
                 
-                if (data.success) {
+                if (data.requiresConfirmation) {
+                    // Admin warning for early check-in
+                    const confirmed = window.confirm(data.message);
+                    if (confirmed) {
+                        const forceRes = await fetch(endpoint, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ token: decodedText, forceEarlyCheckin: true })
+                        });
+                        const forceData = await forceRes.json();
+                        
+                        if (forceData.success) {
+                            setScanResult({ success: true, message: forceData.message, student: forceData.student });
+                        } else {
+                            setScanResult({ success: false, message: forceData.error });
+                        }
+                    } else {
+                        setScanResult({ success: false, message: "Early check-in cancelled by Administrator." });
+                    }
+                } else if (data.success) {
                     setScanResult({ success: true, message: data.message, student: data.student });
                 } else {
                     setScanResult({ success: false, message: data.error });

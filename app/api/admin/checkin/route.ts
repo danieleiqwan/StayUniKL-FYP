@@ -76,7 +76,7 @@ export async function PUT(request: Request) {
         }
 
         const body = await request.json();
-        const { token } = body;
+        const { token, forceEarlyCheckin } = body;
 
         if (!token) {
             return NextResponse.json({ error: 'Token is required' }, { status: 400 });
@@ -143,6 +143,27 @@ export async function PUT(request: Request) {
              // Token shouldn't exist ideally, but let's clean up
              await pool.query("DELETE FROM checkin_tokens WHERE token = ?", [token]);
              return NextResponse.json({ error: 'Student is already checked in' }, { status: 400 });
+        }
+
+        // EARLY CHECK-IN VALIDATION
+        if (!forceEarlyCheckin) {
+            const [semesterRows]: any = await pool.query('SELECT name, start_date FROM semesters WHERE is_active = 1 LIMIT 1');
+            if (semesterRows.length > 0) {
+                const activeSemester = semesterRows[0];
+                const startDate = new Date(activeSemester.start_date);
+                const today = new Date();
+                
+                // Compare dates (ignoring time)
+                today.setHours(0, 0, 0, 0);
+                startDate.setHours(0, 0, 0, 0);
+
+                if (today < startDate) {
+                    return NextResponse.json({ 
+                        requiresConfirmation: true, 
+                        message: `WARNING: The ${activeSemester.name} semester does not start until ${startDate.toLocaleDateString()}. Do you want to process an early check-in for ${app.student_name}?` 
+                    });
+                }
+            }
         }
 
         // 3. Mark as Checked in (TRANSACTIONAL)
