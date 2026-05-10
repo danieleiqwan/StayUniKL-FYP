@@ -76,6 +76,7 @@ export default function StaffManagementPage() {
         setForm({ name: '', email: '', password: '' });
         setNewPassword('');
         setShowPassword(false);
+        setSearch(''); // Clear any autofill contamination of the search input
     };
 
     const handleAction = async () => {
@@ -280,6 +281,7 @@ export default function StaffManagementPage() {
                     placeholder="Search by name or email..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
+                    autoComplete="off"
                     className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm bg-zinc-50 dark:bg-slate-900/40 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-colors shadow-sm dark:shadow-none"
                 />
             </div>
@@ -354,12 +356,14 @@ export default function StaffManagementPage() {
                                     <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest block mb-2">Full Name</label>
                                     <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                                         placeholder="e.g. Ahmad Razif"
+                                        autoComplete="off"
                                         className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-slate-950 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-slate-600 text-sm focus:outline-none focus:border-amber-500/50 transition-colors" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-black text-zinc-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Email Address</label>
                                     <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                                         placeholder="admin@stayunikl.edu.my"
+                                        autoComplete="off"
                                         className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-slate-950 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-slate-600 text-sm focus:outline-none focus:border-amber-500/50 transition-colors" />
                                 </div>
                                 {modal.type === 'create' && (
@@ -368,6 +372,7 @@ export default function StaffManagementPage() {
                                         <div className="relative">
                                             <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                                                 placeholder="••••••••••••"
+                                                autoComplete="new-password"
                                                 className="w-full px-4 py-3 pr-12 rounded-xl bg-zinc-50 dark:bg-slate-950 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-slate-600 text-sm focus:outline-none focus:border-amber-500/50 transition-colors" />
                                             <button type="button" onClick={() => setShowPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-slate-300 transition-colors">
                                                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -384,6 +389,7 @@ export default function StaffManagementPage() {
                                 <div className="relative">
                                     <input type={showPassword ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)}
                                         placeholder="••••••••••••"
+                                        autoComplete="new-password"
                                         className="w-full px-4 py-3 pr-12 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 text-sm focus:outline-none focus:border-amber-500/50 transition-colors" />
                                     <button type="button" onClick={() => setShowPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors">
                                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
