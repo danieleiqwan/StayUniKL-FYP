@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import {
     CreditCard, CheckCircle2, Clock, AlertCircle, RefreshCw,
@@ -61,10 +61,14 @@ export default function AdminBillingPage() {
     const [loading, setLoading] = useState(true);
     const [runningBilling, setRunningBilling] = useState(false);
     const [billingLog, setBillingLog] = useState<string[] | null>(null);
+    const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // Create invoice modal
     const [showCreate, setShowCreate] = useState(false);
     const [creating, setCreating] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
     const [newInvoice, setNewInvoice] = useState({
         userId: '', type: 'Hostel Fee', description: '', amount: '', dueDate: ''
     });
@@ -90,8 +94,9 @@ export default function AdminBillingPage() {
         }
     };
 
-    const fetchData = async () => {
-        setLoading(true);
+    const fetchData = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
+        else setIsRefreshing(true);
         try {
             // Fetch all invoices (admin)
             const invRes = await fetch('/api/billing/invoices?all=true');
@@ -101,18 +106,25 @@ export default function AdminBillingPage() {
             const payRes = await fetch('/api/payments?userId=admin');
             const payData = await payRes.json();
             if (payData.payments) setPayments(payData.payments);
+            setLastRefreshed(new Date());
         } catch (error) {
             console.error('Fetch error:', error);
         } finally {
             setLoading(false);
+            setIsRefreshing(false);
         }
-    };
+    }, []);
 
     useEffect(() => { 
         if (user && user.role === 'admin') {
-            fetchData(); 
+            fetchData();
+            // Auto-poll every 30 seconds to catch new payments
+            pollingRef.current = setInterval(() => fetchData(true), 30_000);
         }
-    }, [user]);
+        return () => {
+            if (pollingRef.current) clearInterval(pollingRef.current);
+        };
+    }, [user, fetchData]);
 
     if (!user || user.role !== 'admin') {
         return <div className="p-10 text-center font-bold text-rose-500">Access Denied. Admins only.</div>;
@@ -141,6 +153,12 @@ export default function AdminBillingPage() {
             alert('Student ID and amount are required.');
             return;
         }
+
+        if (!showConfirm) {
+            setShowConfirm(true);
+            return;
+        }
+
         setCreating(true);
         try {
             const res = await fetch('/api/billing/invoices', {
@@ -157,6 +175,7 @@ export default function AdminBillingPage() {
             const data = await res.json();
             if (data.success) {
                 setShowCreate(false);
+                setShowConfirm(false);
                 setNewInvoice({ userId: '', type: 'Hostel Fee', description: '', amount: '', dueDate: '' });
                 setVerifiedUser(null);
                 await fetchData();
@@ -232,13 +251,19 @@ export default function AdminBillingPage() {
                         <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Financial Management</h1>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Track invoices, statuses, and payment history across all students.</p>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex items-center gap-3">
+                        {lastRefreshed && (
+                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden md:block">
+                                Updated {lastRefreshed.toLocaleTimeString()}
+                            </span>
+                        )}
                         <button
-                            onClick={fetchData}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                            onClick={() => fetchData(false)}
+                            disabled={loading || isRefreshing}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-60"
                         >
-                            <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
-                            Refresh
+                            <RefreshCw className={cn("h-4 w-4", (loading || isRefreshing) && "animate-spin")} />
+                            {isRefreshing ? 'Syncing...' : 'Refresh'}
                         </button>
                         <button
                             onClick={handleRunAutoBilling}
@@ -457,103 +482,147 @@ export default function AdminBillingPage() {
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-800 overflow-hidden">
                         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider">Create Invoice</h3>
-                            <button onClick={() => setShowCreate(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white">
+                            <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                                {showConfirm ? 'Confirm Invoice' : 'Create Invoice'}
+                            </h3>
+                            <button onClick={() => { setShowCreate(false); setShowConfirm(false); }} className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
                         <div className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Student ID *</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        value={newInvoice.userId}
-                                        onChange={e => {
-                                            setNewInvoice(p => ({ ...p, userId: e.target.value }));
-                                            setVerifiedUser(null);
-                                        }}
-                                        placeholder="e.g. STU-12345"
-                                        className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
-                                    />
-                                    <button 
-                                        onClick={handleVerifyStudent}
-                                        disabled={verifying || !newInvoice.userId}
-                                        className="px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all border border-slate-200 dark:border-slate-700"
-                                    >
-                                        <Search className={cn("h-4 w-4 text-slate-500", verifying && "animate-spin")} />
-                                    </button>
-                                </div>
-                            </div>
+                            {showConfirm ? (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                    <div className="text-center py-2">
+                                        <div className="h-20 w-20 bg-orange-50 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white dark:border-slate-800 shadow-sm">
+                                            <Receipt className="h-10 w-10 text-[#F26C22]" />
+                                        </div>
+                                        <h4 className="text-lg font-black text-slate-900 dark:text-white leading-tight">Confirm Generation</h4>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Please verify the details below before proceeding.</p>
+                                    </div>
 
-                            {verifiedUser && (
-                                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-xl p-4 animate-in fade-in zoom-in-95 duration-300">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-emerald-600 shadow-sm">
-                                            <UserCheck className="h-5 w-5" />
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 space-y-4 border border-slate-100 dark:border-slate-800 shadow-inner">
+                                        <div className="flex justify-between items-start">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student</span>
+                                            <div className="text-right">
+                                                <p className="text-sm font-black text-slate-900 dark:text-white">{verifiedUser?.name}</p>
+                                                <p className="text-[10px] font-bold text-[#F26C22]">{newInvoice.userId}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-1">{verifiedUser.name}</p>
-                                            <p className="text-[10px] text-slate-500 dark:text-slate-400">{verifiedUser.email} · {verifiedUser.gender}</p>
+                                        <div className="flex justify-between items-center pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount</span>
+                                            <span className="text-lg font-black text-slate-900 dark:text-white">RM {parseFloat(newInvoice.amount).toFixed(2)}</span>
                                         </div>
+                                        <div className="flex justify-between items-center pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</span>
+                                            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{newInvoice.description || newInvoice.type}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200/50 dark:border-amber-800/50 rounded-xl p-3 flex gap-3 items-start">
+                                        <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                                        <p className="text-[10px] text-amber-700 dark:text-amber-400 font-bold leading-relaxed">
+                                            This action will generate a legally binding invoice for the student and trigger an automatic notification.
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Student ID *</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                value={newInvoice.userId}
+                                                onChange={e => {
+                                                    setNewInvoice(p => ({ ...p, userId: e.target.value }));
+                                                    setVerifiedUser(null);
+                                                }}
+                                                placeholder="e.g. STU-12345"
+                                                className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
+                                            />
+                                            <button 
+                                                onClick={handleVerifyStudent}
+                                                disabled={verifying || !newInvoice.userId}
+                                                className="px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all border border-slate-200 dark:border-slate-700"
+                                            >
+                                                <Search className={cn("h-4 w-4 text-slate-500", verifying && "animate-spin")} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {verifiedUser && (
+                                        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/50 rounded-xl p-4 animate-in fade-in zoom-in-95 duration-300">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center text-emerald-600 shadow-sm">
+                                                    <UserCheck className="h-5 w-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-1">{verifiedUser.name}</p>
+                                                    <p className="text-[10px] text-slate-500 dark:text-slate-400">{verifiedUser.email} · {verifiedUser.gender}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Type</label>
+                                        <select
+                                            value={newInvoice.type}
+                                            onChange={e => setNewInvoice(p => ({ ...p, type: e.target.value }))}
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
+                                        >
+                                            <option value="Hostel Fee">Hostel Fee</option>
+                                            <option value="Deposit">Deposit</option>
+                                            <option value="Fine">Fine</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Description</label>
+                                        <input
+                                            value={newInvoice.description}
+                                            onChange={e => setNewInvoice(p => ({ ...p, description: e.target.value }))}
+                                            placeholder="e.g. Monthly Rent - May 2026"
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Amount (RM) *</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={newInvoice.amount}
+                                            onChange={e => setNewInvoice(p => ({ ...p, amount: e.target.value }))}
+                                            placeholder="120.00"
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Due Date (optional)</label>
+                                        <input
+                                            type="date"
+                                            value={newInvoice.dueDate}
+                                            onChange={e => setNewInvoice(p => ({ ...p, dueDate: e.target.value }))}
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
+                                        />
                                     </div>
                                 </div>
                             )}
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Type</label>
-                                <select
-                                    value={newInvoice.type}
-                                    onChange={e => setNewInvoice(p => ({ ...p, type: e.target.value }))}
-                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
-                                >
-                                    <option value="Hostel Fee">Hostel Fee</option>
-                                    <option value="Deposit">Deposit</option>
-                                    <option value="Fine">Fine</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Description</label>
-                                <input
-                                    value={newInvoice.description}
-                                    onChange={e => setNewInvoice(p => ({ ...p, description: e.target.value }))}
-                                    placeholder="e.g. Monthly Rent - May 2026"
-                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Amount (RM) *</label>
-                                <input
-                                    type="number"
-                                    min="0"
-                                    step="0.01"
-                                    value={newInvoice.amount}
-                                    onChange={e => setNewInvoice(p => ({ ...p, amount: e.target.value }))}
-                                    placeholder="120.00"
-                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Due Date (optional)</label>
-                                <input
-                                    type="date"
-                                    value={newInvoice.dueDate}
-                                    onChange={e => setNewInvoice(p => ({ ...p, dueDate: e.target.value }))}
-                                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
-                                />
-                            </div>
                         </div>
                         <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex gap-3">
                             <button
-                                onClick={() => setShowCreate(false)}
+                                onClick={() => showConfirm ? setShowConfirm(false) : setShowCreate(false)}
                                 className="flex-1 py-3 rounded-xl font-black text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
                             >
-                                Cancel
+                                {showConfirm ? 'Go Back' : 'Cancel'}
                             </button>
                              <button
                                 onClick={handleCreateInvoice}
                                 disabled={creating || !verifiedUser}
-                                className="flex-1 py-3 rounded-xl font-black text-sm text-white bg-[#F26C22] hover:bg-[#d65a16] transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
+                                className={cn(
+                                    "flex-1 py-3 rounded-xl font-black text-sm text-white transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed",
+                                    showConfirm ? "bg-emerald-500 hover:bg-emerald-600 shadow-[0_4px_12px_rgba(16,185,129,0.3)]" : "bg-[#F26C22] hover:bg-[#d65a16] shadow-[0_4px_12px_rgba(242,108,34,0.3)]"
+                                )}
                             >
-                                {creating ? 'Creating...' : 'Create Invoice'}
+                                {creating ? 'Creating...' : showConfirm ? 'Confirm & Create' : 'Create Invoice'}
                             </button>
                         </div>
                     </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useData } from '@/context/DataContext';
 import { useRouter } from 'next/navigation';
 import LiveClock from '@/components/admin/LiveClock';
 import StudentDetailModal from '@/components/admin/StudentDetailModal';
@@ -11,9 +12,11 @@ import {
     ArrowUpDown, Download, Plus, CheckCircle
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 export default function StudentsDirectoryPage() {
     const { user } = useAuth();
+    const { updateApplicationStatus } = useData();
     const router = useRouter();
     const [students, setStudents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -319,7 +322,26 @@ export default function StudentsDirectoryPage() {
                                                     >
                                                         <Eye className="h-4.5 w-4.5" />
                                                     </button>
-                                                    <button className="p-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl text-slate-400 hover:text-emerald-600 transition-all border border-slate-100 dark:border-slate-800">
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (s.latest_application_id && s.latest_status === 'Approved') {
+                                                                if (confirm(`Manual Check-in: Confirm ${s.name} into their assigned room?`)) {
+                                                                    updateApplicationStatus(s.latest_application_id, 'Checked in').then(() => fetchStudents());
+                                                                }
+                                                            } else if (s.latest_status === 'Checked in') {
+                                                                alert(`${s.name} is already checked in.`);
+                                                            } else {
+                                                                alert(`No approved application found for ${s.name}. Please approve their application first in the main dashboard.`);
+                                                            }
+                                                        }}
+                                                        title="Quick Check-in"
+                                                        className={cn(
+                                                            "p-2.5 rounded-xl transition-all border",
+                                                            s.latest_status === 'Approved' 
+                                                                ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border-emerald-100 dark:border-emerald-800 shadow-sm shadow-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-900/30" 
+                                                                : "bg-slate-50 dark:bg-slate-800 text-slate-400 border-slate-100 dark:border-slate-800 hover:bg-slate-100"
+                                                        )}
+                                                    >
                                                         <CheckCircle className="h-4.5 w-4.5" />
                                                     </button>
                                                 </div>
