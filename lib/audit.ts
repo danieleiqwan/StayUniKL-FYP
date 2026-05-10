@@ -1,4 +1,5 @@
 import pool from './db';
+import { sendCriticalErrorAlert } from './email';
 
 export interface AuditLogEntry {
     actorId: string;
@@ -50,4 +51,26 @@ export async function logAction(entry: AuditLogEntry) {
         console.error('[AuditLog Error]', error);
         return false;
     }
+}
+
+/**
+ * Reports a critical system error by logging it to the audit trail and 
+ * sending an immediate email alert to the administrator.
+ */
+export async function reportCriticalError(error: any, context: { path: string; userId?: string; userName?: string; details?: any }) {
+    // 1. Log to database for permanent record
+    await logAction({
+        actorId: context.userId || 'SYSTEM',
+        actorName: context.userName || 'System Monitor',
+        action: 'CRITICAL_SYSTEM_ERROR',
+        entityType: 'SYSTEM',
+        details: {
+            errorMessage: error instanceof Error ? error.message : String(error),
+            path: context.path,
+            ...context.details
+        }
+    });
+
+    // 2. Send immediate email alert
+    await sendCriticalErrorAlert(error, context);
 }

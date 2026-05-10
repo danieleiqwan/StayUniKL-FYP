@@ -5,6 +5,7 @@ import nodemailer from 'nodemailer';
 // SMTP_PORT=587
 // SMTP_USER=your_email@gmail.com
 // SMTP_PASS=your_app_password
+// ADMIN_EMAIL=admin@stayunikl.com
 // 
 // Note for Gmail: You must generate an "App Password" in your Google Account Security settings.
 // Do not use your regular Gmail password.
@@ -18,6 +19,61 @@ const transporter = nodemailer.createTransport({
         pass: process.env.SMTP_PASS,
     },
 });
+
+/**
+ * Sends an urgent alert email to the administrator when a critical system error occurs.
+ */
+export const sendCriticalErrorAlert = async (error: any, context: { path: string; userId?: string; details?: any }) => {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    
+    if (!adminEmail || !process.env.SMTP_USER) {
+        console.warn('⚠️ ALERT SYSTEM: ADMIN_EMAIL or SMTP_USER not set. Alert logged to console instead:');
+        console.error(`[CRITICAL ERROR ALERT] Path: ${context.path}`, error);
+        return;
+    }
+
+    const errorStack = error instanceof Error ? error.stack : 'No stack trace available';
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    const mailOptions = {
+        from: `"StayUniKL System Monitor" <${process.env.SMTP_USER}>`,
+        to: adminEmail,
+        subject: `🚨 CRITICAL ERROR: StayUniKL Production (${context.path})`,
+        priority: 'high' as const,
+        html: `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #fff1f2; border: 2px solid #e11d48; border-radius: 12px;">
+                <h2 style="color: #be123c; margin-top: 0; display: flex; align-items: center;">
+                    <span style="font-size: 24px; margin-right: 10px;">🚨</span> 
+                    Critical System Error Detected
+                </h2>
+                <div style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(190, 18, 60, 0.1);">
+                    <p style="margin: 0 0 10px 0;"><strong>Error Message:</strong> <span style="color: #e11d48; font-family: monospace;">${errorMessage}</span></p>
+                    <p style="margin: 0 0 10px 0;"><strong>Timestamp:</strong> ${new Date().toLocaleString()}</p>
+                    <p style="margin: 0 0 10px 0;"><strong>Impacted Path:</strong> <code>${context.path}</code></p>
+                    <p style="margin: 0 0 10px 0;"><strong>User ID:</strong> ${context.userId || 'Guest/System'}</p>
+                    
+                    <h4 style="color: #475569; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Error Details / Stack Trace</h4>
+                    <pre style="background-color: #1e293b; color: #f1f5f9; padding: 15px; border-radius: 6px; font-size: 11px; overflow-x: auto; line-height: 1.4;">${errorStack}</pre>
+                    
+                    ${context.details ? `
+                        <h4 style="color: #475569; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Contextual Data</h4>
+                        <pre style="background-color: #f8fafc; color: #334155; padding: 15px; border-radius: 6px; font-size: 11px; border: 1px solid #e2e8f0;">${JSON.stringify(context.details, null, 2)}</pre>
+                    ` : ''}
+                </div>
+                <p style="color: #9f1239; font-size: 11px; margin-top: 15px; text-align: center;">
+                    This is an automated alert from the StayUniKL monitoring system. Please investigate immediately.
+                </p>
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`[Alert System] Critical error alert sent to ${adminEmail}`);
+    } catch (alertError) {
+        console.error('[Alert System] Failed to send email alert:', alertError);
+    }
+};
 
 export const sendPasswordResetEmail = async (to: string, resetLink: string) => {
     // If SMTP_USER is not configured, we just log a warning instead of crashing

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import pool from '@/lib/db';
-import { logAction } from '@/lib/audit';
+import { logAction, reportCriticalError } from '@/lib/audit';
 import { createNotification } from '@/lib/notifications';
 import { headers } from 'next/headers';
 
@@ -89,9 +89,23 @@ export async function POST(request: NextRequest) {
 
                 console.log(`[Webhook] Payment successful for User ${userId}, Session ${session.id}`);
 
-            } catch (dbError) {
+            } catch (dbError: any) {
                 console.error('[Webhook DB Error]', dbError);
-                return NextResponse.json({ error: 'Database update failed' }, { status: 500 });
+                
+                // CRITICAL: Stripe has the money, but our DB failed. Notify admin immediately!
+                await reportCriticalError(dbError, {
+                    path: '/api/payments/webhook',
+                    userId: metadata.userId,
+                    userName: 'System (Stripe Webhook)',
+                    details: {
+                        stripeSessionId: session.id,
+                        stripePaymentId: session.payment_intent,
+                        metadata: metadata,
+                        attemptedAmount: session.amount_total! / 100
+                    }
+                });
+
+                return NextResponse.json({ error: 'Database update failed - Admin Notified' }, { status: 500 });
             }
         }
     }
