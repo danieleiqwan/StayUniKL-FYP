@@ -24,6 +24,7 @@ export default function StudentsDirectoryPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
     const [residencyFilter, setResidencyFilter] = useState('All');
+    const [nationalityFilter, setNationalityFilter] = useState('All');
     const [floorFilter, setFloorFilter] = useState('All Floors');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
@@ -70,9 +71,12 @@ export default function StudentsDirectoryPage() {
             const matchesFloor = floorFilter === 'All Floors' || 
                 (s.room_id && s.room_id.toString().startsWith(floorFilter.replace('Floor ', '')));
 
-            return matchesSearch && matchesStatus && matchesResidency && matchesFloor;
+            const matchesNationality = nationalityFilter === 'All' || 
+                s.nationality === nationalityFilter;
+
+            return matchesSearch && matchesStatus && matchesResidency && matchesFloor && matchesNationality;
         });
-    }, [students, searchQuery, statusFilter, residencyFilter, floorFilter]);
+    }, [students, searchQuery, statusFilter, residencyFilter, floorFilter, nationalityFilter]);
 
     // Pagination Logic
     const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -177,7 +181,7 @@ export default function StudentsDirectoryPage() {
                 {/* ── Filters Section ── */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-100 dark:border-slate-800 space-y-6">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Filters</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Search Students</label>
                             <div className="relative group">
@@ -214,6 +218,18 @@ export default function StudentsDirectoryPage() {
                                 {[1, 2, 3, 4, 5, 6, 7].map(f => (
                                     <option key={f}>Floor {f}</option>
                                 ))}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nationality</label>
+                            <select 
+                                value={nationalityFilter}
+                                onChange={(e) => setNationalityFilter(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-transparent rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 focus:border-[#F26C22] transition-all"
+                            >
+                                <option value="All">All Nationalities</option>
+                                <option value="Local">Local (Malaysian)</option>
+                                <option value="International">International</option>
                             </select>
                         </div>
                     </div>
