@@ -389,6 +389,16 @@ export default function StudentDetailModal({ studentId, onClose, onUpdate }: Stu
                                                     </span>
                                                 </div>
                                                 <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6">{c.description}</p>
+                                                
+                                                {c.images && c.images.length > 0 && (
+                                                    <div className="flex flex-wrap gap-3 mb-6">
+                                                        {c.images.map((img: string, idx: number) => (
+                                                            <a key={idx} href={img} target="_blank" rel="noopener noreferrer" className="h-20 w-20 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 hover:border-[#F26C22] transition-all hover:scale-105 shadow-sm">
+                                                                <img src={img} alt="Attachment" className="h-full w-full object-cover" />
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                )}
                                                 <div className="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-slate-800">
                                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{new Date(c.date).toLocaleDateString()}</span>
                                                     {c.technician_appointment && (

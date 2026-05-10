@@ -476,7 +476,7 @@ function AdminDashboard() {
                                             </div>
                                             <div>
                                                 <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{app.studentName}</p>
-                                                <p className="text-xs text-slate-400 font-mono">{app.studentId}</p>
+                                                <p className="text-xs text-slate-400 font-mono">{app.officialId || app.studentId}</p>
                                             </div>
                                             <button onClick={() => setSelectedStudentId(app.studentId)} className="p-1.5 text-slate-300 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="View Full Profile">
                                                 <Eye className="h-3.5 w-3.5" />
@@ -549,7 +549,7 @@ function AdminDashboard() {
                                             </div>
                                             <div>
                                                 <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{c.studentName}</p>
-                                                <p className="text-xs text-slate-400 font-mono">{c.studentId}</p>
+                                                <p className="text-xs text-slate-400 font-mono">{c.officialId || c.studentId}</p>
                                             </div>
                                             <button onClick={() => setSelectedStudentId(c.studentId)} className="p-1.5 text-slate-300 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="View Profile">
                                                 <Eye className="h-3.5 w-3.5" />
@@ -558,6 +558,15 @@ function AdminDashboard() {
                                         <div>
                                             <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{c.title}</p>
                                             <p className="text-xs text-slate-400 max-w-xs truncate mt-0.5">{c.description}</p>
+                                            {c.images && c.images.length > 0 && (
+                                                <div className="flex gap-2 mt-2 overflow-x-auto pb-1 custom-scrollbar no-scrollbar">
+                                                    {c.images.map((img: string, idx: number) => (
+                                                        <a key={idx} href={img} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 hover:border-[#F26C22] transition-colors">
+                                                            <img src={img} alt="Attachment" className="h-full w-full object-cover" />
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                         <span className={`inline-flex items-center w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                                             c.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
