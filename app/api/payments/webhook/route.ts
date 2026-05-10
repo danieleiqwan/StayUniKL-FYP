@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import pool from '@/lib/db';
 import { logAction } from '@/lib/audit';
@@ -9,9 +9,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: '2025-01-27-acacia' as any,
 });
 
-export async function POST(request: Request) {
+export const dynamic = 'force-dynamic';
+
+export async function POST(request: NextRequest) {
     const body = await request.text();
-    const signature = (await headers()).get('stripe-signature') as string;
+    const headersList = await headers();
+    const signature = headersList.get('stripe-signature') || '';
 
     let event: Stripe.Event;
 

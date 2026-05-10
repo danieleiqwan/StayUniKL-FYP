@@ -1,11 +1,13 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+
+export const dynamic = 'force-dynamic';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: '2025-01-27-acacia' as any,
 });
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
     try {
         const { amount, description, metadata } = await request.json();
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
