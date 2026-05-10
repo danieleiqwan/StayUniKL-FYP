@@ -74,52 +74,47 @@ function DashboardContent() {
         const { refreshData } = useData();
         const [showToast, setShowToast] = useState(false);
         const hasProcessed = useRef(false);
+        const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+        // Effect 1: Run ONCE on mount to handle URL params from Stripe redirect
         useEffect(() => {
             const paymentStatus = searchParams.get('payment');
             const sessionId = searchParams.get('session_id');
 
-            // 1. Handle the initial redirect from Stripe
             if (paymentStatus === 'success' && sessionId && !hasProcessed.current) {
                 hasProcessed.current = true;
-                
-                const verify = async () => {
-                    try {
-                        const res = await fetch(`/api/payments/verify-session?session_id=${sessionId}`);
-                        const data = await res.json();
-                        
+                window.history.replaceState({}, '', '/dashboard');
+
+                fetch(`/api/payments/verify-session?session_id=${sessionId}`)
+                    .then(res => res.json())
+                    .then(data => {
                         if (data.success) {
-                            // Clear URL immediately
-                            window.history.replaceState({}, '', '/dashboard');
-                            // Set a "display" flag in storage
-                            localStorage.setItem('stayunikl_show_success', 'true');
                             refreshData();
                             setShowToast(true);
                         }
-                    } catch (err) {
-                        console.error('Verification error', err);
-                    }
-                };
-                verify();
-            } 
-            
-            // 2. Persistent Toast Logic (Survives re-renders during refresh)
-            if (localStorage.getItem('stayunikl_show_success') === 'true' && !showToast) {
-                setShowToast(true);
-                // CRITICAL: Remove from storage immediately so it doesn't loop
-                localStorage.removeItem('stayunikl_show_success');
-                
-                // Hide the UI after 6 seconds
-                const timer = setTimeout(() => setShowToast(false), 6000);
-                return () => clearTimeout(timer);
+                    })
+                    .catch(err => console.error('Verification error', err));
             }
-        }, [searchParams, refreshData, showToast]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, []); // Empty array: runs exactly once on mount
+
+        // Effect 2: When showToast becomes true, start the auto-dismiss timer
+        useEffect(() => {
+            if (showToast) {
+                if (timerRef.current) clearTimeout(timerRef.current);
+                timerRef.current = setTimeout(() => setShowToast(false), 6000);
+            }
+            return () => {
+                if (timerRef.current) clearTimeout(timerRef.current);
+            };
+        }, [showToast]); // Only depends on showToast changing
 
         if (!showToast) return null;
 
         return (
-            <div className="fixed bottom-10 right-10 z-[9999] animate-in slide-in-from-bottom-10 duration-500">
-                <div className="bg-[#059669] text-white px-8 py-5 rounded-[2rem] shadow-[0_20px_50px_rgba(5,150,105,0.4)] flex items-center gap-5 border border-white/20 backdrop-blur-md">
+            <div className="fixed bottom-10 right-10 z-[9999]" style={{ animation: 'slideUp 0.5s ease-out' }}>
+                <style>{`@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+                <div className="bg-[#059669] text-white px-8 py-5 rounded-[2rem] shadow-[0_20px_50px_rgba(5,150,105,0.4)] flex items-center gap-5 border border-white/20">
                     <div className="h-11 w-11 bg-white/20 rounded-full flex items-center justify-center shrink-0">
                         <CheckCircle2 className="h-6 w-6 text-white" />
                     </div>
