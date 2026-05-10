@@ -80,7 +80,22 @@ function GeneratorMode() {
                 const res = await fetch('/api/applications');
                 const data = await res.json();
                 if (data.applications) {
-                    const approved = data.applications.filter((a: any) => a.status === 'Approved');
+                    // 1. Group by student to see if they already have a 'Checked in' status
+                    const studentStatusMap: Record<string, string> = {};
+                    data.applications.forEach((a: any) => {
+                        const sid = a.studentId;
+                        // If they are already checked in anywhere, that takes priority
+                        if (a.status === 'Checked in') {
+                            studentStatusMap[sid] = 'Checked in';
+                        } else if (!studentStatusMap[sid]) {
+                            studentStatusMap[sid] = a.status;
+                        }
+                    });
+
+                    // 2. Only show 'Approved' if the student isn't already 'Checked in'
+                    const approved = data.applications.filter((a: any) => 
+                        a.status === 'Approved' && studentStatusMap[a.studentId] !== 'Checked in'
+                    );
                     setApplications(approved);
                 }
             } catch (err) {
