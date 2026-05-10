@@ -61,6 +61,11 @@ export default function StaffManagementPage() {
 
     useEffect(() => { fetchStaff('mount'); }, []);
 
+    // DEBUG: Log every time staff array changes
+    useEffect(() => {
+        console.log(`[StaffPage] staff changed. count=${staff.length}`, staff.map(s => s.email));
+    }, [staff]);
+
     const showToast = (msg: string, type: 'success' | 'error') => {
         setToast({ msg, type });
         setTimeout(() => setToast(null), 4000);
