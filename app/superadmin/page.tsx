@@ -17,7 +17,12 @@ export default function SuperAdminDashboard() {
         try {
             const res = await fetch('/api/superadmin/analytics');
             const data = await res.json();
-            setStats(data);
+            console.log('Superadmin Analytics Debug:', { status: res.status, data });
+            if (res.ok) {
+                setStats(data);
+            } else {
+                console.error('Analytics API Error:', data.error);
+            }
         } catch (e) {
             console.error('Failed to fetch dashboard stats', e);
         } finally {
