@@ -9,10 +9,11 @@ import StudentDetailModal from '@/components/admin/StudentDetailModal';
 import { 
     Search, Filter, User, Mail, Phone, MoreHorizontal, 
     ChevronLeft, ChevronRight, Eye, Users, Building, 
-    ArrowUpDown, Download, Plus, CheckCircle
+    ArrowUpDown, Download, Plus, CheckCircle, Upload
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import * as XLSX from 'xlsx';
 
 export default function StudentsDirectoryPage() {
     const { user } = useAuth();
@@ -22,6 +23,10 @@ export default function StudentsDirectoryPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('students');
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+
+    // Import States
+    const [importPreview, setImportPreview] = useState<any[] | null>(null);
+    const [importing, setImporting] = useState(false);
 
     // Filter States
     const [searchQuery, setSearchQuery] = useState('');
@@ -54,6 +59,66 @@ export default function StudentsDirectoryPage() {
 
         fetchStudents();
     }, [user, router]);
+
+    // Bulk Import Logic
+    const handleFileUpload = (e: any) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            const bstr = evt.target?.result;
+            const wb = XLSX.read(bstr, { type: 'binary' });
+            const wsname = wb.SheetNames[0];
+            const ws = wb.Sheets[wsname];
+            const data = XLSX.utils.sheet_to_json(ws);
+            
+            const mappedData = data.map((row: any) => {
+                const keys = Object.keys(row);
+                const getId = () => row[keys.find(k => k.toLowerCase().includes('id')) || ''] || '';
+                const getName = () => row[keys.find(k => k.toLowerCase().includes('name')) || ''] || '';
+                const getEmail = () => row[keys.find(k => k.toLowerCase().includes('email')) || ''] || '';
+                const getPhone = () => row[keys.find(k => k.toLowerCase().includes('phone') || k.toLowerCase().includes('contact')) || ''] || '';
+                
+                return {
+                    id: getId().toString().trim(),
+                    name: getName().toString().trim(),
+                    email: getEmail().toString().trim(),
+                    phone: getPhone().toString().trim()
+                };
+            }).filter(s => s.id && s.name && s.email);
+
+            setImportPreview(mappedData);
+        };
+        reader.readAsBinaryString(file);
+        e.target.value = ''; 
+    };
+
+    const confirmImport = async () => {
+        if (!importPreview) return;
+        setImporting(true);
+        try {
+            const res = await fetch('/api/admin/students/import', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ students: importPreview })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                alert(data.message);
+                setImportPreview(null);
+                fetchStudents();
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Failed to import students. Check console for details.');
+        } finally {
+            setImporting(false);
+        }
+    };
 
     // Filtering Logic
     const filteredStudents = useMemo(() => {
@@ -136,14 +201,85 @@ export default function StudentsDirectoryPage() {
     if (!user || user.role !== 'admin') return null;
 
     return (
-        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
-                {/* ── Page Header ── */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-                    <div>
-                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Student Management</h1>
-                        <p className="text-sm text-slate-500 mt-1">Manage and monitor all student records in one place.</p>
+        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10 relative">
+            
+            {/* Import Preview Modal */}
+            {importPreview && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl w-full max-w-4xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                            <div>
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Upload className="h-5 w-5 text-indigo-500" />
+                                    Import Students Preview
+                                </h3>
+                                <p className="text-sm text-slate-500 mt-1">Found {importPreview.length} valid students in the Excel file.</p>
+                            </div>
+                            <button onClick={() => setImportPreview(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                Cancel
+                            </button>
+                        </div>
+                        <div className="p-0 max-h-[60vh] overflow-y-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-50 dark:bg-slate-800/30 sticky top-0 border-b border-slate-200 dark:border-slate-800">
+                                    <tr>
+                                        <th className="p-4 font-bold text-slate-700 dark:text-slate-300">ID</th>
+                                        <th className="p-4 font-bold text-slate-700 dark:text-slate-300">Name</th>
+                                        <th className="p-4 font-bold text-slate-700 dark:text-slate-300">Email</th>
+                                        <th className="p-4 font-bold text-slate-700 dark:text-slate-300">Phone</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {importPreview.map((s, i) => (
+                                        <tr key={i} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                            <td className="p-4 font-medium text-slate-900 dark:text-white">{s.id}</td>
+                                            <td className="p-4 text-slate-600 dark:text-slate-300">{s.name}</td>
+                                            <td className="p-4 text-slate-600 dark:text-slate-300">{s.email}</td>
+                                            <td className="p-4 text-slate-600 dark:text-slate-300">{s.phone || '-'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-slate-50 dark:bg-slate-800/50">
+                            <button 
+                                onClick={() => setImportPreview(null)}
+                                className="px-5 py-2.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={confirmImport}
+                                disabled={importing}
+                                className="px-6 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+                            >
+                                {importing ? (
+                                    <><span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Importing...</>
+                                ) : (
+                                    <><CheckCircle className="h-4 w-4" /> Confirm Import</>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
+            )}
+
+            {/* ── Page Header ── */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                <div>
+                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Student Management</h1>
+                    <p className="text-sm text-slate-500 mt-1">Manage and monitor all student records in one place.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv" className="hidden" onChange={handleFileUpload} />
+                    <label 
+                        htmlFor="excel-upload" 
+                        className="cursor-pointer px-5 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-sm font-bold rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors flex items-center gap-2"
+                    >
+                        <Upload className="h-4 w-4" /> Import Excel
+                    </label>
+                </div>
+            </div>
 
                 {/* ── KPI Stats Cards ── */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
