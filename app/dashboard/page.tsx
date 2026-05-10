@@ -25,6 +25,7 @@ import {
     Hand,
     CheckCircle2,
     X,
+    Banknote,
 } from 'lucide-react';
 import VirtualIDCard from '@/components/dashboard/VirtualIDCard';
 import RoommatesCard from '@/components/dashboard/RoommatesCard';
