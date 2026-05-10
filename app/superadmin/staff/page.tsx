@@ -39,20 +39,27 @@ export default function StaffManagementPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [newPassword, setNewPassword] = useState('');
 
-    const fetchStaff = async () => {
+    const fetchStaff = async (trigger = 'unknown') => {
+        console.log(`[StaffPage] fetchStaff called. trigger=${trigger}`, new Error().stack?.split('\n')[2]?.trim());
         setLoading(true);
         try {
             const res = await fetch('/api/superadmin/staff');
             const data = await res.json();
-            if (data.staff) setStaff(data.staff);
+            console.log(`[StaffPage] fetchStaff response. status=${res.status}`, data);
+            if (res.ok && data.staff && data.staff.length > 0) {
+                setStaff(data.staff);
+            } else if (!res.ok) {
+                console.error('[StaffPage] fetchStaff API error:', data.error);
+            }
         } catch (e) {
+            console.error('[StaffPage] fetchStaff threw:', e);
             showToast('Failed to load staff data.', 'error');
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => { fetchStaff(); }, []);
+    useEffect(() => { fetchStaff('mount'); }, []);
 
     const showToast = (msg: string, type: 'success' | 'error') => {
         setToast({ msg, type });
@@ -105,7 +112,7 @@ export default function StaffManagementPage() {
                     'success'
                 );
                 closeModal();
-                fetchStaff();
+                fetchStaff('post-action');
             }
         } catch (e) {
             showToast('Unexpected error. Please try again.', 'error');
@@ -151,6 +158,60 @@ export default function StaffManagementPage() {
         if (isNaN(date.getTime())) return 'Never';
         return date.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
+
+    const renderRow = (member: StaffMember, i: number) => (
+        <div key={member?.id || `fallback_${i}`}
+            className={cn('grid grid-cols-12 gap-4 px-6 py-5 items-center transition-colors hover:bg-zinc-50 dark:hover:bg-white/[0.02]',
+                i < filteredStaff.length - 1 && 'border-b border-zinc-100 dark:border-zinc-800/50')}
+        >
+            <div className="col-span-3 flex items-center gap-3">
+                <div className="h-9 w-9 rounded-xl flex items-center justify-center text-sm font-black shrink-0 shadow-sm"
+                    style={{
+                        background: member?.role === 'superadmin' ? 'rgba(245,158,11,0.1)' : 'rgba(107,114,128,0.05)',
+                        color: member?.role === 'superadmin' ? '#f59e0b' : '#6b7280'
+                    }}>
+                    {(member?.name || '?').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{member?.name || 'Unknown'}</p>
+                    <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-wide">{member?.role || 'admin'}</p>
+                </div>
+            </div>
+            <div className="col-span-3 text-sm text-zinc-500 dark:text-zinc-400 truncate">{member?.email || 'No email'}</div>
+            <div className="col-span-2">{member ? getStatusBadge(member) : null}</div>
+            <div className="col-span-2">
+                <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-600">
+                    <Clock className="h-3 w-3 shrink-0" />
+                    <span>{formatDate(member?.last_login)}</span>
+                </div>
+            </div>
+            <div className="col-span-2 flex items-center justify-end gap-2">
+                {member?.role !== 'superadmin' && (
+                    <>
+                        <button onClick={(e) => { e.stopPropagation(); setForm({ name: member?.name || '', email: member?.email || '', password: '' }); setModal({ type: 'edit', staffId: member?.id }); }}
+                            className="p-2 rounded-xl text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 transition-all" title="Edit Details">
+                            <Users className="h-4 w-4" />
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'reset_password', staffId: member?.id }); }}
+                            className="p-2 rounded-xl text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all" title="Reset Password">
+                            <KeyRound className="h-4 w-4" />
+                        </button>
+                        {member?.is_active ? (
+                            <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'suspend', staffId: member?.id }); }}
+                                className="p-2 rounded-xl text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all" title="Suspend Account">
+                                <ShieldOff className="h-4 w-4" />
+                            </button>
+                        ) : (
+                            <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'activate', staffId: member?.id }); }}
+                                className="p-2 rounded-xl text-zinc-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all" title="Activate Account">
+                                <ShieldCheck className="h-4 w-4" />
+                            </button>
+                        )}
+                    </>
+                )}
+            </div>
+        </div>
+    );
 
     return (
         <div className="p-8 lg:p-10 space-y-8 min-h-screen">
@@ -230,65 +291,20 @@ export default function StaffManagementPage() {
                 </div>
 
                 {loading ? (
-                    <div className="flex items-center justify-center py-20">
-                        <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
+                    <div className="relative">
+                        <div className="absolute top-3 right-3 z-10">
+                            <Loader2 className="h-4 w-4 text-amber-500 animate-spin" />
+                        </div>
+                        {filteredStaff.length === 0 ? (
+                            <div className="py-20 text-center text-zinc-400 font-bold">No staff members found.</div>
+                        ) : (
+                            filteredStaff.map((member, i) => renderRow(member, i))
+                        )}
                     </div>
                 ) : filteredStaff.length === 0 ? (
                     <div className="py-20 text-center text-zinc-400 font-bold">No staff members found.</div>
                 ) : (
-                    filteredStaff.map((member, i) => (
-                        <div key={member?.id || `fallback_${i}`}
-                            className={cn('grid grid-cols-12 gap-4 px-6 py-5 items-center transition-colors hover:bg-zinc-50 dark:hover:bg-white/[0.02]',
-                                i < filteredStaff.length - 1 && 'border-b border-zinc-100 dark:border-zinc-800/50')}
-                        >
-                            <div className="col-span-3 flex items-center gap-3">
-                                <div className="h-9 w-9 rounded-xl flex items-center justify-center text-sm font-black shrink-0 shadow-sm"
-                                    style={{
-                                        background: member?.role === 'superadmin' ? 'rgba(245,158,11,0.1)' : 'rgba(107,114,128,0.05)',
-                                        color: member?.role === 'superadmin' ? '#f59e0b' : '#6b7280'
-                                    }}>
-                                    {(member?.name || '?').charAt(0).toUpperCase()}
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{member?.name || 'Unknown'}</p>
-                                    <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-wide">{member?.role || 'admin'}</p>
-                                </div>
-                            </div>
-                            <div className="col-span-3 text-sm text-zinc-500 dark:text-zinc-400 truncate">{member?.email || 'No email'}</div>
-                            <div className="col-span-2">{member ? getStatusBadge(member) : null}</div>
-                            <div className="col-span-2">
-                                <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-600">
-                                    <Clock className="h-3 w-3 shrink-0" />
-                                    <span>{formatDate(member?.last_login)}</span>
-                                </div>
-                            </div>
-                            <div className="col-span-2 flex items-center justify-end gap-2">
-                                {member?.role !== 'superadmin' && (
-                                    <>
-                                        <button onClick={(e) => { e.stopPropagation(); setForm({ name: member?.name || '', email: member?.email || '', password: '' }); setModal({ type: 'edit', staffId: member?.id }); }}
-                                            className="p-2 rounded-xl text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 transition-all" title="Edit Details">
-                                            <Users className="h-4 w-4" />
-                                        </button>
-                                        <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'reset_password', staffId: member?.id }); }}
-                                            className="p-2 rounded-xl text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all" title="Reset Password">
-                                            <KeyRound className="h-4 w-4" />
-                                        </button>
-                                        {member?.is_active ? (
-                                            <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'suspend', staffId: member?.id }); }}
-                                                className="p-2 rounded-xl text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all" title="Suspend Account">
-                                                <ShieldOff className="h-4 w-4" />
-                                            </button>
-                                        ) : (
-                                            <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'activate', staffId: member?.id }); }}
-                                                className="p-2 rounded-xl text-zinc-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all" title="Activate Account">
-                                                <ShieldCheck className="h-4 w-4" />
-                                            </button>
-                                        )}
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    ))
+                    filteredStaff.map((member, i) => renderRow(member, i))
                 )}
             </div>
 
