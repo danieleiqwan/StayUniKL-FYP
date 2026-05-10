@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -71,32 +71,32 @@ function DashboardContent() {
         const searchParams = useSearchParams();
         const router = useRouter();
         const { refreshData } = useData();
-        const [verifying, setVerifying] = useState(false);
+        const hasVerified = useRef(false);
 
         useEffect(() => {
             const paymentStatus = searchParams.get('payment');
             const sessionId = searchParams.get('session_id');
 
-            if (paymentStatus === 'success' && sessionId && !verifying) {
-                setVerifying(true);
+            if (paymentStatus === 'success' && sessionId && !hasVerified.current) {
+                hasVerified.current = true;
                 const verify = async () => {
                     try {
                         const res = await fetch(`/api/payments/verify-session?session_id=${sessionId}`);
                         const data = await res.json();
                         if (data.success) {
                             alert('Payment confirmed! Your status has been updated.');
-                            router.replace('/dashboard');
+                            // Immediately clear the URL params
+                            window.history.replaceState({}, '', '/dashboard');
                             refreshData();
                         }
                     } catch (err) {
                         console.error('Verification failed', err);
-                    } finally {
-                        setVerifying(false);
+                        hasVerified.current = false;
                     }
                 };
                 verify();
             }
-        }, [searchParams, verifying, router, refreshData]);
+        }, [searchParams, router, refreshData]);
 
         return null;
     }
