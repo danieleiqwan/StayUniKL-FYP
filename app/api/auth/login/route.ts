@@ -48,7 +48,7 @@ export async function POST(request: Request) {
         // 3. Check if account is deactivated by admin
         if (user.is_active === 0) {
             return NextResponse.json({ 
-                error: 'Your account has been deactivated by the administration. Please contact support for more information.' 
+                error: 'Your account has been deactivated by the administration. Please contact support at support@stayunikl.edu.my for assistance.' 
             }, { status: 403 });
         }
 
