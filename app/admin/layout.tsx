@@ -15,6 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const router = useRouter();
     const pathname = usePathname();
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     useEffect(() => {
         const timer = setTimeout(() => setIsCheckingAuth(false), 500);
@@ -47,10 +48,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <AdminSidebar 
                 activeTab={pathname === '/admin' ? 'dashboard' : undefined} 
                 counts={counts}
+                isCollapsed={isCollapsed}
+                setIsCollapsed={setIsCollapsed}
             />
 
             {/* Main Content Area */}
-            <main className="lg:pl-80 min-h-screen flex flex-col">
+            <main className={`transition-all duration-300 min-h-screen flex flex-col ${isCollapsed ? 'lg:pl-24' : 'lg:pl-80'}`}>
                 <AdminNavbar />
 
                 {/* Page Content */}
