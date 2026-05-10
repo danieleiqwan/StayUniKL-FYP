@@ -73,8 +73,8 @@ export async function POST(request: Request) {
             );
         }
 
-        // 5. Hash password with high cost factor (14 rounds for superadmin)
-        const hashedPassword = await bcrypt.hash(password, 14);
+        // 5. Hash password with reasonable cost factor for serverless execution
+        const hashedPassword = await bcrypt.hash(password, 12);
 
         // 6. Create the superadmin account
         const id = `superadmin_${Date.now()}`;
@@ -86,14 +86,15 @@ export async function POST(request: Request) {
 
         // 7. Log this critical action to audit_logs
         await pool.query(
-            `INSERT INTO audit_logs (id, action, entity_type, entity_id, performed_by, details, created_at)
-             VALUES (?, 'SUPERADMIN_ACCOUNT_CREATED', 'User', ?, 'system_bootstrap', ?, NOW())`,
+            `INSERT INTO audit_logs (actor_id, actor_name, action, entity_type, entity_id, details, created_at)
+             VALUES (?, ?, 'SUPERADMIN_ACCOUNT_CREATED', 'User', ?, ?, NOW())`,
             [
-                `audit_${Date.now()}`,
+                'system_bootstrap',
+                'System Bootstrap',
                 id,
                 JSON.stringify({ email, name, method: 'bootstrap' })
             ]
-        ).catch(() => {}); // Non-fatal if audit_logs schema differs
+        ).catch((err) => console.error('Audit log failed:', err)); 
 
         return NextResponse.json({
             success: true,
