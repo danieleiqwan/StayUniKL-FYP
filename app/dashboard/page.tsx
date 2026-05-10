@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
     Wrench,
@@ -29,10 +29,10 @@ import RoommatesCard from '@/components/dashboard/RoommatesCard';
 import BillingHistory from '@/components/dashboard/BillingHistory';
 import AnnouncementsBanner from '@/components/dashboard/AnnouncementsBanner';
 
-export default function StudentDashboard() {
+function DashboardContent() {
     const router = useRouter();
     const { user } = useAuth();
-    const { myApplication, myComplaints, courtBookings, rooms, facilitySettings } = useData();
+    const { myApplication, myComplaints, courtBookings, rooms, facilitySettings, refreshData } = useData();
 
     if (!user) return null;
 
@@ -58,14 +58,41 @@ export default function StudentDashboard() {
     const bedLabel = myBed?.label || myApplication?.bedId;
     const displayRoom = myApplication?.roomId ? `${myApplication.roomId}${bedLabel ? '-' + bedLabel : ''}` : 'N/A';
 
+    const searchParams = useSearchParams();
     const [greeting, setGreeting] = useState('Welcome');
+    const [verifyingPayment, setVerifyingPayment] = useState(false);
 
     useEffect(() => {
         const hour = new Date().getHours();
         if (hour < 12) setGreeting('Good morning');
         else if (hour < 17) setGreeting('Good afternoon');
         else setGreeting('Good evening');
-    }, []);
+
+        // Verify Payment if returning from Stripe
+        const paymentStatus = searchParams.get('payment');
+        const sessionId = searchParams.get('session_id');
+
+        if (paymentStatus === 'success' && sessionId && !verifyingPayment) {
+            setVerifyingPayment(true);
+            const verify = async () => {
+                try {
+                    const res = await fetch(`/api/payments/verify-session?session_id=${sessionId}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        alert('Payment confirmed! Your status has been updated.');
+                        // Clean up URL
+                        router.replace('/dashboard');
+                        refreshData();
+                    }
+                } catch (err) {
+                    console.error('Verification failed', err);
+                } finally {
+                    setVerifyingPayment(false);
+                }
+            };
+            verify();
+        }
+    }, [searchParams]);
 
     const getComplaintStatusStyle = (status: string) => {
         if (status === 'Resolved') return { text: 'Resolved', cls: 'bg-emerald-100 text-emerald-700' };
@@ -502,5 +529,13 @@ export default function StudentDashboard() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function StudentDashboard() {
+    return (
+        <Suspense fallback={<div className="p-10 text-center opacity-50 text-sm">Loading dashboard...</div>}>
+            <DashboardContent />
+        </Suspense>
     );
 }

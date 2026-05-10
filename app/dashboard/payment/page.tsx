@@ -44,6 +44,42 @@ function PaymentGatewayContent() {
         if (isAlreadyPaid || isDone) return;
         setIsProcessing(true);
 
+        // STRIPE FLOW for Card Payments
+        if (selectedMethod === 'card') {
+            try {
+                const res = await fetch('/api/payments/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount: parseFloat(String(amount)),
+                        description: invoiceId ? `Payment for Invoice #${invoiceId}` : `Hostel Application Fee (${referenceId})`,
+                        metadata: {
+                            userId: user?.id,
+                            invoiceId: invoiceId || '',
+                            applicationId: referenceId?.startsWith('app_') ? referenceId : '',
+                            type: invoiceId ? 'invoice' : 'application'
+                        }
+                    })
+                });
+
+                const data = await res.json();
+                if (data.url) {
+                    window.location.href = data.url; // Redirect to Stripe
+                    return;
+                } else {
+                    alert(data.error || 'Failed to initialize payment.');
+                    setIsProcessing(false);
+                    return;
+                }
+            } catch (error) {
+                console.error('Stripe Init Error:', error);
+                alert('Payment gateway unavailable.');
+                setIsProcessing(false);
+                return;
+            }
+        }
+
+        // MOCK FLOW for other methods (FPX/E-Wallet)
         try {
             const res = await fetch('/api/payments', {
                 method: 'POST',
@@ -60,7 +96,6 @@ function PaymentGatewayContent() {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                // If this is an invoice payment, mark it as Paid via PATCH
                 if (invoiceId) {
                     await fetch('/api/billing/invoices', {
                         method: 'PATCH',
@@ -71,7 +106,6 @@ function PaymentGatewayContent() {
 
                 setIsDone(true);
                 await refreshData();
-                // Redirect after 2.5s
                 setTimeout(() => router.push('/dashboard/financials'), 2500);
             } else {
                 alert(data.error || 'Payment failed. Please try again.');
