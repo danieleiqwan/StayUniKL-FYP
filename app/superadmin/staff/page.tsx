@@ -145,8 +145,8 @@ export default function StaffManagementPage() {
         );
     };
 
-    const formatDate = (d: string | null) => {
-        if (!d || d.startsWith('0000')) return 'Never';
+    const formatDate = (d: any) => {
+        if (!d || typeof d !== 'string' || d.startsWith('0000')) return 'Never';
         const date = new Date(d);
         if (isNaN(date.getTime())) return 'Never';
         return date.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -237,49 +237,49 @@ export default function StaffManagementPage() {
                     <div className="py-20 text-center text-zinc-400 font-bold">No staff members found.</div>
                 ) : (
                     filteredStaff.map((member, i) => (
-                        <div key={member.id}
+                        <div key={member?.id || `fallback_${i}`}
                             className={cn('grid grid-cols-12 gap-4 px-6 py-5 items-center transition-colors hover:bg-zinc-50 dark:hover:bg-white/[0.02]',
                                 i < filteredStaff.length - 1 && 'border-b border-zinc-100 dark:border-zinc-800/50')}
                         >
                             <div className="col-span-3 flex items-center gap-3">
                                 <div className="h-9 w-9 rounded-xl flex items-center justify-center text-sm font-black shrink-0 shadow-sm"
                                     style={{
-                                        background: member.role === 'superadmin' ? 'rgba(245,158,11,0.1)' : 'rgba(107,114,128,0.05)',
-                                        color: member.role === 'superadmin' ? '#f59e0b' : '#6b7280'
+                                        background: member?.role === 'superadmin' ? 'rgba(245,158,11,0.1)' : 'rgba(107,114,128,0.05)',
+                                        color: member?.role === 'superadmin' ? '#f59e0b' : '#6b7280'
                                     }}>
-                                    {member.name.charAt(0).toUpperCase()}
+                                    {(member?.name || '?').charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{member.name}</p>
-                                    <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-wide">{member.role}</p>
+                                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{member?.name || 'Unknown'}</p>
+                                    <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-wide">{member?.role || 'admin'}</p>
                                 </div>
                             </div>
-                            <div className="col-span-3 text-sm text-zinc-500 dark:text-zinc-400 truncate">{member.email}</div>
-                            <div className="col-span-2">{getStatusBadge(member)}</div>
+                            <div className="col-span-3 text-sm text-zinc-500 dark:text-zinc-400 truncate">{member?.email || 'No email'}</div>
+                            <div className="col-span-2">{member ? getStatusBadge(member) : null}</div>
                             <div className="col-span-2">
                                 <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-600">
                                     <Clock className="h-3 w-3 shrink-0" />
-                                    <span>{formatDate(member.last_login)}</span>
+                                    <span>{formatDate(member?.last_login)}</span>
                                 </div>
                             </div>
                             <div className="col-span-2 flex items-center justify-end gap-2">
-                                {member.role !== 'superadmin' && (
+                                {member?.role !== 'superadmin' && (
                                     <>
-                                        <button onClick={() => { setForm({ name: member.name, email: member.email, password: '' }); setModal({ type: 'edit', staffId: member.id }); }}
+                                        <button onClick={(e) => { e.stopPropagation(); setForm({ name: member?.name || '', email: member?.email || '', password: '' }); setModal({ type: 'edit', staffId: member?.id }); }}
                                             className="p-2 rounded-xl text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 transition-all" title="Edit Details">
                                             <Users className="h-4 w-4" />
                                         </button>
-                                        <button onClick={() => setModal({ type: 'reset_password', staffId: member.id })}
+                                        <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'reset_password', staffId: member?.id }); }}
                                             className="p-2 rounded-xl text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all" title="Reset Password">
                                             <KeyRound className="h-4 w-4" />
                                         </button>
-                                        {member.is_active ? (
-                                            <button onClick={() => setModal({ type: 'suspend', staffId: member.id })}
+                                        {member?.is_active ? (
+                                            <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'suspend', staffId: member?.id }); }}
                                                 className="p-2 rounded-xl text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all" title="Suspend Account">
                                                 <ShieldOff className="h-4 w-4" />
                                             </button>
                                         ) : (
-                                            <button onClick={() => setModal({ type: 'activate', staffId: member.id })}
+                                            <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'activate', staffId: member?.id }); }}
                                                 className="p-2 rounded-xl text-zinc-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all" title="Activate Account">
                                                 <ShieldCheck className="h-4 w-4" />
                                             </button>
@@ -393,7 +393,7 @@ export default function StaffManagementPage() {
 
                         {/* Modal Footer */}
                         <div className="flex items-center gap-3 mt-8">
-                            <button onClick={closeModal} className="flex-1 py-3 rounded-xl text-sm font-bold text-zinc-400 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors">
+                            <button onClick={(e) => { e.stopPropagation(); closeModal(); }} className="flex-1 py-3 rounded-xl text-sm font-bold text-zinc-400 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors">
                                 Cancel
                             </button>
                             <button
