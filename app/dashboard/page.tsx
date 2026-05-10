@@ -23,6 +23,8 @@ import {
     ArrowRight,
     Home,
     Hand,
+    CheckCircle2,
+    X,
 } from 'lucide-react';
 import VirtualIDCard from '@/components/dashboard/VirtualIDCard';
 import RoommatesCard from '@/components/dashboard/RoommatesCard';
@@ -69,8 +71,8 @@ function DashboardContent() {
 
     function PaymentVerifier() {
         const searchParams = useSearchParams();
-        const router = useRouter();
         const { refreshData } = useData();
+        const [showToast, setShowToast] = useState(false);
         const hasVerified = useRef(false);
 
         useEffect(() => {
@@ -79,26 +81,46 @@ function DashboardContent() {
 
             if (paymentStatus === 'success' && sessionId && !hasVerified.current) {
                 hasVerified.current = true;
+                
+                // 1. Immediately scrub the URL before doing anything else
+                window.history.replaceState({}, '', '/dashboard');
+
                 const verify = async () => {
                     try {
                         const res = await fetch(`/api/payments/verify-session?session_id=${sessionId}`);
                         const data = await res.json();
                         if (data.success) {
-                            alert('Payment confirmed! Your status has been updated.');
-                            // Immediately clear the URL params
-                            window.history.replaceState({}, '', '/dashboard');
+                            setShowToast(true);
                             refreshData();
+                            // Hide toast after 5 seconds
+                            setTimeout(() => setShowToast(false), 5000);
                         }
                     } catch (err) {
                         console.error('Verification failed', err);
-                        hasVerified.current = false;
                     }
                 };
                 verify();
             }
-        }, [searchParams, router, refreshData]);
+        }, [searchParams, refreshData]);
 
-        return null;
+        if (!showToast) return null;
+
+        return (
+            <div className="fixed top-24 right-10 z-[100] animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="bg-emerald-500 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-emerald-500/20 flex items-center gap-3 border border-emerald-400/20">
+                    <div className="h-8 w-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <CheckCircle2 className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                        <p className="font-black text-sm uppercase tracking-wide">Payment Confirmed</p>
+                        <p className="text-[11px] opacity-90 font-bold">Your stay status has been updated successfully.</p>
+                    </div>
+                    <button onClick={() => setShowToast(false)} className="ml-4 hover:scale-110 transition-transform">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+            </div>
+        );
     }
 
     const getComplaintStatusStyle = (status: string) => {
