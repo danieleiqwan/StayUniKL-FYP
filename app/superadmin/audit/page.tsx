@@ -141,14 +141,14 @@ export default function AuditLogsPage() {
                     </p>
                 </div>
                 <button onClick={fetchLogs}
-                    className="flex items-center gap-2 p-2.5 rounded-xl text-zinc-400 dark:text-zinc-500 hover:text-amber-500 transition-all border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-transparent shadow-sm dark:shadow-none self-start">
+                    className="flex items-center gap-2 p-2.5 rounded-xl text-zinc-400 dark:text-slate-500 hover:text-amber-500 transition-all border border-zinc-200 dark:border-white/5 bg-white dark:bg-transparent shadow-sm dark:shadow-none self-start">
                     <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
                 </button>
             </div>
 
             {/* Filters Panel */}
-            <div className="rounded-2xl border p-5 space-y-4 bg-zinc-50/50 dark:bg-white/[0.01] border-zinc-200 dark:border-zinc-800/50 shadow-sm dark:shadow-none">
-                <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">
+            <div className="rounded-2xl border p-5 space-y-4 bg-zinc-50/50 dark:bg-slate-900/20 border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none">
+                <div className="flex items-center gap-2 text-[10px] font-black text-zinc-400 dark:text-slate-600 uppercase tracking-widest">
                     <Filter className="h-3.5 w-3.5" /> Filters
                     {hasFilters && (
                         <button onClick={clearFilters} className="ml-auto flex items-center gap-1 text-amber-600 hover:text-amber-500 transition-colors">
@@ -166,7 +166,7 @@ export default function AuditLogsPage() {
                             value={searchInput}
                             onChange={e => setSearchInput(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-amber-500/40 transition-colors shadow-sm dark:shadow-none"
+                            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white dark:bg-slate-950 border border-zinc-200 dark:border-white/5 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-slate-600 focus:outline-none focus:border-amber-500/40 transition-colors shadow-sm dark:shadow-none"
                         />
                     </div>
                     {/* Action Filter */}
@@ -201,9 +201,9 @@ export default function AuditLogsPage() {
             </div>
 
             {/* Log Table */}
-            <div className="rounded-3xl border overflow-hidden bg-white dark:bg-white/[0.01] border-zinc-200 dark:border-zinc-800/50 shadow-sm dark:shadow-none">
+            <div className="rounded-3xl border overflow-hidden bg-white dark:bg-slate-900/20 border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none">
                 {/* Table Header */}
-                <div className="grid grid-cols-12 gap-3 px-6 py-4 border-b bg-zinc-50/50 dark:bg-transparent text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest border-zinc-200 dark:border-zinc-800/50">
+                <div className="grid grid-cols-12 gap-3 px-6 py-4 border-b bg-zinc-50/50 dark:bg-transparent text-[9px] font-black text-zinc-400 dark:text-slate-600 uppercase tracking-widest border-zinc-200 dark:border-white/5">
                     <div className="col-span-1">#</div>
                     <div className="col-span-2">Actor</div>
                     <div className="col-span-4">Action</div>
