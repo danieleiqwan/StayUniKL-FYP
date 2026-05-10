@@ -26,7 +26,7 @@ export default function SuperAdminSidebar() {
     useEffect(() => { setMounted(true); }, []);
 
     return (
-        <aside className="w-72 h-screen sticky top-0 flex flex-col border-r transition-all duration-500 bg-white dark:bg-[#1E1B2E] border-zinc-200 dark:border-white/5 shadow-2xl dark:shadow-amber-500/5">
+        <aside className="w-72 h-screen sticky top-0 flex flex-col border-r transition-all duration-500 bg-[#1E1B2E] border-white/5 shadow-2xl shadow-amber-500/5">
             {/* Header / Logo Area */}
             <div className="p-8 pb-4">
                 <div className="flex items-center gap-3 mb-8">
@@ -35,8 +35,8 @@ export default function SuperAdminSidebar() {
                         <ShieldAlert className="h-6 w-6 text-black" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black tracking-tighter text-zinc-900 dark:text-white leading-none">STAYUNIKL</h2>
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600 dark:text-amber-500">Governance</span>
+                        <h2 className="text-xl font-black tracking-tighter text-white leading-none">STAYUNIKL</h2>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500">Governance</span>
                     </div>
                 </div>
 
@@ -51,8 +51,8 @@ export default function SuperAdminSidebar() {
                                 className={cn(
                                     "flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-black transition-all group relative overflow-hidden",
                                     isActive 
-                                        ? "text-white dark:text-white" 
-                                        : "text-zinc-500 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"
+                                        ? "text-white" 
+                                        : "text-zinc-500 hover:text-zinc-300"
                                 )}
                             >
                                 {isActive && (
@@ -61,7 +61,7 @@ export default function SuperAdminSidebar() {
                                 )}
                                 <item.icon className={cn(
                                     "h-5 w-5 relative z-10 transition-transform group-hover:scale-110",
-                                    isActive ? "text-black" : "text-zinc-400 dark:text-zinc-600"
+                                    isActive ? "text-black" : "text-zinc-600"
                                 )} />
                                 <span className="relative z-10 uppercase tracking-widest text-[11px]">{item.label}</span>
                             </Link>
@@ -73,35 +73,35 @@ export default function SuperAdminSidebar() {
             {/* Bottom Section */}
             <div className="mt-auto p-6 space-y-3">
                 {/* User Info Card */}
-                <div className="p-4 rounded-[2rem] border bg-zinc-50 dark:bg-slate-900/40 border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none">
+                <div className="p-4 rounded-[2rem] border bg-slate-900/40 border-white/5 shadow-none">
                     <div className="flex items-center gap-3 mb-3">
-                        <div className="h-8 w-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-500">
+                        <div className="h-8 w-8 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500">
                             <ShieldAlert className="h-4 w-4" />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-[10px] font-black text-zinc-900 dark:text-white truncate uppercase">{user?.name || 'Master Admin'}</p>
-                            <p className="text-[9px] font-bold text-zinc-500 dark:text-white/40 truncate uppercase tracking-tighter">Level 0: Superadmin</p>
+                            <p className="text-[10px] font-black text-white truncate uppercase">{user?.name || 'Master Admin'}</p>
+                            <p className="text-[9px] font-bold text-white/40 truncate uppercase tracking-tighter">Level 0: Superadmin</p>
                         </div>
                     </div>
-                    <div className="h-[1px] w-full bg-zinc-200 dark:bg-white/5 mb-3" />
+                    <div className="h-[1px] w-full bg-white/5 mb-3" />
                     
                     <div className="flex items-center justify-between px-2">
                         {/* Theme Toggle */}
                         {mounted && (
                             <button 
                                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-zinc-500 dark:text-white/40 hover:text-amber-500 transition-colors"
+                                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-white/40 hover:text-amber-500 transition-colors"
                                 title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                             >
                                 {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                             </button>
                         )}
                         
-                        <div className="w-[1px] h-4 bg-zinc-200 dark:bg-white/5 mx-2" />
+                        <div className="w-[1px] h-4 bg-white/5 mx-2" />
 
                         <button 
                             onClick={logout}
-                            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-zinc-500 dark:text-white/40 hover:text-rose-500 transition-colors"
+                            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-white/40 hover:text-rose-500 transition-colors"
                             title="Logout"
                         >
                             <LogOut className="h-4 w-4" />
