@@ -7,7 +7,7 @@ import bcrypt from 'bcryptjs';
 const loginSchema = z.object({
     email: z.string().email(),
     password: z.string().min(1),
-    role: z.enum(['student', 'admin']),
+    role: z.enum(['student', 'admin', 'superadmin']),
     rememberMe: z.boolean().optional(),
 });
 
@@ -83,6 +83,9 @@ export async function POST(request: Request) {
             await pool.query('UPDATE users SET login_attempts = 0, locked_until = NULL WHERE id = ?', [user.id]);
         }
 
+        // Log last login timestamp for session activity tracking
+        await pool.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]).catch(() => {});
+
         // 1. Create a secure JWT token
         const token = await createToken({
             id: user.id,
@@ -96,6 +99,7 @@ export async function POST(request: Request) {
         // Return user data (excluding sensitive fields)
         return NextResponse.json({
             success: true,
+            redirectTo: user.role === 'superadmin' ? '/superadmin' : (user.role === 'admin' ? '/admin' : '/dashboard'),
             user: {
                 id: user.id,
                 name: user.name,

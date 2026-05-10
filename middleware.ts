@@ -52,12 +52,13 @@ export async function middleware(request: NextRequest) {
     }
 
     // 1. Define protected paths
-    const isAdminPath = pathname.startsWith('/admin') || pathname.startsWith('/api/admin');
+    const isSuperAdminPath = pathname.startsWith('/superadmin') || pathname.startsWith('/api/superadmin');
+    const isAdminPath = (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) && !isSuperAdminPath;
     const isDashboardPath = pathname.startsWith('/dashboard') || pathname.startsWith('/api/applications') || pathname.startsWith('/api/complaints') || pathname.startsWith('/api/court');
     const isAuthPath = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/forgot-password') || pathname.startsWith('/reset-password');
 
     // 2. Allow if not a protected path
-    if (!isAdminPath && !isDashboardPath && !isAuthPath) {
+    if (!isSuperAdminPath && !isAdminPath && !isDashboardPath && !isAuthPath) {
         return NextResponse.next();
     }
 
@@ -65,7 +66,9 @@ export async function middleware(request: NextRequest) {
     if (isAuthPath && token) {
         try {
             const { payload }: any = await jwtVerify(token, SECRET_KEY);
-            const redirectPath = payload.role === 'admin' ? '/admin' : '/dashboard';
+            let redirectPath = '/dashboard';
+            if (payload.role === 'superadmin') redirectPath = '/superadmin';
+            else if (payload.role === 'admin') redirectPath = '/admin';
             return NextResponse.redirect(new URL(redirectPath, request.url));
         } catch (e) {
             // Token invalid, allow login access after deleting cookie
@@ -76,10 +79,11 @@ export async function middleware(request: NextRequest) {
     }
 
     // 4. Verify token for protected paths
-    if (isAdminPath || isDashboardPath) {
+    if (isSuperAdminPath || isAdminPath || isDashboardPath) {
         if (!token) {
-            const redirectUrl = isAdminPath ? '/login?role=admin' : '/login';
-            // If it's an API request, return 401 instead of redirecting
+            let redirectUrl = '/login';
+            if (isSuperAdminPath) redirectUrl = '/login?role=admin';
+            else if (isAdminPath) redirectUrl = '/login?role=admin';
             if (pathname.startsWith('/api/')) {
                 return NextResponse.json({ error: 'Unauthorized: No session token' }, { status: 401 });
             }
@@ -88,9 +92,19 @@ export async function middleware(request: NextRequest) {
 
         try {
             const { payload }: any = await jwtVerify(token, SECRET_KEY);
-            
-            // 5. Role-based check for admin paths
-            if (isAdminPath && payload.role !== 'admin') {
+
+            // 5a. Superadmin-only route guard
+            if (isSuperAdminPath && payload.role !== 'superadmin') {
+                if (pathname.startsWith('/api/')) {
+                    return NextResponse.json({ error: 'Forbidden: Superadmin access required' }, { status: 403 });
+                }
+                // Redirect admin to their own dashboard, students to dashboard
+                const fallback = payload.role === 'admin' ? '/admin' : '/dashboard';
+                return NextResponse.redirect(new URL(fallback, request.url));
+            }
+
+            // 5b. Admin-level route guard (superadmin can also access admin routes)
+            if (isAdminPath && payload.role !== 'admin' && payload.role !== 'superadmin') {
                 if (pathname.startsWith('/api/')) {
                     return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
                 }
@@ -112,8 +126,10 @@ export async function middleware(request: NextRequest) {
 // Global matcher for middleware efficiently
 export const config = {
     matcher: [
+        '/superadmin/:path*',
         '/admin/:path*',
         '/dashboard/:path*',
+        '/api/superadmin/:path*',
         '/api/admin/:path*',
         '/api/auth/:path*',
         '/api/applications/:path*',

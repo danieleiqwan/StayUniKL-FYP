@@ -11,8 +11,9 @@ if (!JWT_SECRET) {
 const SECRET_KEY = new TextEncoder().encode(JWT_SECRET || 'stayunikl_development_only_secret_123456789');
 
 export async function createToken(payload: { id: string; role: string; email: string }, rememberMe: boolean = false) {
-    const expiresIn = rememberMe ? '30d' : '1d';
-    return await new SignJWT(payload)
+    // Superadmin sessions are always short-lived (4h max), never "remembered"
+    const expiresIn = payload.role === 'superadmin' ? '4h' : (rememberMe ? '30d' : '1d');
+    return await new SignJWT({ ...payload, iat: Math.floor(Date.now() / 1000) })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
         .setExpirationTime(expiresIn)
@@ -28,9 +29,16 @@ export async function verifyToken(token: string) {
     }
 }
 
+// --- Role Guards ---
+export async function isSuperAdmin() {
+    const user = await getAuthUser();
+    return user?.role === 'superadmin' ? user : null;
+}
+
 export async function isAdmin() {
     const user = await getAuthUser();
-    return user?.role === 'admin' ? user : null;
+    // Both admin and superadmin can access admin-level routes
+    return (user?.role === 'admin' || user?.role === 'superadmin') ? user : null;
 }
 
 export async function getAuthUser() {
