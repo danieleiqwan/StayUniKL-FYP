@@ -399,14 +399,28 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     const markNotificationRead = async (id?: string) => {
         if (!user) return;
+        
+        // Optimistic UI Update: Instantly change the state locally
+        setNotifications(prev => prev.map(n => {
+            if (!id || n.id === id) return { ...n, is_read: 1 };
+            return n;
+        }));
+        setUnreadNotificationsCount(prev => id ? Math.max(0, prev - 1) : 0);
+
         try {
+            // Background sync
             await fetch('/api/notifications', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId: user.id, id, markAll: !id })
             });
+            // Optionally refresh to ensure full sync, but UI is already updated
             fetchData();
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e); 
+            // Revert state if the request fails
+            fetchData(); 
+        }
     };
 
     // --- Helpers (Local Mock for Rooms) ---
