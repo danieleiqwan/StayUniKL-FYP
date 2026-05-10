@@ -38,8 +38,11 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
 
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 text-zinc-900 dark:text-white flex transition-colors duration-500">
-            <SuperAdminSidebar />
-            <main className="flex-1 min-h-screen flex flex-col">
+            <SuperAdminSidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+            <main className={cn(
+                "flex-1 min-h-screen flex flex-col transition-all duration-500",
+                isCollapsed ? "ml-24" : "ml-72"
+            )}>
                 <div className="flex-1">
                     {children}
                 </div>
