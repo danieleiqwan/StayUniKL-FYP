@@ -31,6 +31,66 @@ import RoommatesCard from '@/components/dashboard/RoommatesCard';
 import BillingHistory from '@/components/dashboard/BillingHistory';
 import AnnouncementsBanner from '@/components/dashboard/AnnouncementsBanner';
 
+// ─── PaymentVerifier: MUST be top-level so it survives parent re-renders ───
+function PaymentVerifier() {
+    const searchParams = useSearchParams();
+    const { refreshData } = useData();
+    const [showToast, setShowToast] = useState(false);
+    const hasProcessed = useRef(false);
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Effect 1: Run ONCE on mount to handle URL params from Stripe redirect
+    useEffect(() => {
+        const paymentStatus = searchParams.get('payment');
+        const sessionId = searchParams.get('session_id');
+
+        if (paymentStatus === 'success' && sessionId && !hasProcessed.current) {
+            hasProcessed.current = true;
+            window.history.replaceState({}, '', '/dashboard');
+
+            fetch(`/api/payments/verify-session?session_id=${sessionId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        refreshData();
+                        setShowToast(true);
+                    }
+                })
+                .catch(err => console.error('Verification error', err));
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Empty array: runs exactly once on mount
+
+    // Effect 2: Auto-dismiss timer (separate from verification)
+    useEffect(() => {
+        if (showToast) {
+            if (timerRef.current) clearTimeout(timerRef.current);
+            timerRef.current = setTimeout(() => setShowToast(false), 6000);
+        }
+        return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    }, [showToast]);
+
+    if (!showToast) return null;
+
+    return (
+        <div className="fixed bottom-10 right-10 z-[9999]" style={{ animation: 'slideUp 0.5s ease-out' }}>
+            <style>{`@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`}</style>
+            <div className="bg-[#059669] text-white px-8 py-5 rounded-[2rem] shadow-[0_20px_50px_rgba(5,150,105,0.4)] flex items-center gap-5 border border-white/20">
+                <div className="h-11 w-11 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="h-6 w-6 text-white" />
+                </div>
+                <div className="pr-4">
+                    <p className="font-black text-base uppercase tracking-tight leading-none mb-1">Payment Success!</p>
+                    <p className="text-[11px] font-bold opacity-90 whitespace-nowrap">Your hostel status has been updated.</p>
+                </div>
+                <button onClick={() => setShowToast(false)} className="hover:scale-110 transition-transform p-1">
+                    <X className="h-4 w-4" />
+                </button>
+            </div>
+        </div>
+    );
+}
+
 function DashboardContent() {
     const router = useRouter();
     const { user } = useAuth();
@@ -69,66 +129,6 @@ function DashboardContent() {
         else setGreeting('Good evening');
     }, []);
 
-    function PaymentVerifier() {
-        const searchParams = useSearchParams();
-        const { refreshData } = useData();
-        const [showToast, setShowToast] = useState(false);
-        const hasProcessed = useRef(false);
-        const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-        // Effect 1: Run ONCE on mount to handle URL params from Stripe redirect
-        useEffect(() => {
-            const paymentStatus = searchParams.get('payment');
-            const sessionId = searchParams.get('session_id');
-
-            if (paymentStatus === 'success' && sessionId && !hasProcessed.current) {
-                hasProcessed.current = true;
-                window.history.replaceState({}, '', '/dashboard');
-
-                fetch(`/api/payments/verify-session?session_id=${sessionId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            refreshData();
-                            setShowToast(true);
-                        }
-                    })
-                    .catch(err => console.error('Verification error', err));
-            }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []); // Empty array: runs exactly once on mount
-
-        // Effect 2: When showToast becomes true, start the auto-dismiss timer
-        useEffect(() => {
-            if (showToast) {
-                if (timerRef.current) clearTimeout(timerRef.current);
-                timerRef.current = setTimeout(() => setShowToast(false), 6000);
-            }
-            return () => {
-                if (timerRef.current) clearTimeout(timerRef.current);
-            };
-        }, [showToast]); // Only depends on showToast changing
-
-        if (!showToast) return null;
-
-        return (
-            <div className="fixed bottom-10 right-10 z-[9999]" style={{ animation: 'slideUp 0.5s ease-out' }}>
-                <style>{`@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }`}</style>
-                <div className="bg-[#059669] text-white px-8 py-5 rounded-[2rem] shadow-[0_20px_50px_rgba(5,150,105,0.4)] flex items-center gap-5 border border-white/20">
-                    <div className="h-11 w-11 bg-white/20 rounded-full flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="pr-4">
-                        <p className="font-black text-base uppercase tracking-tight leading-none mb-1">Payment Success!</p>
-                        <p className="text-[11px] font-bold opacity-90 whitespace-nowrap">Your hostel status has been updated.</p>
-                    </div>
-                    <button onClick={() => setShowToast(false)} className="hover:scale-110 transition-transform p-1">
-                        <X className="h-4 w-4" />
-                    </button>
-                </div>
-            </div>
-        );
-    }
 
     const getComplaintStatusStyle = (status: string) => {
         if (status === 'Resolved') return { text: 'Resolved', cls: 'bg-emerald-100 text-emerald-700' };
