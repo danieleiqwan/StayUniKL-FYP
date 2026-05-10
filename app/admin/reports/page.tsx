@@ -65,7 +65,7 @@ export default function AdminReportsPage() {
                     </div>
                     <button 
                         onClick={() => window.print()}
-                        className="print:hidden px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-sm hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                        className="print:hidden px-5 py-2.5 bg-[#F26C22] text-white text-sm font-bold rounded-xl shadow-sm hover:bg-[#F26C22]/90 transition-colors flex items-center gap-2"
                     >
                         <Printer className="h-4 w-4" /> Generate PDF Report
                     </button>
