@@ -66,13 +66,13 @@ export default function AdminNavbar() {
                 <div className="flex items-center gap-4">
                     <ThemeToggle />
                     
-                    <button className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+                    <Link href="/admin/profile" className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                         <Settings className="h-5 w-5" />
-                    </button>
+                    </Link>
 
-                    <div className="h-10 w-10 rounded-xl bg-[#F26C22]/10 flex items-center justify-center text-xs font-black text-[#F26C22] border border-[#F26C22]/20 cursor-pointer hover:bg-[#F26C22] hover:text-white transition-all shadow-lg shadow-orange-500/5">
+                    <Link href="/admin/profile" className="h-10 w-10 rounded-xl bg-[#F26C22]/10 flex items-center justify-center text-xs font-black text-[#F26C22] border border-[#F26C22]/20 cursor-pointer hover:bg-[#F26C22] hover:text-white transition-all shadow-lg shadow-orange-500/5">
                         {user?.name?.charAt(0).toUpperCase() || 'A'}
-                    </div>
+                    </Link>
                 </div>
             </div>
         </nav>
