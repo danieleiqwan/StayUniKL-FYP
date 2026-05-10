@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SuperAdminSidebar from '@/components/layout/SuperAdminSidebar';
+import { cn } from '@/lib/utils';
 
 export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
