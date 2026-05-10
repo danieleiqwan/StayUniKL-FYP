@@ -11,7 +11,8 @@ export async function POST(request: NextRequest) {
     if (!stripe) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
     try {
         const { amount, description, metadata } = await request.json();
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const baseUrl = rawBaseUrl.replace(/\/$/, '');
 
         // Create Checkout Session
         const session = await stripe.checkout.sessions.create({
