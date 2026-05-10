@@ -121,7 +121,14 @@ export async function POST(request: Request) {
                     message: `Please take note that the ${facilityName} is currently closed for maintenance until further notice.`,
                     type: 'warning'
                 });
-            } 
+            } else if (newSettings.isOpen === true && oldSettings.isOpen === false) {
+                // Send a notification when the facility comes back online
+                await createSystemNotification({
+                    title: `${facilityName} Operational`,
+                    message: `Great news! The ${facilityName} is now fully operational and open for use.`,
+                    type: 'success'
+                });
+            }
             
             // Handle specific BLOCKED SLOTS
             else if (newSettings.blockedSlots && newSettings.blockedSlots.length > 0) {
