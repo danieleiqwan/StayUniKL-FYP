@@ -23,7 +23,7 @@ type ModalType = 'create' | 'suspend' | 'activate' | 'deactivate' | 'reset_passw
 
 interface ModalState {
     type: ModalType;
-    staff?: StaffMember;
+    staffId?: string;
 }
 
 export default function StaffManagementPage() {
@@ -67,6 +67,7 @@ export default function StaffManagementPage() {
     };
 
     const handleAction = async () => {
+        const targetStaff = staff.find(s => s.id === modal.staffId);
         setActionLoading(true);
         try {
             let body: any = {};
@@ -76,15 +77,15 @@ export default function StaffManagementPage() {
                 method = 'POST';
                 body = { name: form.name, email: form.email, password: form.password };
             } else if (modal.type === 'suspend') {
-                body = { id: modal.staff?.id, action: 'SUSPEND' };
+                body = { id: modal.staffId, action: 'SUSPEND' };
             } else if (modal.type === 'activate') {
-                body = { id: modal.staff?.id, action: 'ACTIVATE' };
+                body = { id: modal.staffId, action: 'ACTIVATE' };
             } else if (modal.type === 'deactivate') {
-                body = { id: modal.staff?.id, action: 'DEACTIVATED' };
+                body = { id: modal.staffId, action: 'DEACTIVATED' };
             } else if (modal.type === 'reset_password') {
-                body = { id: modal.staff?.id, action: 'RESET_PASSWORD', newPassword };
+                body = { id: modal.staffId, action: 'RESET_PASSWORD', newPassword };
             } else if (modal.type === 'edit') {
-                body = { id: modal.staff?.id, action: 'UPDATE_DETAILS', name: form.name, email: form.email };
+                body = { id: modal.staffId, action: 'UPDATE_DETAILS', name: form.name, email: form.email };
             }
 
             const res = await fetch('/api/superadmin/staff', {
@@ -100,7 +101,7 @@ export default function StaffManagementPage() {
                 showToast(
                     modal.type === 'create' ? `Admin account for ${form.email} created.` :
                     modal.type === 'reset_password' ? 'Password has been reset.' :
-                    `Account ${modal.type}d successfully.`,
+                    `Account updated successfully.`,
                     'success'
                 );
                 closeModal();
@@ -264,21 +265,21 @@ export default function StaffManagementPage() {
                             <div className="col-span-2 flex items-center justify-end gap-2">
                                 {member.role !== 'superadmin' && (
                                     <>
-                                        <button onClick={() => { setForm({ name: member.name, email: member.email, password: '' }); setModal({ type: 'edit', staff: member }); }}
+                                        <button onClick={() => { setForm({ name: member.name, email: member.email, password: '' }); setModal({ type: 'edit', staffId: member.id }); }}
                                             className="p-2 rounded-xl text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 transition-all" title="Edit Details">
                                             <Users className="h-4 w-4" />
                                         </button>
-                                        <button onClick={() => setModal({ type: 'reset_password', staff: member })}
+                                        <button onClick={() => setModal({ type: 'reset_password', staffId: member.id })}
                                             className="p-2 rounded-xl text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all" title="Reset Password">
                                             <KeyRound className="h-4 w-4" />
                                         </button>
                                         {member.is_active ? (
-                                            <button onClick={() => setModal({ type: 'suspend', staff: member })}
+                                            <button onClick={() => setModal({ type: 'suspend', staffId: member.id })}
                                                 className="p-2 rounded-xl text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all" title="Suspend Account">
                                                 <ShieldOff className="h-4 w-4" />
                                             </button>
                                         ) : (
-                                            <button onClick={() => setModal({ type: 'activate', staff: member })}
+                                            <button onClick={() => setModal({ type: 'activate', staffId: member.id })}
                                                 className="p-2 rounded-xl text-zinc-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all" title="Activate Account">
                                                 <ShieldCheck className="h-4 w-4" />
                                             </button>
@@ -298,17 +299,24 @@ export default function StaffManagementPage() {
                         
                         {/* Modal Header */}
                         <div className="flex items-start justify-between mb-6">
-                            <div>
-                                <h3 className="text-lg font-black text-zinc-900 dark:text-white">
-                                    {modal.type === 'create' && 'Create Admin Account'}
-                                    {modal.type === 'edit' && 'Edit Staff Details'}
-                                    {modal.type === 'suspend' && 'Suspend Account'}
-                                    {modal.type === 'activate' && 'Activate Account'}
-                                    {modal.type === 'deactivate' && 'Deactivate Account'}
-                                    {modal.type === 'reset_password' && 'Reset Password'}
-                                </h3>
-                                {modal.staff && <p className="text-xs text-zinc-500 mt-0.5">{modal.staff.email}</p>}
-                            </div>
+                            {(() => {
+                                const targetStaff = staff.find(s => s.id === modal.staffId);
+                                return (
+                                    <>
+                                        <div>
+                                            <h3 className="text-lg font-black text-zinc-900 dark:text-white">
+                                                {modal.type === 'create' && 'Create Admin Account'}
+                                                {modal.type === 'edit' && 'Edit Staff Details'}
+                                                {modal.type === 'suspend' && 'Suspend Account'}
+                                                {modal.type === 'activate' && 'Activate Account'}
+                                                {modal.type === 'deactivate' && 'Deactivate Account'}
+                                                {modal.type === 'reset_password' && 'Reset Password'}
+                                            </h3>
+                                            {targetStaff && <p className="text-xs text-zinc-500 mt-0.5">{targetStaff.email}</p>}
+                                        </div>
+                                    </>
+                                );
+                            })()}
                             <button onClick={closeModal} className="p-2 rounded-xl text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/10 transition-colors">
                                 <X className="h-5 w-5" />
                             </button>
@@ -371,9 +379,13 @@ export default function StaffManagementPage() {
                                         {modal.type === 'activate' ? 'Restore access?' : 'Are you sure?'}
                                     </p>
                                     <p className="text-xs text-zinc-500 leading-relaxed">
-                                        {modal.type === 'suspend' && `This will immediately block ${modal.staff?.name} from logging in. All their active sessions will become invalid.`}
-                                        {modal.type === 'activate' && `This will restore ${modal.staff?.name}'s access to the admin panel.`}
-                                        {modal.type === 'deactivate' && `This will permanently deactivate ${modal.staff?.name}'s account. Their data will be preserved for audit purposes.`}
+                                        {(() => {
+                                            const targetStaff = staff.find(s => s.id === modal.staffId);
+                                            if (modal.type === 'suspend') return `This will immediately block ${targetStaff?.name} from logging in. All their active sessions will become invalid.`;
+                                            if (modal.type === 'activate') return `This will restore ${targetStaff?.name}'s access to the admin panel.`;
+                                            if (modal.type === 'deactivate') return `This will permanently deactivate ${targetStaff?.name}'s account. Their data will be preserved for audit purposes.`;
+                                            return null;
+                                        })()}
                                     </p>
                                 </div>
                             </div>
