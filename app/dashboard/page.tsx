@@ -73,18 +73,15 @@ function DashboardContent() {
         const searchParams = useSearchParams();
         const { refreshData } = useData();
         const [showToast, setShowToast] = useState(false);
-        const hasVerified = useRef(false);
+        const hasStarted = useRef(false);
 
         useEffect(() => {
             const paymentStatus = searchParams.get('payment');
             const sessionId = searchParams.get('session_id');
 
-            if (paymentStatus === 'success' && sessionId && !hasVerified.current) {
-                hasVerified.current = true;
+            if (paymentStatus === 'success' && sessionId && !hasStarted.current) {
+                hasStarted.current = true;
                 
-                // 1. Immediately scrub the URL before doing anything else
-                window.history.replaceState({}, '', '/dashboard');
-
                 const verify = async () => {
                     try {
                         const res = await fetch(`/api/payments/verify-session?session_id=${sessionId}`);
@@ -92,11 +89,13 @@ function DashboardContent() {
                         if (data.success) {
                             setShowToast(true);
                             refreshData();
-                            // Hide toast after 5 seconds
-                            setTimeout(() => setShowToast(false), 5000);
+                            // Clean URL after success
+                            window.history.replaceState({}, '', '/dashboard');
+                            setTimeout(() => setShowToast(false), 8000);
                         }
                     } catch (err) {
                         console.error('Verification failed', err);
+                        hasStarted.current = false;
                     }
                 };
                 verify();
@@ -106,16 +105,16 @@ function DashboardContent() {
         if (!showToast) return null;
 
         return (
-            <div className="fixed top-24 right-10 z-[100] animate-in fade-in slide-in-from-top-4 duration-500">
-                <div className="bg-emerald-500 text-white px-6 py-4 rounded-2xl shadow-2xl shadow-emerald-500/20 flex items-center gap-3 border border-emerald-400/20">
-                    <div className="h-8 w-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <CheckCircle2 className="h-5 w-5 text-white" />
+            <div className="fixed bottom-10 right-10 z-[9999] animate-in slide-in-from-right-10 duration-500">
+                <div className="bg-emerald-600 text-white px-6 py-5 rounded-2xl shadow-[0_20px_50px_rgba(16,185,129,0.3)] flex items-center gap-4 border border-white/20">
+                    <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="h-6 w-6 text-white" />
                     </div>
-                    <div>
-                        <p className="font-black text-sm uppercase tracking-wide">Payment Confirmed</p>
-                        <p className="text-[11px] opacity-90 font-bold">Your stay status has been updated successfully.</p>
+                    <div className="pr-4">
+                        <p className="font-black text-sm uppercase tracking-wider">Payment Verified!</p>
+                        <p className="text-xs opacity-90 font-bold mt-0.5 whitespace-nowrap">Your stay is confirmed. Welcome home!</p>
                     </div>
-                    <button onClick={() => setShowToast(false)} className="ml-4 hover:scale-110 transition-transform">
+                    <button onClick={() => setShowToast(false)} className="hover:rotate-90 transition-transform p-1">
                         <X className="h-4 w-4" />
                     </button>
                 </div>
