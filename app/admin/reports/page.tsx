@@ -132,55 +132,56 @@ export default function AdminReportsPage() {
                                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Revenue (RM)</div>
                             </div>
                             
-                            <div className="h-64 flex gap-4">
-                                {/* Y-Axis Labels */}
-                                <div className="flex flex-col justify-between text-[10px] font-black text-slate-400 pb-8 pt-2 w-12 text-right">
-                                    {(() => {
-                                        const max = Math.max(...reportData.revenue.map((x: any) => parseFloat(x.total))) || 5000;
-                                        const step = Math.ceil(max / 5 / 1000) * 1000 || 1000;
-                                        const labels = [];
-                                        for (let i = 5; i >= 0; i--) {
-                                            labels.push(<span key={i}>RM {(i * step).toLocaleString()}</span>);
-                                        }
-                                        return labels;
-                                    })()}
-                                </div>
+                            {(() => {
+                                const maxData = Math.max(...reportData.revenue.map((x: any) => parseFloat(x.total))) || 5000;
+                                const step = Math.ceil(maxData / 5 / 1000) * 1000 || 1000;
+                                const graphMax = step * 5;
 
-                                {/* Graph Area */}
-                                <div className="flex-1 relative">
-                                    {/* Grid Lines */}
-                                    <div className="absolute inset-0 flex flex-col justify-between pb-8 pt-2 pointer-events-none">
-                                        {[1, 2, 3, 4, 5, 6].map(i => (
-                                            <div key={i} className="w-full border-t border-slate-100 dark:border-slate-800/50" />
-                                        ))}
-                                    </div>
+                                return (
+                                    <div className="h-64 flex gap-4">
+                                        {/* Y-Axis Labels */}
+                                        <div className="flex flex-col justify-between text-[10px] font-black text-slate-400 pb-8 pt-2 w-12 text-right">
+                                            {[5, 4, 3, 2, 1, 0].map((i) => (
+                                                <span key={i}>RM {(i * step).toLocaleString()}</span>
+                                            ))}
+                                        </div>
 
-                                    {/* Bars */}
-                                    <div className="absolute inset-0 pb-8 pt-2 flex items-end gap-4 px-2">
-                                        {reportData.revenue.length > 0 ? reportData.revenue.map((r: any) => {
-                                            const max = Math.max(...reportData.revenue.map((x: any) => parseFloat(x.total))) || 1;
-                                            const pct = (parseFloat(r.total) / max) * 100;
-                                            
-                                            return (
-                                                <div key={r.month} className="flex-1 h-full flex flex-col justify-end items-center group relative z-10">
-                                                    <div
-                                                        className="w-full bg-[#F26C22] rounded-t-xl transition-all hover:bg-[#F26C22]/80 relative shadow-[0_0_20px_rgba(242,108,34,0.15)] group-hover:scale-x-105"
-                                                        style={{ height: `${Math.max(pct, 2)}%` }}
-                                                    >
-                                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-950 text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap border border-white/10 shadow-2xl z-50">
-                                                            <p className="font-black">RM {parseFloat(r.total).toLocaleString()}</p>
-                                                            <p className="text-[8px] text-slate-400 uppercase mt-0.5">{r.month}</p>
+                                        {/* Graph Area */}
+                                        <div className="flex-1 relative">
+                                            {/* Grid Lines */}
+                                            <div className="absolute inset-0 flex flex-col justify-between pb-8 pt-2 pointer-events-none">
+                                                {[1, 2, 3, 4, 5, 6].map(i => (
+                                                    <div key={i} className="w-full border-t border-slate-100 dark:border-slate-800/50" />
+                                                ))}
+                                            </div>
+
+                                            {/* Bars */}
+                                            <div className="absolute inset-0 pb-8 pt-2 flex items-end gap-4 px-2">
+                                                {reportData.revenue.length > 0 ? reportData.revenue.map((r: any) => {
+                                                    const pct = (parseFloat(r.total) / graphMax) * 100;
+                                                    
+                                                    return (
+                                                        <div key={r.month} className="flex-1 h-full flex flex-col justify-end items-center group relative z-10">
+                                                            <div
+                                                                className="w-full bg-[#F26C22] rounded-t-xl transition-all hover:bg-[#F26C22]/80 relative shadow-[0_0_20px_rgba(242,108,34,0.15)] group-hover:scale-x-105"
+                                                                style={{ height: `${Math.max(pct, 2)}%` }}
+                                                            >
+                                                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-950 text-white text-[10px] px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap border border-white/10 shadow-2xl z-50">
+                                                                    <p className="font-black">RM {parseFloat(r.total).toLocaleString()}</p>
+                                                                    <p className="text-[8px] text-slate-400 uppercase mt-0.5">{r.month}</p>
+                                                                </div>
+                                                            </div>
+                                                            <span className="absolute -bottom-6 text-[10px] text-slate-500 font-black uppercase tracking-tighter truncate w-full text-center">{r.month.split(' ')[0]}</span>
                                                         </div>
-                                                    </div>
-                                                    <span className="absolute -bottom-6 text-[10px] text-slate-500 font-black uppercase tracking-tighter truncate w-full text-center">{r.month.split(' ')[0]}</span>
-                                                </div>
-                                            );
-                                        }) : (
-                                            <div className="w-full h-full pb-8 flex items-center justify-center text-slate-400 text-sm font-bold italic">No revenue data found.</div>
-                                        )}
+                                                    );
+                                                }) : (
+                                                    <div className="w-full h-full pb-8 flex items-center justify-center text-slate-400 text-sm font-bold italic">No revenue data found.</div>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
+                                );
+                            })()}
                             <div className="mt-4 text-center">
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Accounting Cycles (Months)</span>
                             </div>
