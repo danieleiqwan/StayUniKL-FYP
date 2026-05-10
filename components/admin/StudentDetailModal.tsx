@@ -28,9 +28,10 @@ import {
 interface StudentDetailModalProps {
     studentId: string | null;
     onClose: () => void;
+    onUpdate?: () => void;
 }
 
-export default function StudentDetailModal({ studentId, onClose }: StudentDetailModalProps) {
+export default function StudentDetailModal({ studentId, onClose, onUpdate }: StudentDetailModalProps) {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'profile' | 'hostel' | 'room' | 'finance' | 'support'>('profile');
@@ -87,6 +88,9 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
                         is_active: !isCurrentlyActive ? 1 : 0
                     }
                 });
+                
+                // Notify parent to refresh list
+                if (onUpdate) onUpdate();
             } else {
                 alert(resData.error || 'Failed to update status');
             }

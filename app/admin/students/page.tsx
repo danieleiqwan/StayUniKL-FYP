@@ -28,25 +28,25 @@ export default function StudentsDirectoryPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
+    const fetchStudents = async () => {
+        try {
+            const res = await fetch('/api/admin/students/all');
+            const data = await res.json();
+            if (data.success) {
+                setStudents(data.students);
+            }
+        } catch (err) {
+            console.error('Failed to fetch students:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (user?.role !== 'admin') {
             router.push('/login');
             return;
         }
-
-        const fetchStudents = async () => {
-            try {
-                const res = await fetch('/api/admin/students/all');
-                const data = await res.json();
-                if (data.success) {
-                    setStudents(data.students);
-                }
-            } catch (err) {
-                console.error('Failed to fetch students:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
 
         fetchStudents();
     }, [user, router]);
@@ -360,6 +360,7 @@ export default function StudentsDirectoryPage() {
             <StudentDetailModal 
                 studentId={selectedStudentId} 
                 onClose={() => setSelectedStudentId(null)} 
+                onUpdate={fetchStudents}
             />
         </div>
     );
