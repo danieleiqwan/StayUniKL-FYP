@@ -127,19 +127,21 @@ export default function ProfilePage() {
                                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                     <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8 pb-8 border-b border-slate-50 dark:border-slate-800">
                                         <div className="relative group shrink-0">
-                                            <div className="h-28 w-28 md:h-32 md:w-32 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden ring-4 ring-white dark:ring-slate-800 shadow-2xl relative">
+                                            <div className="h-28 w-28 md:h-32 md:w-32 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden ring-4 ring-white dark:ring-slate-800 shadow-2xl relative cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                                                 <img 
                                                     src={user.profileImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
                                                     alt="Avatar" 
                                                     className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500"
                                                 />
                                                 <button 
-                                                    onClick={() => fileInputRef.current?.click()}
                                                     className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                                                     disabled={isSaving}
                                                 >
                                                     <Camera className="h-8 w-8 text-white animate-in zoom-in-50 duration-300" />
                                                 </button>
+                                            </div>
+                                            <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap z-10 pointer-events-none transition-transform group-hover:scale-105 duration-300 border-2 border-white dark:border-slate-800">
+                                                Change Photo
                                             </div>
                                             <input 
                                                 type="file"
