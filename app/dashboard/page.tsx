@@ -94,12 +94,14 @@ function PaymentVerifier() {
 function DashboardContent() {
     const router = useRouter();
     const { user } = useAuth();
-    const { myApplication, myComplaints, courtBookings, rooms, facilitySettings, refreshData } = useData();
+    const { myApplication, myComplaints, courtBookings, rooms, facilitySettings, refreshData, invoices } = useData();
 
     if (!user) return null;
 
     // Derived States
     const isPaymentPending = myApplication?.status === 'Payment Pending';
+    const pendingInvoices = invoices.filter(i => i.status === 'Unpaid' || i.status === 'Overdue');
+    const totalPendingInvoicesAmount = pendingInvoices.reduce((s, i) => s + Number(i.amount), 0);
     const myAllBookings = courtBookings.filter(b => b.studentId === user.id);
     const activeBookingsCount = myAllBookings.filter(b => b.status === 'Approved' || b.status === 'Pending').length;
     const pendingComplaintsCount = myComplaints.filter(c => c.status === 'Pending' || c.status === 'In Progress').length;
@@ -250,6 +252,27 @@ function DashboardContent() {
                         className="bg-white text-[#F26C22] px-6 py-2.5 rounded-xl font-black text-xs tracking-widest uppercase hover:bg-orange-50 transition-all whitespace-nowrap shrink-0"
                     >
                         Apply Now →
+                    </Link>
+                </div>
+            )}
+
+            {/* Outstanding Invoices Banner */}
+            {totalPendingInvoicesAmount > 0 && !isPaymentPending && (
+                <div className="bg-gradient-to-r from-orange-600 to-rose-600 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-orange-100 animate-in fade-in slide-in-from-top-4 duration-700">
+                    <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-orange-600 shrink-0">
+                            <Banknote className="h-5 w-5" />
+                        </div>
+                        <div className="text-white">
+                            <p className="font-black text-sm">Unpaid Invoices</p>
+                            <p className="text-xs opacity-90">You have <span className="font-bold underline">RM {totalPendingInvoicesAmount.toFixed(2)}</span> in outstanding charges (Monthly Rent/Fines).</p>
+                        </div>
+                    </div>
+                    <Link
+                        href="/dashboard/financials"
+                        className="bg-white text-orange-600 px-6 py-2.5 rounded-xl font-black text-xs tracking-widest uppercase hover:bg-orange-50 transition-all whitespace-nowrap shrink-0"
+                    >
+                        View & Pay →
                     </Link>
                 </div>
             )}
