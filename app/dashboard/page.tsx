@@ -73,49 +73,73 @@ function DashboardContent() {
         const searchParams = useSearchParams();
         const { refreshData } = useData();
         const [showToast, setShowToast] = useState(false);
-        const hasStarted = useRef(false);
+        const hasProcessed = useRef(false);
 
         useEffect(() => {
             const paymentStatus = searchParams.get('payment');
             const sessionId = searchParams.get('session_id');
 
-            if (paymentStatus === 'success' && sessionId && !hasStarted.current) {
-                hasStarted.current = true;
+            console.log('[Verifier] Check:', { paymentStatus, sessionId, hasProcessed: hasProcessed.current });
+
+            if (paymentStatus === 'success' && sessionId && !hasProcessed.current) {
+                hasProcessed.current = true;
+                console.log('[Verifier] Starting verification for session:', sessionId);
                 
                 const verify = async () => {
                     try {
                         const res = await fetch(`/api/payments/verify-session?session_id=${sessionId}`);
                         const data = await res.json();
+                        console.log('[Verifier] API Response:', data);
+                        
                         if (data.success) {
-                            setShowToast(true);
-                            refreshData();
-                            // Clean URL after success
+                            // 1. Save success state to storage to survive any redirect/refresh
+                            localStorage.setItem('stayunikl_payment_verified', 'true');
+                            
+                            // 2. Refresh data
+                            await refreshData();
+                            
+                            // 3. Clean the URL completely
                             window.history.replaceState({}, '', '/dashboard');
-                            setTimeout(() => setShowToast(false), 8000);
+                            
+                            // 4. Trigger the toast from storage state
+                            setShowToast(true);
+                            console.log('[Verifier] Toast should be showing now');
+                            
+                            setTimeout(() => {
+                                setShowToast(false);
+                                localStorage.removeItem('stayunikl_payment_verified');
+                            }, 8000);
                         }
                     } catch (err) {
-                        console.error('Verification failed', err);
-                        hasStarted.current = false;
+                        console.error('[Verifier] Error:', err);
+                        hasProcessed.current = false;
                     }
                 };
                 verify();
+            } else if (localStorage.getItem('stayunikl_payment_verified') === 'true' && !showToast) {
+                // If we have the token in storage but toast isn't showing yet (e.g. after the URL scrub)
+                setShowToast(true);
+                setTimeout(() => {
+                    setShowToast(false);
+                    localStorage.removeItem('stayunikl_payment_verified');
+                }, 8000);
             }
-        }, [searchParams, refreshData]);
+        }, [searchParams, refreshData, showToast]);
 
         if (!showToast) return null;
 
         return (
-            <div className="fixed bottom-10 right-10 z-[9999] animate-in slide-in-from-right-10 duration-500">
-                <div className="bg-emerald-600 text-white px-6 py-5 rounded-2xl shadow-[0_20px_50px_rgba(16,185,129,0.3)] flex items-center gap-4 border border-white/20">
-                    <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="h-6 w-6 text-white" />
+            <div className="fixed bottom-10 right-10 z-[9999] animate-in slide-in-from-bottom-10 duration-700">
+                <div className="bg-emerald-600 text-white px-8 py-6 rounded-3xl shadow-[0_25px_60px_rgba(16,185,129,0.4)] flex items-center gap-5 border-2 border-white/30 backdrop-blur-md">
+                    <div className="h-12 w-12 bg-white text-emerald-600 rounded-full flex items-center justify-center shrink-0 shadow-lg">
+                        <CheckCircle2 className="h-7 w-7" />
                     </div>
-                    <div className="pr-4">
-                        <p className="font-black text-sm uppercase tracking-wider">Payment Verified!</p>
-                        <p className="text-xs opacity-90 font-bold mt-0.5 whitespace-nowrap">Your stay is confirmed. Welcome home!</p>
+                    <div className="pr-6">
+                        <p className="font-black text-lg uppercase tracking-tighter leading-none mb-1">Payment Success!</p>
+                        <p className="text-xs font-bold opacity-90 whitespace-nowrap">Your hostel status is now officially updated.</p>
                     </div>
-                    <button onClick={() => setShowToast(false)} className="hover:rotate-90 transition-transform p-1">
-                        <X className="h-4 w-4" />
+                    <button onClick={() => { setShowToast(false); localStorage.removeItem('stayunikl_payment_verified'); }} className="hover:scale-125 transition-transform p-1">
+                        <X className="h-5 w-5" />
                     </button>
                 </div>
             </div>
