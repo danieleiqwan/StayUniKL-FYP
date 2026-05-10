@@ -37,11 +37,18 @@ export async function POST(request: Request) {
 
         const user = rows[0];
 
-        // 2. Check if account is locked
+        // 2. Check if account is locked (brute force)
         if (user.locked_until && new Date(user.locked_until) > new Date()) {
             const minutesLeft = Math.ceil((new Date(user.locked_until).getTime() - new Date().getTime()) / 60000);
             return NextResponse.json({ 
                 error: `Account is locked due to too many failed attempts. Try again in ${minutesLeft} minutes.` 
+            }, { status: 403 });
+        }
+
+        // 3. Check if account is deactivated by admin
+        if (user.is_active === 0) {
+            return NextResponse.json({ 
+                error: 'Your account has been deactivated by the administration. Please contact support for more information.' 
             }, { status: 403 });
         }
 

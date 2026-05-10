@@ -35,20 +35,68 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'profile' | 'hostel' | 'room' | 'finance' | 'support'>('profile');
 
+    const [toggling, setToggling] = useState(false);
+
+    const fetchDetails = () => {
+        setLoading(true);
+        fetch(`/api/admin/student-details?studentId=${studentId}`)
+            .then(res => res.json())
+            .then(resData => {
+                if (resData.success) {
+                    setData(resData.data);
+                }
+            })
+            .catch(err => console.error(err))
+            .finally(() => setLoading(false));
+    };
+
     useEffect(() => {
         if (studentId) {
-            setLoading(true);
-            fetch(`/api/admin/student-details?studentId=${studentId}`)
-                .then(res => res.json())
-                .then(resData => {
-                    if (resData.success) {
-                        setData(resData.data);
-                    }
-                })
-                .catch(err => console.error(err))
-                .finally(() => setLoading(false));
+            fetchDetails();
         }
     }, [studentId]);
+
+    const handleToggleStatus = async () => {
+        if (!data?.profile?.id) return;
+        
+        const isCurrentlyActive = data.profile.is_active !== 0;
+        const confirmMsg = isCurrentlyActive 
+            ? 'Are you sure you want to DEACTIVATE this student? They will be immediately blocked from logging into the system.'
+            : 'Are you sure you want to ACTIVATE this student account?';
+
+        if (!window.confirm(confirmMsg)) return;
+
+        setToggling(true);
+        try {
+            const res = await fetch('/api/admin/students/toggle-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: data.profile.id,
+                    isActive: !isCurrentlyActive
+                })
+            });
+
+            const resData = await res.json();
+            if (resData.success) {
+                // Refresh local data
+                setData({
+                    ...data,
+                    profile: {
+                        ...data.profile,
+                        is_active: !isCurrentlyActive ? 1 : 0
+                    }
+                });
+            } else {
+                alert(resData.error || 'Failed to update status');
+            }
+        } catch (err) {
+            console.error('Toggle Status Error:', err);
+            alert('An error occurred while updating status');
+        } finally {
+            setToggling(false);
+        }
+    };
 
     const calculateAge = (s: any) => {
         if (!s) return 'N/A';
@@ -110,7 +158,11 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
                     <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em] mb-8">{data?.profile?.student_id || studentId}</p>
 
                     <div className="w-full space-y-4">
-                        <SidebarInfo label="Status" value="Active" color="text-emerald-500" />
+                        <SidebarInfo 
+                            label="Account Status" 
+                            value={data?.profile?.is_active !== 0 ? 'Active' : 'Deactivated'} 
+                            color={data?.profile?.is_active !== 0 ? 'text-emerald-500' : 'text-rose-500'} 
+                        />
                         <SidebarInfo label="Age" value={calculateAge(data?.profile)} />
                         <SidebarInfo label="Gender" value={data?.profile?.gender || 'N/A'} />
                         <SidebarInfo label="Joined" value={data?.profile?.created_at ? new Date(data.profile.created_at).toLocaleDateString() : 'N/A'} />
@@ -141,11 +193,20 @@ export default function StudentDetailModal({ studentId, onClose }: StudentDetail
                             <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Student Details</h3>
                         </div>
                         <div className="flex items-center gap-3">
-                            <button className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
-                                Cancel
-                            </button>
-                            <button className="px-6 py-2.5 bg-[#F26C22] hover:bg-[#d65a16] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 transition-all active:scale-95">
-                                Activate Student
+                            <button 
+                                onClick={handleToggleStatus}
+                                disabled={toggling}
+                                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg transition-all active:scale-95 flex items-center gap-2 ${
+                                    data?.profile?.is_active !== 0
+                                    ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/20'
+                                    : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20'
+                                }`}
+                            >
+                                {toggling ? (
+                                    <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    data?.profile?.is_active !== 0 ? 'Deactivate Student' : 'Activate Student'
+                                )}
                             </button>
                             <button onClick={onClose} className="ml-4 p-2.5 bg-slate-50 dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-400 hover:text-rose-500 rounded-xl transition-all border border-slate-100 dark:border-slate-800">
                                 <X className="h-5 w-5" />

@@ -282,12 +282,17 @@ export default function StudentsDirectoryPage() {
                                             </td>
                                             <td className="px-8 py-6 space-y-1.5">
                                                 <div className="flex flex-col gap-1">
-                                                    {s.latest_status === 'Checked in' ? (
-                                                        <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 uppercase tracking-widest w-fit">Active</span>
+                                                    {s.is_active !== 0 ? (
+                                                        <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 uppercase tracking-widest w-fit">Account Active</span>
                                                     ) : (
-                                                        <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 uppercase tracking-widest w-fit">Inactive</span>
+                                                        <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 uppercase tracking-widest w-fit">Account Disabled</span>
                                                     )}
-                                                    <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 uppercase tracking-widest w-fit">Unverified</span>
+                                                    
+                                                    {s.latest_status === 'Checked in' ? (
+                                                        <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 uppercase tracking-widest w-fit italic opacity-80">Resident</span>
+                                                    ) : s.latest_status === 'Checked out' ? (
+                                                        <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400 uppercase tracking-widest w-fit italic opacity-80">Checked Out</span>
+                                                    ) : null}
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6 text-right">
