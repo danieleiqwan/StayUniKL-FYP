@@ -60,28 +60,19 @@ function StatusBadge({ status }: { status: string }) {
 
 function FinancialsContent() {
     const { user } = useAuth();
-    const { myApplication, refreshData, payments } = useData();
+    const { myApplication, refreshData, payments, invoices } = useData();
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    const [invoices, setInvoices] = useState<InvoiceFull[]>([]);
     const [filter, setFilter] = useState<InvoiceStatus>('All');
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [payingId, setPayingId] = useState<string | null>(null);
 
     const fetchInvoices = async () => {
-        if (!user) return;
         setLoading(true);
-        try {
-            const res = await fetch(`/api/billing/invoices?userId=${user.id}`);
-            const data = await res.json();
-            if (data.invoices) setInvoices(data.invoices);
-        } finally {
-            setLoading(false);
-        }
+        await refreshData();
+        setLoading(false);
     };
-
-    useEffect(() => { fetchInvoices(); }, [user]);
 
     const handlePay = (invoiceId: string, amount: number) => {
         router.push(`/dashboard/payment?amount=${amount}&invoiceId=${invoiceId}`);
