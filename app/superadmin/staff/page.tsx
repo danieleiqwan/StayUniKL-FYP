@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
     Users, UserPlus, ShieldCheck, ShieldOff, KeyRound, RefreshCw,
     Search, CheckCircle2, XCircle, Clock, AlertTriangle, X, Eye, EyeOff, Loader2
@@ -113,10 +113,14 @@ export default function StaffManagementPage() {
         }
     };
 
-    const filteredStaff = staff.filter(s =>
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        s.email.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredStaff = useMemo(() => {
+        return staff.filter(s => {
+            const name = (s.name || '').toLowerCase();
+            const email = (s.email || '').toLowerCase();
+            const query = (search || '').toLowerCase();
+            return name.includes(query) || email.includes(query);
+        });
+    }, [staff, search]);
 
     const getStatusBadge = (member: StaffMember) => {
         if (member.role === 'superadmin') {
