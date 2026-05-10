@@ -30,5 +30,16 @@ export async function GET() {
         results.push(`ℹ️ role ENUM: ${e.message}`);
     }
 
+    // Ensure audit_logs has the modern schema
+    try {
+        await pool.query('ALTER TABLE audit_logs ADD COLUMN actor_id VARCHAR(50) AFTER id');
+        results.push('✅ Added actor_id to audit_logs');
+    } catch (e: any) {}
+
+    try {
+        await pool.query('ALTER TABLE audit_logs ADD COLUMN actor_name VARCHAR(255) AFTER actor_id');
+        results.push('✅ Added actor_name to audit_logs');
+    } catch (e: any) {}
+
     return NextResponse.json({ success: true, results });
 }
