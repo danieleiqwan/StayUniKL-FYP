@@ -3,7 +3,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, Suspense } from 'react';
 import AdminSidebar from '@/components/layout/AdminSidebar';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Bell, Search, Clock } from 'lucide-react';
