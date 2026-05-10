@@ -57,19 +57,23 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     return (
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-foreground transition-colors duration-300">
             {/* Sidebar */}
-            <AdminSidebar 
-                activeTab={activeTab} 
-                counts={counts}
-                isCollapsed={isCollapsed}
-                setIsCollapsed={setIsCollapsed}
-            />
+            <div className="print:hidden">
+                <AdminSidebar 
+                    activeTab={activeTab} 
+                    counts={counts}
+                    isCollapsed={isCollapsed}
+                    setIsCollapsed={setIsCollapsed}
+                />
+            </div>
 
             {/* Main Content Area */}
-            <main className={`transition-all duration-300 min-h-screen flex flex-col ${isCollapsed ? 'lg:pl-24' : 'lg:pl-80'}`}>
-                <AdminNavbar />
+            <main className={`transition-all duration-300 min-h-screen flex flex-col print:pl-0 print:bg-white ${isCollapsed ? 'lg:pl-24' : 'lg:pl-80'}`}>
+                <div className="print:hidden">
+                    <AdminNavbar />
+                </div>
 
                 {/* Page Content */}
-                <div className="flex-1">
+                <div className="flex-1 print:p-0">
                     {children}
                 </div>
 

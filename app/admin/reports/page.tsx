@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { 
     Users, Building2, DollarSign, Clock, TrendingUp, BarChart3, 
     ArrowUpRight, ArrowDownRight, PieChart, Activity, ShieldCheck,
-    Calendar, MapPin, Search, Wrench
+    Calendar, MapPin, Search, Wrench, Printer
 } from 'lucide-react';
 
 export default function AdminReportsPage() {
@@ -57,10 +57,18 @@ export default function AdminReportsPage() {
     }
 
     return (
-        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight uppercase">System Insights</h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Comprehensive overview of hostel performance and student data.</p>
+        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10 print:py-0 print:px-4">
+                <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight uppercase">System Insights</h1>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Comprehensive overview of hostel performance and student data.</p>
+                    </div>
+                    <button 
+                        onClick={() => window.print()}
+                        className="print:hidden px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-sm hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                    >
+                        <Printer className="h-4 w-4" /> Generate PDF Report
+                    </button>
                 </div>
 
                 {/* KPI Cards */}
