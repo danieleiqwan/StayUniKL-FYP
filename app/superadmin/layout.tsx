@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import SuperAdminSidebar from '@/components/layout/SuperAdminSidebar';
 import { cn } from '@/lib/utils';
 
@@ -11,33 +11,33 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
     const router = useRouter();
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const isAuthorised = useRef(false); // Sticky — once true, never goes false mid-session
 
-    // CRITICAL FIX: Only run once on mount with empty deps [].
-    // Previously this depended on [user], so every AuthContext re-render
-    // (e.g. triggered by clicking a button that makes an API call) would
-    // reset isCheckingAuth to true, conditionally return the loading spinner,
-    // and UNMOUNT {children} — wiping the StaffManagementPage's entire state.
+    // Run once on mount only. Never re-run on user changes.
     useEffect(() => {
         const timer = setTimeout(() => setIsCheckingAuth(false), 800);
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // ← Empty: only fire once on initial page load
+    }, []);
 
+    // Once we confirm the user is superadmin, remember it permanently.
+    // This prevents a brief user=null flicker (from AuthContext re-render) from ejecting the page.
     useEffect(() => {
-        if (!isCheckingAuth && (!user || user.role !== 'superadmin')) {
+        if (user?.role === 'superadmin') {
+            isAuthorised.current = true;
+        }
+    }, [user]);
+
+    // Only redirect if: auth check done AND user never was superadmin this session
+    useEffect(() => {
+        if (!isCheckingAuth && !isAuthorised.current && (!user || user.role !== 'superadmin')) {
             router.push('/login?role=admin');
         }
     }, [isCheckingAuth, user, router]);
 
-    // If definitely not authorised (after check), render nothing while redirecting
-    if (!isCheckingAuth && (!user || user.role !== 'superadmin')) {
-        return null;
-    }
-
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 text-zinc-900 dark:text-white flex transition-colors duration-500">
-            {/* Auth overlay — rendered ON TOP of children, never instead of them.
-                This means children stay mounted and never lose their state. */}
+            {/* Auth overlay — ON TOP of children, never instead of them */}
             {isCheckingAuth && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center bg-white dark:bg-slate-950 transition-colors">
                     <div className="flex flex-col items-center gap-4">
