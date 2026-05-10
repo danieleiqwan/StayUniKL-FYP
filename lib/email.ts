@@ -162,7 +162,7 @@ export const sendPaymentReminderEmail = async (to: string, name: string, invoice
         const info = await transporter.sendMail({
             from: `"StayUniKL Administration" <${process.env.SMTP_USER}>`,
             to,
-            subject: \`Action Required: Payment Reminder for Invoice #\${invoiceId}\`,
+            subject: `Action Required: Payment Reminder for Invoice #${invoiceId}`,
             html: htmlContent,
         });
         return { success: true, messageId: info.messageId };
