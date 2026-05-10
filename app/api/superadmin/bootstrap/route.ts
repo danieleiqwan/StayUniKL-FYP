@@ -50,8 +50,8 @@ export async function POST(request: Request) {
         const userId = `superadmin_${Date.now()}`;
         try {
             await pool.query(
-                `INSERT INTO users (id, name, email, password, role, is_active, created_at)
-                 VALUES (?, ?, ?, ?, 'superadmin', 1, NOW())`,
+                `INSERT INTO users (id, name, email, password, role, is_active, nric, gender, created_at)
+                 VALUES (?, ?, ?, ?, 'superadmin', 1, 'SUPERADMIN_INTERNAL', 'Male', NOW())`,
                 [userId, name, email, hashedPassword]
             );
         } catch (dbErr: any) {

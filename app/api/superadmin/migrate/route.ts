@@ -30,6 +30,12 @@ export async function GET() {
         results.push(`ℹ️ role ENUM: ${e.message}`);
     }
 
+    try {
+        await pool.query('ALTER TABLE users MODIFY COLUMN nric VARCHAR(20) NULL');
+        await pool.query('ALTER TABLE users MODIFY COLUMN student_id VARCHAR(50) NULL');
+        results.push('✅ Made nric and student_id nullable');
+    } catch (e: any) {}
+
     // Ensure audit_logs has the modern schema
     try {
         await pool.query('ALTER TABLE audit_logs ADD COLUMN actor_id VARCHAR(50) AFTER id');
