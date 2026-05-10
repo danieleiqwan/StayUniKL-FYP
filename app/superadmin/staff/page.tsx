@@ -141,8 +141,10 @@ export default function StaffManagementPage() {
     };
 
     const formatDate = (d: string | null) => {
-        if (!d) return 'Never';
-        return new Date(d).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        if (!d || d.startsWith('0000')) return 'Never';
+        const date = new Date(d);
+        if (isNaN(date.getTime())) return 'Never';
+        return date.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     };
 
     return (

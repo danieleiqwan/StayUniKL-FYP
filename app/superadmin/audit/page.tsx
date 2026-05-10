@@ -114,11 +114,14 @@ export default function AuditLogsPage() {
 
     const hasFilters = search || actionFilter || entityFilter || fromDate || toDate;
 
-    const formatDate = (d: string) =>
-        new Date(d).toLocaleString('en-GB', {
+    const formatDate = (d: string) => {
+        const date = new Date(d);
+        if (isNaN(date.getTime())) return '—';
+        return date.toLocaleString('en-GB', {
             day: '2-digit', month: 'short', year: 'numeric',
             hour: '2-digit', minute: '2-digit', second: '2-digit'
         });
+    };
 
     const parseDetails = (raw: string | null) => {
         if (!raw) return null;
