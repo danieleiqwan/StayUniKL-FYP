@@ -32,7 +32,15 @@ export default function SuperAdminDashboard() {
 
     useEffect(() => { fetchStats(); }, []);
 
-    const getUserStat = (role: string) => stats?.users?.find((u: any) => u.role === role) || { total: 0, active: 0, suspended: 0 };
+    const getUserStat = (role: string) => {
+        if (!stats?.users || !Array.isArray(stats.users)) return { total: 0, active: 0, suspended: 0 };
+        const found = stats.users.find((u: any) => u.role?.toLowerCase() === role.toLowerCase());
+        return {
+            total: Number(found?.total || 0),
+            active: Number(found?.active || 0),
+            suspended: Number(found?.suspended || 0)
+        };
+    };
     const studentStats = getUserStat('student');
     const adminStats = getUserStat('admin');
 
