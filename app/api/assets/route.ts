@@ -34,11 +34,13 @@ export async function GET(request: Request) {
     }
 }
 
+import { logAction } from '@/lib/audit';
+
 // POST: Create Asset OR Update Status OR Log Maintenance
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { action } = body;
+        const { action, actorId, actorName } = body;
 
         if (action === 'create_asset') {
             const { name, type, locationId, value } = body;
@@ -47,12 +49,32 @@ export async function POST(request: Request) {
                 `INSERT INTO assets (id, name, type, status, location_id, value) VALUES (?, ?, ?, 'Good', ?, ?)`,
                 [id, name, type, locationId, value || 0]
             );
+
+            await logAction({
+                actorId: actorId || 'ADMIN',
+                actorName: actorName || 'Administrator',
+                action: 'CREATE_ASSET',
+                entityType: 'ASSET',
+                entityId: id,
+                details: { name, type, locationId, value }
+            });
+
             return NextResponse.json({ success: true, id });
         }
 
         if (action === 'update_status') {
             const { id, status } = body;
             await db.query('UPDATE assets SET status = ? WHERE id = ?', [status, id]);
+
+            await logAction({
+                actorId: actorId || 'ADMIN',
+                actorName: actorName || 'Administrator',
+                action: 'UPDATE_ASSET_STATUS',
+                entityType: 'ASSET',
+                entityId: id,
+                details: { newStatus: status }
+            });
+
             return NextResponse.json({ success: true });
         }
 
@@ -60,22 +82,23 @@ export async function POST(request: Request) {
             const { assetId, maintenanceAction, description, cost, performedBy } = body;
             const logId = `LOG-${Date.now()}`;
 
-            // 1. Insert Log
             await db.query(
                 `INSERT INTO maintenance_logs (id, asset_id, action, description, cost, performed_by) VALUES (?, ?, ?, ?, ?, ?)`,
                 [logId, assetId, maintenanceAction, description, cost || 0, performedBy]
             );
 
-            // 2. Update Asset Status based on action
-            let newStatus = 'Maintenance';
-            if (maintenanceAction === 'Repair' || maintenanceAction === 'Service') {
-                // Usually stays in maintenance until fixed, or moves back to Good if this log IS the fix.
-                // For simplicity, let's assume logging a 'Repair' *completes* the repair.
-                // Or we can explicitly pass 'newStatus' in the body.
-            }
             if (body.newStatus) {
                 await db.query('UPDATE assets SET status = ? WHERE id = ?', [body.newStatus, assetId]);
             }
+
+            await logAction({
+                actorId: actorId || 'ADMIN',
+                actorName: actorName || 'Administrator',
+                action: 'LOG_ASSET_MAINTENANCE',
+                entityType: 'ASSET',
+                entityId: assetId,
+                details: { maintenanceAction, cost, performedBy, newStatus: body.newStatus }
+            });
 
             return NextResponse.json({ success: true, logId });
         }
