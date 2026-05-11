@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useAuth } from '@/context/AuthContext';
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, LogOut, User, Bell } from 'lucide-react';
+import { ChevronDown, LogOut, User, Bell, AlertTriangle } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useData } from '@/context/DataContext';
 import { scroller, animateScroll } from 'react-scroll';
@@ -15,6 +15,7 @@ export default function Navbar() {
     const { unreadNotificationsCount } = useData();
     const pathname = usePathname();
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
     const calendarRef = useRef<HTMLDivElement>(null);
 
     // Close dropdown when clicking outside
@@ -236,7 +237,7 @@ export default function Navbar() {
                                         </Link>
 
                                         <button
-                                            onClick={logout}
+                                            onClick={() => setShowLogoutModal(true)}
                                             className="group flex items-center justify-center rounded-lg border border-slate-200 p-2 text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all"
                                             title="Logout"
                                         >
@@ -247,6 +248,35 @@ export default function Navbar() {
                             </div>
                         )}
                     </div>
+
+                    {/* Modern Logout Confirmation Modal */}
+                    {showLogoutModal && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                            <div className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-200 text-center">
+                                <div className="mx-auto h-14 w-14 rounded-2xl bg-red-50 flex items-center justify-center mb-6 dark:bg-red-900/20">
+                                    <AlertTriangle className="h-7 w-7 text-red-600 dark:text-red-400" />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Ready to Leave?</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
+                                    Are you sure you want to log out of your StayUniKL account?
+                                </p>
+                                <div className="flex gap-3">
+                                    <button 
+                                        onClick={() => setShowLogoutModal(false)}
+                                        className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        onClick={() => logout()}
+                                        className="flex-1 py-3 rounded-xl bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Mobile Menu Button - Simplified for now */}
                     <div className="flex items-center items-center gap-4 md:hidden">
