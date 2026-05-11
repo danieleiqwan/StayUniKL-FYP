@@ -204,6 +204,7 @@ export default function AdminProfilePage() {
                                 <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
                                     <section>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Administrative Identification</h3>
+                                        <div className="grid gap-6 md:grid-cols-2">
                                             <InfoRow label="Admin Name" value={user.name} icon={<User className="h-4 w-4" />} />
                                             <InfoRow label="Admin ID" value={user.id} icon={<Shield className="h-4 w-4" />} />
                                             <InfoRow label="Work Email" value={user.email} icon={<Mail className="h-4 w-4" />} />
@@ -218,6 +219,7 @@ export default function AdminProfilePage() {
                                                 })()} 
                                                 icon={<Clock className="h-4 w-4" />} 
                                             />
+                                        </div>
                                     </section>
 
                                     <section className="pt-8 border-t border-slate-100 dark:border-slate-800">
