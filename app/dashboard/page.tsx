@@ -132,6 +132,37 @@ function DashboardContent() {
         else setGreeting('Good evening');
     }, []);
 
+    // Extend Stay State
+    const [isExtendModalOpen, setIsExtendModalOpen] = useState(false);
+    const [extendDuration, setExtendDuration] = useState<1 | 4>(1);
+    const [isExtending, setIsExtending] = useState(false);
+
+    const handleExtendStay = async () => {
+        if (!myApplication?.id) return;
+        setIsExtending(true);
+        try {
+            const res = await fetch('/api/applications/extend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ applicationId: myApplication.id, extraDuration: extendDuration })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setIsExtendModalOpen(false);
+                refreshData();
+                // Optionally redirect to financials or show toast
+                router.push('/dashboard/financials');
+            } else {
+                alert(data.error || 'Failed to extend stay');
+            }
+        } catch (err) {
+            console.error('Error extending stay', err);
+            alert('An error occurred. Please try again.');
+        } finally {
+            setIsExtending(false);
+        }
+    };
+
 
     const getComplaintStatusStyle = (status: string) => {
         if (status === 'Resolved') return { text: 'Resolved', cls: 'bg-emerald-100 text-emerald-700' };
@@ -362,6 +393,11 @@ function DashboardContent() {
                                 <Link href="/dashboard/apply" className="flex items-center gap-2 bg-white text-[#F26C22] px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-orange-50 transition-all">
                                     {isApplied ? 'View room details' : 'Apply for Room'} <ArrowRight className="h-3.5 w-3.5" />
                                 </Link>
+                                {isCheckedIn && (
+                                    <button onClick={() => setIsExtendModalOpen(true)} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
+                                        Extend Stay
+                                    </button>
+                                )}
                                 {isApplied && (
                                     <Link href="/dashboard/room-change" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
                                         Request room change
@@ -591,6 +627,73 @@ function DashboardContent() {
 
                 </div>
             </div>
+
+            {/* Extend Stay Modal */}
+            {isExtendModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-100 dark:border-slate-800" style={{ animation: 'slideUp 0.3s ease-out' }}>
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white">Extend Your Stay</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Select duration for your extension.</p>
+                            </div>
+                            <button onClick={() => setIsExtendModalOpen(false)} className="h-8 w-8 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            {/* 1 Month Option */}
+                            <div
+                                onClick={() => setExtendDuration(1)}
+                                className={`cursor-pointer rounded-2xl border-2 p-4 text-center transition-all ${
+                                    extendDuration === 1
+                                        ? 'border-[#F26C22] bg-orange-50 dark:bg-orange-900/20'
+                                        : 'border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                                }`}
+                            >
+                                <CalendarDays className={`h-6 w-6 mx-auto mb-2 ${extendDuration === 1 ? 'text-[#F26C22]' : 'text-slate-400'}`} />
+                                <div className={`text-sm font-bold ${extendDuration === 1 ? 'text-[#F26C22]' : 'text-slate-900 dark:text-white'}`}>1 Month</div>
+                                <div className="text-lg font-black mt-1 text-slate-900 dark:text-white">RM 120</div>
+                            </div>
+
+                            {/* 1 Semester Option */}
+                            <div
+                                onClick={() => setExtendDuration(4)}
+                                className={`cursor-pointer rounded-2xl border-2 p-4 text-center transition-all ${
+                                    extendDuration === 4
+                                        ? 'border-[#F26C22] bg-orange-50 dark:bg-orange-900/20'
+                                        : 'border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                                }`}
+                            >
+                                <BookOpen className={`h-6 w-6 mx-auto mb-2 ${extendDuration === 4 ? 'text-[#F26C22]' : 'text-slate-400'}`} />
+                                <div className={`text-sm font-bold ${extendDuration === 4 ? 'text-[#F26C22]' : 'text-slate-900 dark:text-white'}`}>1 Semester</div>
+                                <div className="text-lg font-black mt-1 text-slate-900 dark:text-white">RM 480</div>
+                            </div>
+                        </div>
+
+                        <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 p-4 rounded-xl text-xs font-medium mb-6">
+                            Upon confirming, a new invoice will be generated. Your stay extension will be fully secured once the payment is made.
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setIsExtendModalOpen(false)}
+                                className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleExtendStay}
+                                disabled={isExtending}
+                                className="flex-1 py-3 bg-[#F26C22] text-white rounded-xl font-bold text-sm shadow-lg shadow-orange-500/20 hover:bg-[#d65a16] transition-all disabled:opacity-50"
+                            >
+                                {isExtending ? 'Processing...' : 'Confirm Extension'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
