@@ -397,7 +397,7 @@ function NavContent({
                         </div>
                         <h3 className="text-xl font-black text-white mb-2">Sign Out?</h3>
                         <p className="text-sm text-slate-400 mb-8 leading-relaxed">
-                            Are you sure you want to end your current session? You will need to re-authenticate to access your dashboard.
+                            Are you sure you want to end your current session?
                         </p>
                         <div className="flex gap-3">
                             <button 
