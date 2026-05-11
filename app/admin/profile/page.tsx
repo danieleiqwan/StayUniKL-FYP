@@ -13,7 +13,6 @@ import {
     Database,
     Users,
     AlertTriangle,
-    Activity,
     CheckCircle,
     ArrowUpRight,
     Search,
