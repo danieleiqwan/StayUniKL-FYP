@@ -16,7 +16,7 @@ export async function GET() {
             [rows] = await pool.query(
                 `SELECT 
                     id, name, email, role, gender, student_id, nric, profile_image, 
-                    phone_number,
+                    phone_number, created_at,
                     alert_booking, alert_maintenance, alert_announcement,
                     address, city, state, postcode,
                     emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone,
@@ -65,7 +65,8 @@ export async function GET() {
                 alertMaintenance: user.alert_maintenance !== undefined ? !!user.alert_maintenance : true,
                 alertAnnouncement: user.alert_announcement !== undefined ? !!user.alert_announcement : true,
                 twoFactorEnabled: !!user.two_factor_enabled,
-                notificationsEnabled: !!user.notifications_enabled
+                notificationsEnabled: !!user.notifications_enabled,
+                createdAt: user.created_at
             }
         });
 

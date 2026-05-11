@@ -208,9 +208,9 @@ export default function AdminProfilePage() {
                                             <InfoRow label="Admin Name" value={user.name} icon={<User className="h-4 w-4" />} />
                                             <InfoRow label="Admin ID" value={user.id} icon={<Shield className="h-4 w-4" />} />
                                             <InfoRow label="Work Email" value={user.email} icon={<Mail className="h-4 w-4" />} />
-                                            <InfoRow label="Contact Phone" value={user.phoneNumber || '+60 123-456-789'} icon={<Phone className="h-4 w-4" />} />
+                                            <InfoRow label="Contact Phone" value={user.phoneNumber || 'Not Set'} icon={<Phone className="h-4 w-4" />} />
                                             <InfoRow label="Department" value="Student Affairs & Residential" icon={<Users className="h-4 w-4" />} />
-                                            <InfoRow label="Date of Activation" value="January 2024" icon={<Clock className="h-4 w-4" />} />
+                                            <InfoRow label="Date of Activation" value={user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Unknown'} icon={<Clock className="h-4 w-4" />} />
                                         </div>
                                     </section>
 

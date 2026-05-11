@@ -13,7 +13,7 @@ export async function GET() {
 
     try {
         const [rows]: any = await pool.query(
-            `SELECT id, name, email, role, is_active, last_login, created_at
+            `SELECT id, name, email, role, is_active, last_login, created_at, phone_number
              FROM users
              WHERE role IN ('admin', 'superadmin')
              ORDER BY role DESC, created_at DESC`
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     }
 
     try {
-        const { name, email, password, customId } = await request.json();
+        const { name, email, password, customId, phone_number, created_at } = await request.json();
 
         if (!name || !email || !password) {
             return NextResponse.json({ error: 'name, email and password are required.' }, { status: 400 });
@@ -48,11 +48,12 @@ export async function POST(request: Request) {
 
         const hashedPassword = await bcrypt.hash(password, 12);
         const id = customId || `admin_${Date.now()}`;
+        const activationDate = created_at ? new Date(created_at) : new Date();
 
         await pool.query(
-            `INSERT INTO users (id, name, email, password, role, is_active, created_at)
-             VALUES (?, ?, ?, ?, 'admin', 1, NOW())`,
-            [id, name, email, hashedPassword]
+            `INSERT INTO users (id, name, email, password, role, is_active, created_at, phone_number)
+             VALUES (?, ?, ?, ?, 'admin', 1, ?, ?)`,
+            [id, name, email, hashedPassword, activationDate, phone_number || null]
         );
 
         await logAction({
@@ -119,8 +120,9 @@ export async function PATCH(request: Request) {
                 auditAction = 'ADMIN_PASSWORD_RESET';
                 break;
             case 'UPDATE_DETAILS':
-                if (!name && !email && !newId) {
-                    return NextResponse.json({ error: 'name, email or newId required for update.' }, { status: 400 });
+                const { name, email, newId, phone_number, created_at } = await request.json();
+                if (!name && !email && !newId && !phone_number && !created_at) {
+                    return NextResponse.json({ error: 'No update data provided.' }, { status: 400 });
                 }
                 
                 // If ID is changing, check uniqueness
@@ -136,7 +138,10 @@ export async function PATCH(request: Request) {
                 }
 
                 const targetId = newId || id;
-                await pool.query('UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email) WHERE id = ?', [name || null, email || null, targetId]);
+                await pool.query(
+                    'UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email), phone_number = COALESCE(?, phone_number), created_at = COALESCE(?, created_at) WHERE id = ?', 
+                    [name || null, email || null, phone_number || null, created_at || null, targetId]
+                );
                 auditAction = 'ADMIN_DETAILS_UPDATED';
                 break;
             default:
