@@ -202,9 +202,15 @@ export default function StaffManagementPage() {
             <div className="col-span-3 text-sm text-zinc-500 dark:text-zinc-400 truncate">{member?.email || 'No email'}</div>
             <div className="col-span-2">{member ? getStatusBadge(member) : null}</div>
             <div className="col-span-2">
-                <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-600">
-                    <Clock className="h-3 w-3 shrink-0" />
-                    <span>{formatDate(member?.last_login)}</span>
+                <div className="flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    <div className="flex items-center gap-1.5">
+                        <Clock className="h-3 w-3 shrink-0" />
+                        <span>Login: {formatDate(member?.last_login)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 opacity-70">
+                        <CheckCircle2 className="h-3 w-3 shrink-0" />
+                        <span>Joined: {member?.created_at ? new Date(member.created_at).toLocaleDateString() : 'Unknown'}</span>
+                    </div>
                 </div>
             </div>
             <div className="col-span-2 flex items-center justify-end gap-2">

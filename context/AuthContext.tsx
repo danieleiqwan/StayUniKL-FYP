@@ -31,6 +31,9 @@ interface User {
     emergencyContact2Name?: string;
     emergencyContact2Relation?: string;
     emergencyContact2Phone?: string;
+    createdAt?: string;
+    twoFactorEnabled?: boolean;
+    notificationsEnabled?: boolean;
 }
 
 interface AuthContextType {
