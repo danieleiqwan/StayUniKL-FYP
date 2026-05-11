@@ -12,25 +12,31 @@ export async function GET() {
 
         // Fetch full user data from DB using the ID from the token
         let rows: any = [];
+        const fullColumns = `
+            id, name, email, role, gender, student_id, nric, profile_image, 
+            phone_number, created_at,
+            alert_booking, alert_maintenance, alert_announcement,
+            address, city, state, postcode,
+            emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone,
+            emergency_contact2_name, emergency_contact2_relation, emergency_contact2_phone,
+            two_factor_enabled, notifications_enabled
+        `;
+
         try {
-            [rows] = await pool.query(
-                `SELECT 
-                    id, name, email, role, gender, student_id, nric, profile_image, 
-                    phone_number, created_at,
-                    alert_booking, alert_maintenance, alert_announcement,
-                    address, city, state, postcode,
-                    emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone,
-                    emergency_contact2_name, emergency_contact2_relation, emergency_contact2_phone,
-                    two_factor_enabled, notifications_enabled
-                FROM users WHERE id = ?`,
-                [authUser.id]
-            );
+            [rows] = await pool.query(`SELECT ${fullColumns} FROM users WHERE id = ?`, [authUser.id]);
         } catch (e) {
-            // Fallback for when migration hasn't run or columns are missing
-            [rows] = await pool.query(
-                'SELECT id, name, email, role, gender, student_id, nric, profile_image, phone_number, created_at FROM users WHERE id = ?',
-                [authUser.id]
-            );
+            // If some columns are missing (e.g. migration hasn't run), try to get as much as possible
+            try {
+                [rows] = await pool.query(
+                    'SELECT id, name, email, role, gender, student_id, nric, profile_image, phone_number, created_at, address, city, state, postcode, emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone, emergency_contact2_name, emergency_contact2_relation, emergency_contact2_phone FROM users WHERE id = ?',
+                    [authUser.id]
+                );
+            } catch (e2) {
+                [rows] = await pool.query(
+                    'SELECT id, name, email, role, gender, student_id FROM users WHERE id = ?',
+                    [authUser.id]
+                );
+            }
         }
 
         if (rows.length === 0) {
