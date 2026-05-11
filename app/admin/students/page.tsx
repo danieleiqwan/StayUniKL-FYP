@@ -34,6 +34,8 @@ export default function StudentsDirectoryPage() {
     const [residencyFilter, setResidencyFilter] = useState('All');
     const [nationalityFilter, setNationalityFilter] = useState('All');
     const [floorFilter, setFloorFilter] = useState('All Floors');
+    const [semesterFilter, setSemesterFilter] = useState('All Semesters');
+    const [semesters, setSemesters] = useState<any[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
 
@@ -51,6 +53,16 @@ export default function StudentsDirectoryPage() {
         }
     };
 
+    const fetchSemesters = async () => {
+        try {
+            const res = await fetch('/api/semesters');
+            const data = await res.json();
+            if (data.semesters) setSemesters(data.semesters);
+        } catch (err) {
+            console.error('Failed to fetch semesters:', err);
+        }
+    };
+
     useEffect(() => {
         if (user?.role !== 'admin' && user?.role !== 'superadmin') {
             router.push('/login');
@@ -58,6 +70,7 @@ export default function StudentsDirectoryPage() {
         }
 
         fetchStudents();
+        fetchSemesters();
     }, [user, router]);
 
     // Bulk Import Logic
@@ -143,7 +156,19 @@ export default function StudentsDirectoryPage() {
             const matchesNationality = nationalityFilter === 'All' || 
                 s.nationality === nationalityFilter;
 
-            return matchesSearch && matchesStatus && matchesResidency && matchesFloor && matchesNationality;
+            const matchesSemester = semesterFilter === 'All Semesters' || (() => {
+                const semester = semesters.find(sem => sem.id === semesterFilter);
+                if (!semester) return true;
+                
+                // Compare with latest application date, or registration date if no application
+                const compareDate = s.latest_application_date ? new Date(s.latest_application_date) : new Date(s.created_at);
+                const start = new Date(semester.start_date);
+                const end = new Date(semester.end_date);
+                
+                return compareDate >= start && compareDate <= end;
+            })();
+
+            return matchesSearch && matchesStatus && matchesResidency && matchesFloor && matchesNationality && matchesSemester;
         });
     }, [students, searchQuery, statusFilter, residencyFilter, floorFilter, nationalityFilter]);
 
@@ -321,7 +346,7 @@ export default function StudentsDirectoryPage() {
                 {/* ── Filters Section ── */}
                 <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-100 dark:border-slate-800 space-y-6">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Filters</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Search Students</label>
                             <div className="relative group">
@@ -371,6 +396,21 @@ export default function StudentsDirectoryPage() {
                                 <option value="All">All Nationalities</option>
                                 <option value="Local">Local (Malaysian)</option>
                                 <option value="International">International</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Semester Period</label>
+                            <select 
+                                value={semesterFilter}
+                                onChange={(e) => setSemesterFilter(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-transparent rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 focus:border-[#F26C22] transition-all"
+                            >
+                                <option value="All Semesters">All Semesters</option>
+                                {semesters.map(sem => (
+                                    <option key={sem.id} value={sem.id}>
+                                        {sem.name} ({new Date(sem.start_date).getFullYear()})
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>

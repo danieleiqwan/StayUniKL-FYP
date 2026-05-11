@@ -20,6 +20,7 @@ export async function GET() {
                 u.is_active,
                 (SELECT id FROM applications WHERE student_id = u.id ORDER BY date DESC LIMIT 1) as latest_application_id,
                 (SELECT status FROM applications WHERE student_id = u.id ORDER BY date DESC LIMIT 1) as latest_status,
+                (SELECT date FROM applications WHERE student_id = u.id ORDER BY date DESC LIMIT 1) as latest_application_date,
                 (SELECT room_id FROM applications WHERE student_id = u.id AND status IN ('Checked in', 'Approved') ORDER BY date DESC LIMIT 1) as room_id
             FROM users u
             WHERE u.role = 'student'
