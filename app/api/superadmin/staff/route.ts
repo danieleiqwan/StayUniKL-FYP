@@ -79,7 +79,9 @@ export async function PATCH(request: Request) {
     }
 
     try {
-        const { id, action, newPassword, name, email, newId } = await request.json();
+        const body = await request.json();
+        const { id, action, newPassword, name, email, newId, phone_number, created_at } = body;
+
         if (!id || !action) {
             return NextResponse.json({ error: 'id and action are required.' }, { status: 400 });
         }
@@ -120,7 +122,6 @@ export async function PATCH(request: Request) {
                 auditAction = 'ADMIN_PASSWORD_RESET';
                 break;
             case 'UPDATE_DETAILS':
-                const { name, email, newId, phone_number, created_at } = await request.json();
                 if (!name && !email && !newId && !phone_number && !created_at) {
                     return NextResponse.json({ error: 'No update data provided.' }, { status: 400 });
                 }
