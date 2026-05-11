@@ -35,7 +35,7 @@ export default function StaffManagementPage() {
     const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
     // Form states
-    const [form, setForm] = useState({ name: '', email: '', password: '' });
+    const [form, setForm] = useState({ name: '', email: '', password: '', staffId: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [newPassword, setNewPassword] = useState('');
 
@@ -73,7 +73,7 @@ export default function StaffManagementPage() {
 
     const closeModal = () => {
         setModal({ type: null });
-        setForm({ name: '', email: '', password: '' });
+        setForm({ name: '', email: '', password: '', staffId: '' });
         setNewPassword('');
         setShowPassword(false);
         setSearch(''); // Clear any autofill contamination of the search input
@@ -88,7 +88,7 @@ export default function StaffManagementPage() {
 
             if (modal.type === 'create') {
                 method = 'POST';
-                body = { name: form.name, email: form.email, password: form.password };
+                body = { name: form.name, email: form.email, password: form.password, customId: form.staffId };
             } else if (modal.type === 'suspend') {
                 body = { id: modal.staffId, action: 'SUSPEND' };
             } else if (modal.type === 'activate') {
@@ -98,7 +98,7 @@ export default function StaffManagementPage() {
             } else if (modal.type === 'reset_password') {
                 body = { id: modal.staffId, action: 'RESET_PASSWORD', newPassword };
             } else if (modal.type === 'edit') {
-                body = { id: modal.staffId, action: 'UPDATE_DETAILS', name: form.name, email: form.email };
+                body = { id: modal.staffId, action: 'UPDATE_DETAILS', name: form.name, email: form.email, newId: form.staffId };
             }
 
             const res = await fetch('/api/superadmin/staff', {
@@ -194,7 +194,7 @@ export default function StaffManagementPage() {
             <div className="col-span-2 flex items-center justify-end gap-2">
                 {member?.role !== 'superadmin' && (
                     <>
-                        <button onClick={(e) => { e.stopPropagation(); setForm({ name: member?.name || '', email: member?.email || '', password: '' }); setModal({ type: 'edit', staffId: member?.id }); }}
+                        <button onClick={(e) => { e.stopPropagation(); setForm({ name: member?.name || '', email: member?.email || '', password: '', staffId: member?.id || '' }); setModal({ type: 'edit', staffId: member?.id }); }}
                             className="p-2 rounded-xl text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 transition-all" title="Edit Details">
                             <Users className="h-4 w-4" />
                         </button>
@@ -363,6 +363,13 @@ export default function StaffManagementPage() {
                                     <label className="text-[10px] font-black text-zinc-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Email Address</label>
                                     <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                                         placeholder="admin@stayunikl.edu.my"
+                                        autoComplete="off"
+                                        className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-slate-950 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-slate-600 text-sm focus:outline-none focus:border-amber-500/50 transition-colors" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-zinc-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Staff ID / Admin ID</label>
+                                    <input type="text" value={form.staffId} onChange={e => setForm(f => ({ ...f, staffId: e.target.value }))}
+                                        placeholder="e.g. ADMIN001"
                                         autoComplete="off"
                                         className="w-full px-4 py-3 rounded-xl bg-zinc-50 dark:bg-slate-950 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-slate-600 text-sm focus:outline-none focus:border-amber-500/50 transition-colors" />
                                 </div>

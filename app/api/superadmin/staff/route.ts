@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     }
 
     try {
-        const { name, email, password } = await request.json();
+        const { name, email, password, customId } = await request.json();
 
         if (!name || !email || !password) {
             return NextResponse.json({ error: 'name, email and password are required.' }, { status: 400 });
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
-        const id = `admin_${Date.now()}`;
+        const id = customId || `admin_${Date.now()}`;
 
         await pool.query(
             `INSERT INTO users (id, name, email, password, role, is_active, created_at)
@@ -78,7 +78,7 @@ export async function PATCH(request: Request) {
     }
 
     try {
-        const { id, action, newPassword, name, email } = await request.json();
+        const { id, action, newPassword, name, email, newId } = await request.json();
         if (!id || !action) {
             return NextResponse.json({ error: 'id and action are required.' }, { status: 400 });
         }
@@ -119,10 +119,21 @@ export async function PATCH(request: Request) {
                 auditAction = 'ADMIN_PASSWORD_RESET';
                 break;
             case 'UPDATE_DETAILS':
-                if (!name && !email) {
-                    return NextResponse.json({ error: 'name or email required for update.' }, { status: 400 });
+                if (!name && !email && !newId) {
+                    return NextResponse.json({ error: 'name, email or newId required for update.' }, { status: 400 });
                 }
-                await pool.query('UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email) WHERE id = ?', [name || null, email || null, id]);
+                
+                // If ID is changing, check uniqueness
+                if (newId && newId !== id) {
+                    const [existing]: any = await pool.query('SELECT id FROM users WHERE id = ?', [newId]);
+                    if (existing.length > 0) return NextResponse.json({ error: 'New ID already in use.' }, { status: 409 });
+                    
+                    // Update ID (Primary Key)
+                    await pool.query('UPDATE users SET id = ? WHERE id = ?', [newId, id]);
+                }
+
+                const targetId = newId || id;
+                await pool.query('UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email) WHERE id = ?', [name || null, email || null, targetId]);
                 auditAction = 'ADMIN_DETAILS_UPDATED';
                 break;
             default:

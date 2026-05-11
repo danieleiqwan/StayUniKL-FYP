@@ -36,16 +36,19 @@ export async function GET() {
         results.push('✅ Made nric and student_id nullable');
     } catch (e: any) {}
 
-    // Ensure audit_logs has the modern schema
     try {
-        await pool.query('ALTER TABLE audit_logs ADD COLUMN actor_id VARCHAR(50) AFTER id');
-        results.push('✅ Added actor_id to audit_logs');
-    } catch (e: any) {}
+        await pool.query('ALTER TABLE users ADD COLUMN two_factor_enabled TINYINT(1) NOT NULL DEFAULT 0');
+        results.push('✅ Added two_factor_enabled column to users table');
+    } catch (e: any) {
+        results.push(`ℹ️ two_factor_enabled: ${e.message}`);
+    }
 
     try {
-        await pool.query('ALTER TABLE audit_logs ADD COLUMN actor_name VARCHAR(255) AFTER actor_id');
-        results.push('✅ Added actor_name to audit_logs');
-    } catch (e: any) {}
+        await pool.query('ALTER TABLE users ADD COLUMN notifications_enabled TINYINT(1) NOT NULL DEFAULT 1');
+        results.push('✅ Added notifications_enabled column to users table');
+    } catch (e: any) {
+        results.push(`ℹ️ notifications_enabled: ${e.message}`);
+    }
 
     return NextResponse.json({ success: true, results });
 }

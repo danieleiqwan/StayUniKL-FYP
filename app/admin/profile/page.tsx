@@ -13,10 +13,13 @@ import {
     Database,
     Users,
     AlertTriangle,
+    Activity,
     CheckCircle,
     ArrowUpRight,
-    Search
+    Search,
+    Loader2
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function AdminProfilePage() {
     const { user } = useAuth();
@@ -24,6 +27,38 @@ export default function AdminProfilePage() {
     const [auditLogs, setAuditLogs] = useState<any[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(true);
     const [activeTab, setActiveTab] = useState<'overview' | 'activity'>('overview');
+    const [toggles, setToggles] = useState({ twoFactor: false, notifications: true });
+    const [updatingPrefs, setUpdatingPrefs] = useState(false);
+
+    useEffect(() => {
+        if (user) {
+            setToggles({
+                twoFactor: !!user.twoFactorEnabled,
+                notifications: !!user.notificationsEnabled
+            });
+        }
+    }, [user]);
+
+    const handleToggle = async (type: 'twoFactor' | 'notifications') => {
+        const newValue = !toggles[type];
+        setToggles(prev => ({ ...prev, [type]: newValue }));
+        setUpdatingPrefs(true);
+        try {
+            await fetch('/api/admin/preferences', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    twoFactorEnabled: type === 'twoFactor' ? newValue : undefined,
+                    notificationsEnabled: type === 'notifications' ? newValue : undefined
+                })
+            });
+        } catch (e) {
+            console.error('Failed to update preferences');
+            setToggles(prev => ({ ...prev, [type]: !newValue })); // Revert on error
+        } finally {
+            setUpdatingPrefs(false);
+        }
+    };
 
     useEffect(() => {
         if (!user || user.role !== 'admin') return;
@@ -188,18 +223,38 @@ export default function AdminProfilePage() {
                                                     <p className="font-bold text-slate-900 dark:text-white text-sm">Two-Factor Authentication</p>
                                                     <p className="text-xs text-slate-500">Adds an extra layer of security to your admin account.</p>
                                                 </div>
-                                                <div className="h-6 w-11 bg-[#F26C22] rounded-full relative">
-                                                    <div className="h-4 w-4 bg-white rounded-full absolute right-1 top-1"></div>
-                                                </div>
+                                                <button 
+                                                    onClick={() => handleToggle('twoFactor')}
+                                                    disabled={updatingPrefs}
+                                                    className={cn(
+                                                        "h-6 w-11 rounded-full relative transition-colors duration-300",
+                                                        toggles.twoFactor ? "bg-[#F26C22]" : "bg-slate-300 dark:bg-slate-700"
+                                                    )}
+                                                >
+                                                    <div className={cn(
+                                                        "h-4 w-4 bg-white rounded-full absolute top-1 transition-all duration-300",
+                                                        toggles.twoFactor ? "right-1" : "left-1"
+                                                    )}></div>
+                                                </button>
                                             </div>
                                             <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
                                                 <div>
                                                     <p className="font-bold text-slate-900 dark:text-white text-sm">System Notifications</p>
                                                     <p className="text-xs text-slate-500">Receive alerts for critical system events.</p>
                                                 </div>
-                                                <div className="h-6 w-11 bg-slate-300 dark:bg-slate-700 rounded-full relative">
-                                                    <div className="h-4 w-4 bg-white rounded-full absolute left-1 top-1"></div>
-                                                </div>
+                                                <button 
+                                                    onClick={() => handleToggle('notifications')}
+                                                    disabled={updatingPrefs}
+                                                    className={cn(
+                                                        "h-6 w-11 rounded-full relative transition-colors duration-300",
+                                                        toggles.notifications ? "bg-[#F26C22]" : "bg-slate-300 dark:bg-slate-700"
+                                                    )}
+                                                >
+                                                    <div className={cn(
+                                                        "h-4 w-4 bg-white rounded-full absolute top-1 transition-all duration-300",
+                                                        toggles.notifications ? "right-1" : "left-1"
+                                                    )}></div>
+                                                </button>
                                             </div>
                                         </div>
                                     </section>
