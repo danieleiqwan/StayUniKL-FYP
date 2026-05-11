@@ -238,10 +238,11 @@ export default function Navbar() {
 
                                         <button
                                             onClick={() => setShowLogoutModal(true)}
-                                            className="group flex items-center justify-center rounded-lg border border-slate-200 p-2 text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all"
+                                            className="group flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-slate-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-all shadow-sm"
                                             title="Logout"
                                         >
                                             <LogOut className="h-4 w-4" />
+                                            <span className="text-xs font-bold uppercase tracking-wider hidden lg:inline">Sign Out</span>
                                         </button>
                                     </div>
                                 </div>
