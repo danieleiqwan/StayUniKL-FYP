@@ -7,8 +7,8 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  outputFileTracingRoot: process.cwd(),
   experimental: {
-    outputFileTracingRoot: process.cwd(),
   },
   images: {
     unoptimized: true,
