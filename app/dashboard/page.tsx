@@ -134,7 +134,7 @@ function DashboardContent() {
 
     // Extend Stay State
     const [isExtendModalOpen, setIsExtendModalOpen] = useState(false);
-    const [extendDuration, setExtendDuration] = useState<1 | 4>(1);
+    const [extendDuration, setExtendDuration] = useState<number>(1);
     const [isExtending, setIsExtending] = useState(false);
 
     const handleExtendStay = async () => {
@@ -629,7 +629,12 @@ function DashboardContent() {
             </div>
 
             {/* Extend Stay Modal */}
-            {isExtendModalOpen && (
+            {isExtendModalOpen && (() => {
+                const currentDuration = myApplication?.stayDuration || 1;
+                const monthsToCompleteSemester = (4 - (currentDuration % 4)) === 0 ? 4 : (4 - (currentDuration % 4));
+                const semesterLabel = currentDuration % 4 === 0 ? 'Next Full Semester' : 'Complete Semester';
+
+                return (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
                     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-100 dark:border-slate-800" style={{ animation: 'slideUp 0.3s ease-out' }}>
                         <div className="flex items-center justify-between mb-6">
@@ -657,18 +662,21 @@ function DashboardContent() {
                                 <div className="text-lg font-black mt-1 text-slate-900 dark:text-white">RM 120</div>
                             </div>
 
-                            {/* 1 Semester Option */}
+                            {/* Semester Top-up Option */}
                             <div
-                                onClick={() => setExtendDuration(4)}
+                                onClick={() => setExtendDuration(monthsToCompleteSemester)}
                                 className={`cursor-pointer rounded-2xl border-2 p-4 text-center transition-all ${
-                                    extendDuration === 4
+                                    extendDuration === monthsToCompleteSemester
                                         ? 'border-[#F26C22] bg-orange-50 dark:bg-orange-900/20'
                                         : 'border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
                                 }`}
                             >
-                                <BookOpen className={`h-6 w-6 mx-auto mb-2 ${extendDuration === 4 ? 'text-[#F26C22]' : 'text-slate-400'}`} />
-                                <div className={`text-sm font-bold ${extendDuration === 4 ? 'text-[#F26C22]' : 'text-slate-900 dark:text-white'}`}>1 Semester</div>
-                                <div className="text-lg font-black mt-1 text-slate-900 dark:text-white">RM 480</div>
+                                <BookOpen className={`h-6 w-6 mx-auto mb-2 ${extendDuration === monthsToCompleteSemester ? 'text-[#F26C22]' : 'text-slate-400'}`} />
+                                <div className={`text-sm font-bold ${extendDuration === monthsToCompleteSemester ? 'text-[#F26C22]' : 'text-slate-900 dark:text-white'}`}>{semesterLabel}</div>
+                                <div className="text-lg font-black mt-1 text-slate-900 dark:text-white">RM {monthsToCompleteSemester * 120}</div>
+                                {monthsToCompleteSemester < 4 && (
+                                    <div className="text-[10px] text-slate-500 font-medium mt-1">({monthsToCompleteSemester} months remaining)</div>
+                                )}
                             </div>
                         </div>
 
@@ -693,7 +701,8 @@ function DashboardContent() {
                         </div>
                     </div>
                 </div>
-            )}
+                );
+            })}
         </div>
     );
 }

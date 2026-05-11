@@ -14,11 +14,7 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { applicationId, extraDuration } = body;
 
-        if (!applicationId || !extraDuration) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-        }
-
-        if (extraDuration !== 1 && extraDuration !== 4) {
+        if (!applicationId || !extraDuration || extraDuration < 1 || extraDuration > 4) {
             return NextResponse.json({ error: 'Invalid extension duration' }, { status: 400 });
         }
 
@@ -53,7 +49,7 @@ export async function POST(request: Request) {
 
         // 4. Create an invoice for the extension
         const invoiceId = `INV-EXT-${Date.now()}`;
-        const description = `Accommodation Extension (${extraDuration === 1 ? '1 Month' : '1 Semester'})`;
+        const description = `Accommodation Extension (${extraDuration} Month${extraDuration > 1 ? 's' : ''})`;
         
         await pool.query(
             `INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date)
@@ -75,7 +71,7 @@ export async function POST(request: Request) {
         await createNotification({
             userId: user.id,
             title: 'Stay Extended',
-            message: `You have successfully extended your stay by ${extraDuration === 1 ? '1 Month' : '1 Semester'}. A new invoice for RM ${extensionCost.toFixed(2)} has been generated.`,
+            message: `You have successfully extended your stay by ${extraDuration} Month${extraDuration > 1 ? 's' : ''}. A new invoice for RM ${extensionCost.toFixed(2)} has been generated.`,
             type: 'success',
             relatedEntityId: invoiceId,
             relatedEntityType: 'Invoice'
