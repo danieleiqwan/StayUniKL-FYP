@@ -142,8 +142,8 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
 
                 {/* Utility Hub */}
                 <div>
-                    <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4">Operations Hub</p>
-                    <div className="space-y-1">
+                    {!isCollapsed && <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4 animate-in fade-in">Operations Hub</p>}
+                    <div className={`space-y-1 ${isCollapsed ? 'flex flex-col items-center' : ''}`}>
                         {utilityItems.map((item) => {
                             const isActive = pathname === item.path;
                             const Icon = item.icon;
