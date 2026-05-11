@@ -10,6 +10,9 @@ export async function GET(request: Request) {
     }
 
     try {
+        const [tables]: any = await db.query('SHOW TABLES');
+        console.log('Tables found:', tables);
+        
         const [rooms]: any = await db.query('SELECT id FROM rooms');
         
         const assetValues: any[] = [];
