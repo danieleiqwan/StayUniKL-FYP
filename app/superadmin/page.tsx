@@ -158,8 +158,12 @@ export default function SuperAdminDashboard() {
                             <Clock className="h-5 w-5 text-zinc-400 dark:text-slate-500" />
                             Activity Feed
                         </h4>
-                        <div className="px-2 py-1 rounded-md bg-zinc-200 dark:bg-slate-950 text-[8px] font-black text-zinc-500 dark:text-slate-600 uppercase tracking-widest">
-                            Live
+                        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/20">
+                            <div className="relative flex h-2 w-2">
+                                <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></div>
+                                <div className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></div>
+                            </div>
+                            <span className="text-[9px] font-black text-red-600 dark:text-red-500 uppercase tracking-[0.2em] leading-none">Live</span>
                         </div>
                     </div>
 
