@@ -6,6 +6,58 @@ import { createNotification } from '@/lib/notifications';
 import { uploadImage } from '@/lib/cloudinary';
 import { z } from 'zod';
 
+// ─────────────────────────────────────────────────────────────
+// ASSET SYNC HELPERS
+// Maps complaint asset keywords → asset name patterns in the DB
+// ─────────────────────────────────────────────────────────────
+const ASSET_KEYWORD_MAP: Record<string, string[]> = {
+    'Fan':             ['Ceiling Fan', 'Fan'],
+    'Air Conditioner': ['Air Conditioner', 'AC'],
+    'AC':              ['Air Conditioner', 'AC'],
+    'Desk':            ['Study Desk', 'Desk'],
+    'Chair':           ['Study Chair', 'Chair'],
+    'Mattress':        ['Mattress'],
+    'Wardrobe':        ['Wardrobe'],
+    'Bed':             ['Mattress', 'Bed Frame'],
+    'Toilet':          ['Toilet', 'Bathroom Fixture'],
+    'Light':           ['Light', 'Ceiling Light', 'Lamp'],
+    'Window':          ['Window'],
+    'Door':            ['Door'],
+};
+
+/**
+ * Given a student's ID and the asset keyword from the complaint,
+ * finds the matching asset in the student's current room.
+ */
+async function findMatchingAsset(studentId: string, assetKeyword: string): Promise<any | null> {
+    if (!assetKeyword) return null;
+
+    // 1. Find the student's current room via their active application
+    const [appRows]: any = await pool.query(`
+        SELECT b.room_id
+        FROM applications a
+        JOIN beds b ON a.bed_id = b.id
+        WHERE a.student_id = ? AND a.status IN ('Approved', 'Checked in')
+        ORDER BY a.date DESC
+        LIMIT 1
+    `, [studentId]);
+
+    if (!appRows || appRows.length === 0) return null;
+    const roomId = appRows[0].room_id;
+
+    // 2. Find the name patterns for this keyword
+    const patterns = ASSET_KEYWORD_MAP[assetKeyword] || [assetKeyword];
+    const placeholders = patterns.map(() => 'name LIKE ?').join(' OR ');
+    const params = patterns.map((p: string) => `%${p}%`);
+
+    const [assetRows]: any = await pool.query(
+        `SELECT * FROM assets WHERE location_id = ? AND (${placeholders}) ORDER BY created_at ASC LIMIT 1`,
+        [roomId, ...params]
+    );
+
+    return assetRows.length > 0 ? { ...assetRows[0], roomId } : null;
+}
+
 // Schema for input validation
 const complaintSchema = z.object({
     studentId: z.string().min(1),
@@ -203,6 +255,23 @@ export async function POST(request: Request) {
             }
         }
 
+        // ── ASSET SYNC: Flag matching asset as Maintenance ──────────
+        let linkedAssetId: string | null = null;
+        if (asset) {
+            try {
+                const matchedAsset = await findMatchingAsset(studentId, asset);
+                if (matchedAsset && matchedAsset.status === 'Good') {
+                    await pool.query('UPDATE assets SET status = ? WHERE id = ?', ['Maintenance', matchedAsset.id]);
+                    linkedAssetId = matchedAsset.id;
+                    console.log(`[Asset Sync] Complaint ${id} → asset ${matchedAsset.id} flagged as Maintenance`);
+                }
+            } catch (syncErr) {
+                // Non-fatal: log but don't fail the complaint submission
+                console.error('[Asset Sync] Failed to flag asset:', syncErr);
+            }
+        }
+        // ──────────────────────────────────────────────────────────────
+
         // Audit Log
         await logAction({
             actorId: studentId,
@@ -210,7 +279,7 @@ export async function POST(request: Request) {
             action: 'Reported Complaint',
             entityType: 'Complaint',
             entityId: id,
-            details: { title, description, asset, imageCount: finalImageUrls.length }
+            details: { title, description, asset, linkedAssetId, imageCount: finalImageUrls.length }
         });
 
         // Send Notification
@@ -273,8 +342,31 @@ export async function PUT(request: Request) {
         await pool.query(query, params);
 
         // Fetch complaint details for logging
-        const [compRows]: any = await pool.query('SELECT student_id, title FROM complaints WHERE id = ?', [id]);
+        const [compRows]: any = await pool.query('SELECT student_id, title, asset FROM complaints WHERE id = ?', [id]);
         const complaint = compRows[0];
+
+        // ── ASSET SYNC: Resolve → flip asset back to Good + log maintenance ──
+        if (status === 'Resolved' && complaint?.asset) {
+            try {
+                const matchedAsset = await findMatchingAsset(complaint.student_id, complaint.asset);
+                if (matchedAsset) {
+                    // Restore asset status
+                    await pool.query('UPDATE assets SET status = ? WHERE id = ?', ['Good', matchedAsset.id]);
+
+                    // Auto-log a maintenance entry
+                    const logId = `LOG-${Date.now()}`;
+                    await pool.query(
+                        `INSERT INTO maintenance_logs (id, asset_id, action, description, cost, performed_by)
+                         VALUES (?, ?, 'Repair', ?, 0, ?)`,
+                        [logId, matchedAsset.id, `Resolved via complaint: ${complaint.title}`, adminName]
+                    );
+                    console.log(`[Asset Sync] Complaint resolved → asset ${matchedAsset.id} restored to Good`);
+                }
+            } catch (syncErr) {
+                console.error('[Asset Sync] Failed to restore asset on resolve:', syncErr);
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         // Audit Log
         await logAction({
