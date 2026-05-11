@@ -100,7 +100,9 @@ export default function AdminProfilePage() {
                         </div>
                         <div className="text-center md:text-left text-white">
                             <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
-                                <span className="bg-white/20 backdrop-blur-md px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest border border-white/30">System Administrator</span>
+                                <span className="bg-white/20 backdrop-blur-md px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-widest border border-white/30">
+                                    {user.role === 'superadmin' ? 'Master Administrator' : 'System Administrator'}
+                                </span>
                                 <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
                             </div>
                             <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">{user.name}</h1>
@@ -162,7 +164,14 @@ export default function AdminProfilePage() {
                                         </div>
                                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Access Level</span>
                                     </div>
-                                    <span className="text-xs font-bold text-slate-900 dark:text-white px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Level 1 (Admin)</span>
+                                    <span className={cn(
+                                        "text-xs font-bold px-2 py-0.5 rounded-full border",
+                                        user.role === 'superadmin' 
+                                            ? "bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800" 
+                                            : "bg-slate-100 text-slate-900 border-slate-200 dark:bg-slate-800 dark:text-white dark:border-slate-700"
+                                    )}>
+                                        {user.role === 'superadmin' ? 'Level 0 (Superadmin)' : 'Level 1 (Admin)'}
+                                    </span>
                                 </div>
                                 <div className="flex items-center justify-between py-2">
                                     <div className="flex items-center gap-3">
