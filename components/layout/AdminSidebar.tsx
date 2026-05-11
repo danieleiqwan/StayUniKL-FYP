@@ -65,7 +65,7 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
         <aside className={`fixed left-0 top-0 h-screen transition-all duration-300 bg-[#1E1B2E] text-white flex flex-col z-50 ${isCollapsed ? 'w-24' : 'w-80'}`}>
             {/* Branding */}
             <div className={`p-8 pb-10 flex items-center justify-between ${isCollapsed ? 'flex-col gap-6' : ''}`}>
-                <div className="flex items-center gap-3">
+                <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
                     <div className="h-10 w-10 bg-[#F26C22] rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20 rotate-3 shrink-0">
                         <Building2 className="text-white h-6 w-6" />
                     </div>
@@ -104,36 +104,27 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
                                             if (onTabChange) {
                                                 onTabChange(item.tab);
                                             }
-                                            // Always ensure we are on the main admin page when a tab is clicked
                                             router.push(`/admin?tab=${item.tab}`);
                                         } else if (item.path) {
                                             router.push(item.path);
                                         }
                                     }}
-                                    className="w-full group"
+                                    className={`group transition-all duration-300 ${isCollapsed ? 'w-12' : 'w-full'}`}
                                 >
-                                    {isActive ? (
-                                        <div className={`flex items-center gap-4 py-3.5 rounded-2xl transition-all duration-300 bg-[#F26C22] text-white shadow-xl shadow-orange-500/20 ${isCollapsed ? 'px-0 justify-center w-12' : 'px-4'}`}>
-                                            <Icon className={`h-5 w-5 text-white shrink-0`} />
-                                            {!isCollapsed && <span className="text-sm font-bold animate-in fade-in slide-in-from-left-2">{item.label}</span>}
-                                            {count > 0 && (
-                                                <span className={`${isCollapsed ? 'absolute -top-1 -right-1' : 'ml-auto'} flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-black animate-in zoom-in duration-300`}>
-                                                    {count}
-                                                </span>
-                                            )}
-                                            {isActive && !count && !isCollapsed && <ChevronRight className="h-4 w-4 ml-auto opacity-50" />}
-                                        </div>
-                                    ) : (
-                                        <div className={`flex items-center gap-4 py-3.5 rounded-2xl transition-all duration-300 text-slate-400 hover:text-white hover:bg-white/5 ${isCollapsed ? 'px-0 justify-center w-12' : 'px-4'}`}>
-                                            <Icon className={`h-5 w-5 text-slate-500 group-hover:text-slate-300 shrink-0`} />
-                                            {!isCollapsed && <span className="text-sm font-bold animate-in fade-in slide-in-from-left-2">{item.label}</span>}
-                                            {count > 0 && (
-                                                <span className={`${isCollapsed ? 'absolute -top-1 -right-1' : 'ml-auto'} flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-black animate-in zoom-in duration-300`}>
-                                                    {count}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
+                                    <div className={`flex items-center gap-4 py-3.5 rounded-2xl transition-all duration-300 relative ${
+                                        isActive 
+                                            ? 'bg-[#F26C22] text-white shadow-xl shadow-orange-500/20' 
+                                            : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                    } ${isCollapsed ? 'px-0 justify-center' : 'px-4'}`}>
+                                        <Icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                                        {!isCollapsed && <span className="text-sm font-bold animate-in fade-in slide-in-from-left-2">{item.label}</span>}
+                                        {count > 0 && (
+                                            <span className={`${isCollapsed ? 'absolute -top-1 -right-1' : 'ml-auto'} flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-black animate-in zoom-in duration-300`}>
+                                                {count}
+                                            </span>
+                                        )}
+                                        {isActive && !count && !isCollapsed && <ChevronRight className="h-4 w-4 ml-auto opacity-50" />}
+                                    </div>
                                 </button>
                             );
                         })}
@@ -152,7 +143,9 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
                                 <Link 
                                     key={item.id}
                                     href={item.path} 
-                                    className={`flex items-center gap-4 py-3.5 rounded-2xl transition-all duration-300 group relative ${isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'} ${isCollapsed ? 'px-0 justify-center w-12' : 'px-4'}`}
+                                    className={`flex items-center transition-all duration-300 group relative ${
+                                        isActive ? 'bg-white/10 text-white' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                    } ${isCollapsed ? 'w-12 justify-center py-3.5 rounded-2xl' : 'px-4 py-3.5 rounded-2xl gap-4'}`}
                                     title={isCollapsed ? item.label : undefined}
                                 >
                                     <Icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`} />
