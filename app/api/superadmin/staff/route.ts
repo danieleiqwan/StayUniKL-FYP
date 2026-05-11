@@ -130,6 +130,9 @@ export async function PATCH(request: Request) {
                     
                     // Update ID (Primary Key)
                     await pool.query('UPDATE users SET id = ? WHERE id = ?', [newId, id]);
+                    
+                    // Cascade update to audit_logs (actor_id) to maintain history
+                    await pool.query('UPDATE audit_logs SET actor_id = ? WHERE actor_id = ?', [newId, id]);
                 }
 
                 const targetId = newId || id;
