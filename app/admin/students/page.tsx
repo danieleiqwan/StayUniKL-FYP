@@ -130,7 +130,8 @@ export default function StudentsDirectoryPage() {
             
             const matchesStatus = statusFilter === 'All' || 
                 (statusFilter === 'Active' && s.latest_status === 'Checked in') ||
-                (statusFilter === 'Checked Out' && s.latest_status === 'Checked out');
+                (statusFilter === 'Checked Out' && s.latest_status === 'Checked out') ||
+                (statusFilter === 'Deactivated' && s.is_active === 0);
             
             const matchesResidency = residencyFilter === 'All' || 
                 (residencyFilter === 'Current Staying' && s.latest_status === 'Checked in') ||
@@ -344,6 +345,7 @@ export default function StudentsDirectoryPage() {
                                 <option value="All">All Students</option>
                                 <option value="Active">Active</option>
                                 <option value="Checked Out">Inactive</option>
+                                <option value="Deactivated">Deactivated</option>
                             </select>
                         </div>
                         <div className="space-y-2">
