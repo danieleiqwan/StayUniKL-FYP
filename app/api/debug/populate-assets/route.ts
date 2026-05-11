@@ -65,6 +65,10 @@ export async function GET(request: Request) {
         });
     } catch (error: any) {
         console.error('Population Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ 
+            error: error.message || 'Unknown Error',
+            details: error.toString(),
+            stack: error.stack
+        }, { status: 500 });
     }
 }
