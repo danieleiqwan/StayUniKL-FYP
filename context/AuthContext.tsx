@@ -163,9 +163,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.error('Logout sync failed:', err);
         }
         
-        setUser(null);
         localStorage.removeItem('stayunikl_user');
-        router.push('/');
+        setUser(null);
+        window.location.href = '/';
     };
 
     const updateProfile = async (updates: Partial<User>) => {

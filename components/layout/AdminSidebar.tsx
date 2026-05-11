@@ -177,15 +177,13 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
                 </div>
                 <button 
                     onClick={() => {
-                        if (window.confirm('Are you sure you want to sign out?')) {
-                            logout();
-                        }
+                        logout();
                     }}
                     className={`flex items-center gap-3 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-all text-xs font-black uppercase tracking-widest ${isCollapsed ? 'p-3 w-12 justify-center' : 'px-4 py-3 w-full'}`}
                     title="Sign Out Terminal"
                 >
                     <LogOut className="h-4 w-4 shrink-0" />
-                    {!isCollapsed && <span className="animate-in fade-in slide-in-from-left-2">Sign Out</span>}
+                    {!isCollapsed && <span className="animate-in fade-in slide-in-from-left-2 text-left">Sign Out</span>}
                 </button>
             </div>
         </aside>
