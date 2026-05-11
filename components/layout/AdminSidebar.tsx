@@ -60,7 +60,7 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
     ];
 
     return (
-        <aside className={`fixed left-0 top-0 h-screen transition-all duration-300 bg-slate-950 text-white flex flex-col z-50 ${isCollapsed ? 'w-24' : 'w-80'}`}>
+        <aside className={`fixed left-0 top-0 h-screen transition-all duration-300 bg-[#1E1B2E] text-white flex flex-col z-50 ${isCollapsed ? 'w-24' : 'w-80'}`}>
             {/* Branding */}
             <div className={`p-8 pb-10 flex items-center justify-between ${isCollapsed ? 'flex-col gap-6' : ''}`}>
                 <div className="flex items-center gap-3">
