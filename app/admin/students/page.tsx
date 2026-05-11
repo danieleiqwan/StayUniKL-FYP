@@ -52,7 +52,7 @@ export default function StudentsDirectoryPage() {
     };
 
     useEffect(() => {
-        if (user?.role !== 'admin') {
+        if (user?.role !== 'admin' && user?.role !== 'superadmin') {
             router.push('/login');
             return;
         }

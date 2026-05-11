@@ -116,7 +116,7 @@ export default function AdminBillingPage() {
     }, []);
 
     useEffect(() => { 
-        if (user && user.role === 'admin') {
+        if (user && (user.role === 'admin' || user.role === 'superadmin')) {
             fetchData();
             // Auto-poll every 30 seconds to catch new payments
             pollingRef.current = setInterval(() => fetchData(true), 30_000);

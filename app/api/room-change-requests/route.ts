@@ -39,13 +39,13 @@ export async function GET(request: Request) {
         const studentId = searchParams.get('studentId');
         const status = searchParams.get('status');
 
-        // Security check: If not admin, you can only see your own requests
-        if (user.role !== 'admin' && studentId && user.id !== studentId) {
+        // Security check: If not admin/superadmin, you can only see your own requests
+        if (user.role !== 'admin' && user.role !== 'superadmin' && studentId && user.id !== studentId) {
             return NextResponse.json({ error: 'Forbidden: You cannot access requests for another user' }, { status: 403 });
         }
 
         // If no studentId is provided and not admin, default to own ID
-        const activeId = user.role === 'admin' ? studentId : user.id;
+        const activeId = (user.role === 'admin' || user.role === 'superadmin') ? studentId : user.id;
 
         let query = `
             SELECT rcr.*,
@@ -116,12 +116,12 @@ export async function POST(request: Request) {
         } = validation.data;
 
         // Security check: Student can only create requests for themselves
-        if (user.role !== 'admin' && user.id !== studentId) {
+        if (user.role !== 'admin' && user.role !== 'superadmin' && user.id !== studentId) {
             return NextResponse.json({ error: 'Forbidden: You cannot create a room change request for another user' }, { status: 403 });
         }
 
         // --- OVERDUE PAYMENT BLOCK ---
-        if (user.role !== 'admin') {
+        if (user.role !== 'admin' && user.role !== 'superadmin') {
             const [overdueRows]: any = await pool.query(
                 'SELECT id FROM invoices WHERE user_id = ? AND status = "Overdue" LIMIT 1',
                 [studentId]

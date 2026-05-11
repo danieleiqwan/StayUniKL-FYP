@@ -39,7 +39,7 @@ export default function AdminReportsPage() {
             }
         };
 
-        if (user && user.role === 'admin') {
+        if (user && (user.role === 'admin' || user.role === 'superadmin')) {
             fetchReportData();
         }
     }, [user]);

@@ -122,7 +122,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
         try {
             // Fetch Applications
-            const appRes = await fetch(`/api/applications${user.role === 'student' ? `?studentId=${user.id}` : ''}`, { cache: 'no-store' });
+            const appRes = await fetch(`/api/applications${user.role === 'student' ? `?studentId=${user.id}` : (user.role === 'admin' || user.role === 'superadmin' ? '?all=true' : '')}`, { cache: 'no-store' });
             const appData = await appRes.json();
             if (appData.applications) setApplications(appData.applications);
 
@@ -132,12 +132,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
             if (roomData.rooms) setRooms(roomData.rooms);
 
             // Fetch Complaints
-            const compRes = await fetch(`/api/complaints${user.role === 'student' ? `?studentId=${user.id}` : ''}`, { cache: 'no-store' });
+            const compRes = await fetch(`/api/complaints${user.role === 'student' ? `?studentId=${user.id}` : (user.role === 'admin' || user.role === 'superadmin' ? '?all=true' : '')}`, { cache: 'no-store' });
             const compData = await compRes.json();
             if (compData.complaints) setComplaints(compData.complaints);
 
             // Fetch Court/Facility Data
-            const courtRes = await fetch('/api/facilities', { cache: 'no-store' });
+            const courtRes = await fetch(`/api/facilities${user.role === 'admin' || user.role === 'superadmin' ? '?all=true' : ''}`, { cache: 'no-store' });
             const courtData = await courtRes.json();
             if (courtData.bookings) setCourtBookings(courtData.bookings);
             if (courtData.settings) {
@@ -154,7 +154,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             const payData = await payRes.json();
             if (payData.payments) setPayments(payData.payments);
 
-            const invRes = await fetch(`/api/billing/invoices?userId=${user.id}`, { cache: 'no-store' });
+            const invRes = await fetch(`/api/billing/invoices?${user.role === 'student' ? `userId=${user.id}` : 'all=true'}`, { cache: 'no-store' });
             const invData = await invRes.json();
             if (invData.invoices) setInvoices(invData.invoices);
 
@@ -186,8 +186,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 }
             }
 
-            // Fetch All Room Change Requests (Admin Only)
-            if (user.role === 'admin') {
+            // Fetch All Room Change Requests (Admin & Superadmin)
+            if (user.role === 'admin' || user.role === 'superadmin') {
                 const rcrRes = await fetch('/api/room-change-requests', { cache: 'no-store' });
                 const rcrData = await rcrRes.json();
                 if (rcrData.success) {

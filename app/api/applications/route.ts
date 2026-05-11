@@ -49,7 +49,7 @@ export async function GET(request: Request) {
         if (studentId) {
             query += ' WHERE a.student_id = ?';
             params.push(studentId);
-        } else if (user.role === 'admin') {
+        } else if (user.role === 'admin' || user.role === 'superadmin') {
             query += ' ORDER BY a.date DESC';
         } else {
             return NextResponse.json({ error: 'Unauthorized: Missing filters' }, { status: 403 });
