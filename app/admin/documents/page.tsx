@@ -21,7 +21,7 @@ export default function AdminDocumentsPage() {
     const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
-        if (!user || user.role !== 'admin') {
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
             router.push('/login');
             return;
         }

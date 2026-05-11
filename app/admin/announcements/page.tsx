@@ -107,7 +107,7 @@ export default function AdminAnnouncementsPage() {
         fetchAnnouncements();
     };
 
-    if (!user || user.role !== 'admin') return <div className="p-10 text-center text-slate-500">Access Denied.</div>;
+    if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <div className="p-10 text-center text-slate-500">Access Denied.</div>;
 
     const active = announcements.filter(a => a.is_active);
     const inactive = announcements.filter(a => !a.is_active);

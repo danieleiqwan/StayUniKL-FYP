@@ -198,7 +198,7 @@ export default function StudentsDirectoryPage() {
         }
     };
 
-    if (!user || user.role !== 'admin') return null;
+    if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return null;
 
     return (
         <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10 relative">

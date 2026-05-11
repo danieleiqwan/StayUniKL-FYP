@@ -60,7 +60,7 @@ export default function AdminProfilePage() {
     };
 
     useEffect(() => {
-        if (!user || user.role !== 'admin') return;
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return;
 
         // Fetch recent audit logs for this admin
         fetch(`/api/admin/audit-logs?actorId=${user.id}&limit=10`)
@@ -72,7 +72,7 @@ export default function AdminProfilePage() {
             .finally(() => setLoadingLogs(false));
     }, [user]);
 
-    if (!user || user.role !== 'admin') {
+    if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
         return <div className="p-10 text-center">Access Denied. Admins only.</div>;
     }
 

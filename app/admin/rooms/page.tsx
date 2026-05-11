@@ -29,7 +29,7 @@ export default function AdminRoomsPage() {
     };
 
     useEffect(() => {
-        if (!user || user.role !== 'admin') return;
+        if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return;
         fetchData();
         const interval = setInterval(fetchData, 30000);
         return () => clearInterval(interval);
@@ -45,7 +45,7 @@ export default function AdminRoomsPage() {
     const availableRooms = rooms.filter(r => r.beds.some((b: any) => !b.isOccupied)).length;
     const fullRooms = rooms.filter(r => r.beds.every((b: any) => b.isOccupied)).length;
 
-    if (!user || user.role !== 'admin') return <div className="p-10 text-center">Access Denied. Admins only.</div>;
+    if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <div className="p-10 text-center">Access Denied. Admins only.</div>;
 
     return (
         <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">

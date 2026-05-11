@@ -44,7 +44,7 @@ export default function AdminReportsPage() {
         }
     }, [user]);
 
-    if (!user || user.role !== 'admin') {
+    if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
         return <div className="p-10 text-center font-bold text-rose-500">Access Denied. Admins only.</div>;
     }
 

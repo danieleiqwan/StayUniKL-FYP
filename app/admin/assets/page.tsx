@@ -40,7 +40,7 @@ export default function AssetManagementPage() {
         });
     }, [assets, filters]);
 
-    if (!user || user.role !== 'admin') return <div className="p-10 text-center">Access Denied. Admins only.</div>;
+    if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <div className="p-10 text-center">Access Denied. Admins only.</div>;
 
     const handleCreateAsset = async (e: React.FormEvent) => {
         e.preventDefault();
