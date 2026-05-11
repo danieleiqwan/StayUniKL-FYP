@@ -393,7 +393,7 @@ function DashboardContent() {
                                 <Link href="/dashboard/apply" className="flex items-center gap-2 bg-white text-[#F26C22] px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-orange-50 transition-all">
                                     {isApplied ? 'View room details' : 'Apply for Room'} <ArrowRight className="h-3.5 w-3.5" />
                                 </Link>
-                                {isCheckedIn && (
+                                {isCheckedIn && (myApplication?.stayDuration || 1) < 4 && (
                                     <button onClick={() => setIsExtendModalOpen(true)} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
                                         Extend Stay
                                     </button>
@@ -631,8 +631,8 @@ function DashboardContent() {
             {/* Extend Stay Modal */}
             {isExtendModalOpen && (() => {
                 const currentDuration = myApplication?.stayDuration || 1;
-                const monthsToCompleteSemester = (4 - (currentDuration % 4)) === 0 ? 4 : (4 - (currentDuration % 4));
-                const semesterLabel = currentDuration % 4 === 0 ? 'Next Full Semester' : 'Complete Semester';
+                const monthsToCompleteSemester = Math.max(1, 4 - currentDuration);
+                const semesterLabel = 'Complete Semester';
 
                 return (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
@@ -647,20 +647,22 @@ function DashboardContent() {
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                            {/* 1 Month Option */}
-                            <div
-                                onClick={() => setExtendDuration(1)}
-                                className={`cursor-pointer rounded-2xl border-2 p-4 text-center transition-all ${
-                                    extendDuration === 1
-                                        ? 'border-[#F26C22] bg-orange-50 dark:bg-orange-900/20'
-                                        : 'border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-                                }`}
-                            >
-                                <CalendarDays className={`h-6 w-6 mx-auto mb-2 ${extendDuration === 1 ? 'text-[#F26C22]' : 'text-slate-400'}`} />
-                                <div className={`text-sm font-bold ${extendDuration === 1 ? 'text-[#F26C22]' : 'text-slate-900 dark:text-white'}`}>1 Month</div>
-                                <div className="text-lg font-black mt-1 text-slate-900 dark:text-white">RM 120</div>
-                            </div>
+                        <div className={`grid ${monthsToCompleteSemester > 1 ? 'grid-cols-2' : 'grid-cols-1'} gap-4 mb-6`}>
+                            {/* 1 Month Option (Hidden if only 1 month left) */}
+                            {monthsToCompleteSemester > 1 && (
+                                <div
+                                    onClick={() => setExtendDuration(1)}
+                                    className={`cursor-pointer rounded-2xl border-2 p-4 text-center transition-all ${
+                                        extendDuration === 1
+                                            ? 'border-[#F26C22] bg-orange-50 dark:bg-orange-900/20'
+                                            : 'border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                                    }`}
+                                >
+                                    <CalendarDays className={`h-6 w-6 mx-auto mb-2 ${extendDuration === 1 ? 'text-[#F26C22]' : 'text-slate-400'}`} />
+                                    <div className={`text-sm font-bold ${extendDuration === 1 ? 'text-[#F26C22]' : 'text-slate-900 dark:text-white'}`}>1 Month</div>
+                                    <div className="text-lg font-black mt-1 text-slate-900 dark:text-white">RM 120</div>
+                                </div>
+                            )}
 
                             {/* Semester Top-up Option */}
                             <div
