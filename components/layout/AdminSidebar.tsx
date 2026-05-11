@@ -162,6 +162,25 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
                         })}
                     </div>
                 </div>
+
+                {/* Superadmin Return Gateway */}
+                {user?.role === 'superadmin' && (
+                    <div className="pt-4 border-t border-white/5 animate-in slide-in-from-bottom-2 duration-700">
+                        <Link 
+                            href="/superadmin" 
+                            className={`flex items-center gap-4 py-3.5 rounded-2xl transition-all duration-300 bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white border border-indigo-500/20 group relative ${isCollapsed ? 'px-0 justify-center w-12' : 'px-4'}`}
+                            title={isCollapsed ? "Back to Superadmin" : undefined}
+                        >
+                            <ShieldCheck className={`h-5 w-5 shrink-0 ${isCollapsed ? '' : 'group-hover:scale-110 transition-transform'}`} />
+                            {!isCollapsed && <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-in fade-in">Superadmin Portal</span>}
+                            {isCollapsed && (
+                                <div className="absolute left-full ml-4 px-3 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[100] whitespace-nowrap">
+                                    Return to Super Portal
+                                </div>
+                            )}
+                        </Link>
+                    </div>
+                )}
             </div>
 
             {/* Admin Profile & Logout */}
