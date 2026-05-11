@@ -28,7 +28,8 @@ import {
     FolderOpen,
     Layers,
     FileText,
-    Megaphone
+    Megaphone,
+    AlertTriangle
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -65,6 +66,7 @@ function NavContent({
     const [isResourcesOpen, setIsResourcesOpen] = useState(
         (pathname?.includes('/financials') || pathname?.includes('/announcements') || pathname?.includes('/documents')) || false
     );
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     // Keep dropdown open when navigating to a child route
     useEffect(() => {
@@ -373,11 +375,7 @@ function NavContent({
                     )}
                 </Link>
                 <button
-                    onClick={() => {
-                        if (window.confirm('Are you sure you want to log out?')) {
-                            logout();
-                        }
-                    }}
+                    onClick={() => setShowLogoutModal(true)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-rose-400/70 hover:bg-rose-500/10 hover:text-rose-400 font-bold transition-all relative group ${collapsed ? 'justify-center' : ''}`}
                 >
                     <LogOut style={{ height: '18px', width: '18px' }} className="shrink-0 transition-transform group-hover:translate-x-1" />
@@ -389,6 +387,35 @@ function NavContent({
                     )}
                 </button>
             </div>
+
+            {/* Modern Logout Confirmation Modal */}
+            {showLogoutModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-sm rounded-[2.5rem] border border-white/5 bg-[#1E1B2E] p-8 shadow-2xl animate-in zoom-in-95 duration-200 text-center">
+                        <div className="mx-auto h-16 w-16 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-6">
+                            <AlertTriangle className="h-8 w-8 text-rose-500" />
+                        </div>
+                        <h3 className="text-xl font-black text-white mb-2">Sign Out?</h3>
+                        <p className="text-sm text-slate-400 mb-8 leading-relaxed">
+                            Are you sure you want to end your current session? You will need to re-authenticate to access your dashboard.
+                        </p>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => setShowLogoutModal(false)}
+                                className="flex-1 py-3.5 rounded-2xl border border-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={() => logout()}
+                                className="flex-1 py-3.5 rounded-2xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20"
+                            >
+                                Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
