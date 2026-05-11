@@ -46,17 +46,53 @@ export default function AssetManagementPage() {
     const typeCounts = types.map(t => ({t, c: assets.filter(a=>a.type===t).length})).sort((a,b)=>b.c-a.c);
 
     const handleCreate = async (form: any) => {
-        await fetch('/api/assets', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'create_asset', name:form.name, type:form.type, locationId:form.locationId, value:form.value||0 }) });
+        await fetch('/api/assets', { 
+            method:'POST', 
+            headers:{'Content-Type':'application/json'}, 
+            body: JSON.stringify({ 
+                action:'create_asset', 
+                name:form.name, 
+                type:form.type, 
+                locationId:form.locationId, 
+                value:form.value||0,
+                actorId: user?.id,
+                actorName: user?.name
+            }) 
+        });
         fetchAssets();
     };
     const handleRepair = async (id: string) => {
         const cost = prompt('Enter repair cost (RM):','0'); if(cost===null) return;
-        await fetch('/api/assets', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'log_maintenance', assetId:id, maintenanceAction:'Repair', description:'Routine repair', cost:parseFloat(cost), performedBy:user?.name||'Admin', newStatus:'Good' }) });
+        await fetch('/api/assets', { 
+            method:'POST', 
+            headers:{'Content-Type':'application/json'}, 
+            body: JSON.stringify({ 
+                action:'log_maintenance', 
+                assetId:id, 
+                maintenanceAction:'Repair', 
+                description:'Routine repair', 
+                cost:parseFloat(cost), 
+                performedBy:user?.name||'Admin', 
+                newStatus:'Good',
+                actorId: user?.id,
+                actorName: user?.name
+            }) 
+        });
         fetchAssets();
     };
     const handleReportIssue = async (id: string) => {
         if(!confirm('Mark this asset as Damaged?')) return;
-        await fetch('/api/assets', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'update_status', id, status:'Damaged' }) });
+        await fetch('/api/assets', { 
+            method:'POST', 
+            headers:{'Content-Type':'application/json'}, 
+            body: JSON.stringify({ 
+                action:'update_status', 
+                id, 
+                status:'Damaged',
+                actorId: user?.id,
+                actorName: user?.name
+            }) 
+        });
         fetchAssets();
     };
 
