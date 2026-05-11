@@ -108,25 +108,28 @@ export async function GET(request: Request) {
             debug_errors.complaints = String(e);
         }
 
-        // 5. Semester Stats
+        // 5. Semester Stats (Dynamic from Academic Settings)
         let semesterStats = [];
         try {
-            const [rows]: any = await pool.query(`
-                SELECT 
-                    'Semester 1 2024' as semester,
-                    COUNT(*) as intake,
-                    SUM(total_price) as potential_revenue
-                FROM applications
-                WHERE date >= '2024-01-01' AND date <= '2024-06-30'
-                UNION ALL
-                SELECT 
-                    'Semester 2 2024' as semester,
-                    COUNT(*) as intake,
-                    SUM(total_price) as potential_revenue
-                FROM applications
-                WHERE date >= '2024-07-01' AND date <= '2024-12-31'
+            const [semesters]: any = await pool.query(`
+                SELECT id, name, start_date, end_date FROM semesters ORDER BY start_date DESC LIMIT 5
             `);
-            semesterStats = rows;
+
+            for (const sem of semesters) {
+                const [statRows]: any = await pool.query(`
+                    SELECT 
+                        COUNT(*) as intake,
+                        COALESCE(SUM(total_price), 0) as potential_revenue
+                    FROM applications
+                    WHERE date >= ? AND date <= ?
+                `, [sem.start_date, sem.end_date]);
+
+                semesterStats.push({
+                    semester: sem.name,
+                    intake: statRows[0].intake,
+                    potential_revenue: statRows[0].potential_revenue
+                });
+            }
         } catch (e: any) { 
             console.error("SemesterStats query failed", e); 
             debug_errors.semesterStats = String(e);
