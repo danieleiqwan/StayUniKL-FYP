@@ -128,7 +128,7 @@ export default function AdminProfilePage() {
                                         </div>
                                         <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Access Level</span>
                                     </div>
-                                    <span className="text-xs font-bold text-slate-900 dark:text-white px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Level 5 (Super)</span>
+                                    <span className="text-xs font-bold text-slate-900 dark:text-white px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">Level 1 (Admin)</span>
                                 </div>
                                 <div className="flex items-center justify-between py-2">
                                     <div className="flex items-center gap-3">
