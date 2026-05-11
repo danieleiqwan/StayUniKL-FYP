@@ -170,7 +170,7 @@ export default function StudentsDirectoryPage() {
 
             return matchesSearch && matchesStatus && matchesResidency && matchesFloor && matchesNationality && matchesSemester;
         });
-    }, [students, searchQuery, statusFilter, residencyFilter, floorFilter, nationalityFilter]);
+    }, [students, searchQuery, statusFilter, residencyFilter, floorFilter, nationalityFilter, semesterFilter, semesters]);
 
     // Pagination Logic
     const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
