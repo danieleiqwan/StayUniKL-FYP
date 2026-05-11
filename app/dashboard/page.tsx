@@ -123,6 +123,10 @@ function DashboardContent() {
     const bedLabel = myBed?.label || myApplication?.bedId;
     const displayRoom = myApplication?.roomId ? `${myApplication.roomId}${bedLabel ? '-' + bedLabel : ''}` : 'N/A';
 
+    const currentDuration = myApplication?.stayDuration || 1;
+    const monthsToCompleteSemester = Math.max(1, 4 - currentDuration);
+    const semesterLabel = 'Complete Semester';
+
     const [greeting, setGreeting] = useState('Welcome');
 
     useEffect(() => {
@@ -629,12 +633,7 @@ function DashboardContent() {
             </div>
 
             {/* Extend Stay Modal */}
-            {isExtendModalOpen && (() => {
-                const currentDuration = myApplication?.stayDuration || 1;
-                const monthsToCompleteSemester = Math.max(1, 4 - currentDuration);
-                const semesterLabel = 'Complete Semester';
-
-                return (
+            {isExtendModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
                     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-md shadow-2xl border border-slate-100 dark:border-slate-800" style={{ animation: 'slideUp 0.3s ease-out' }}>
                         <div className="flex items-center justify-between mb-6">
@@ -703,8 +702,7 @@ function DashboardContent() {
                         </div>
                     </div>
                 </div>
-                );
-            })}
+            )}
         </div>
     );
 }
