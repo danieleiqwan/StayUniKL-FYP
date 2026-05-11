@@ -205,7 +205,7 @@ export default function AdminProfilePage() {
                                     <section>
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Administrative Identification</h3>
                                         <div className="grid gap-6 md:grid-cols-2">
-                                            <InfoRow label="Legal Name" value={user.name} icon={<User className="h-4 w-4" />} />
+                                            <InfoRow label="Admin Name" value={user.name} icon={<User className="h-4 w-4" />} />
                                             <InfoRow label="Admin ID" value={user.id} icon={<Shield className="h-4 w-4" />} />
                                             <InfoRow label="Work Email" value={user.email} icon={<Mail className="h-4 w-4" />} />
                                             <InfoRow label="Contact Phone" value={user.phoneNumber || '+60 123-456-789'} icon={<Phone className="h-4 w-4" />} />
