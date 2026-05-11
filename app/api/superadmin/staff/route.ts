@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 
         const hashedPassword = await bcrypt.hash(password, 12);
         const id = customId || `admin_${Date.now()}`;
-        const activationDate = created_at ? new Date(created_at) : new Date();
+        const activationDate = (created_at && created_at.trim() !== '') ? new Date(created_at) : new Date();
 
         await pool.query(
             `INSERT INTO users (id, name, email, password, role, is_active, created_at, phone_number)

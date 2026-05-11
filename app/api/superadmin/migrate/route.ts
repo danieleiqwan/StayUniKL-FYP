@@ -50,5 +50,12 @@ export async function GET() {
         results.push(`ℹ️ notifications_enabled: ${e.message}`);
     }
 
+    try {
+        await pool.query('ALTER TABLE users ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP');
+        results.push('✅ Added created_at column to users table');
+    } catch (e: any) {
+        results.push(`ℹ️ created_at: ${e.message}`);
+    }
+
     return NextResponse.json({ success: true, results });
 }
