@@ -139,9 +139,11 @@ export async function PATCH(request: Request) {
                 }
 
                 const targetId = newId || id;
+                const activationDate = created_at ? new Date(created_at) : null;
+
                 await pool.query(
                     'UPDATE users SET name = COALESCE(?, name), email = COALESCE(?, email), phone_number = COALESCE(?, phone_number), created_at = COALESCE(?, created_at) WHERE id = ?', 
-                    [name || null, email || null, phone_number || null, created_at || null, targetId]
+                    [name || null, email || null, phone_number || null, activationDate, targetId]
                 );
                 auditAction = 'ADMIN_DETAILS_UPDATED';
                 break;
