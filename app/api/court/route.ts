@@ -77,7 +77,9 @@ export async function GET(request: Request) {
             studentId: b.official_id || b.student_id,
             studentName: b.student_name,
             sport: b.sport,
-            date: b.date, // might need formatting depending on driver output
+            date: b.date instanceof Date 
+                ? b.date.toISOString().split('T')[0] 
+                : String(b.date).split('T')[0],
             timeSlot: b.time_slot,
             status: b.status,
             attendanceStatus: b.attendance_status
