@@ -280,62 +280,85 @@ export default function AdminBillingPage() {
     return (
         <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
 
-                {/* Page Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                    <div>
-                        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Financial Management</h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Track invoices, statuses, and payment history across all students.</p>
+                {/* Reorganized Page Header */}
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100 dark:border-indigo-900/30">
+                                <Banknote className="h-5 w-5" />
+                            </div>
+                            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+                                Financial Management
+                            </h1>
+                        </div>
+                        <p className="text-slate-500 dark:text-slate-400 font-medium ml-1 flex items-center gap-2">
+                            Track invoices and payments across all students.
+                            {lastRefreshed && (
+                                <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-full text-[10px] font-bold text-slate-400">
+                                    <Clock className="h-3 w-3" />
+                                    {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                            )}
+                        </p>
                     </div>
-                    <div className="flex items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 rounded-2xl shadow-sm">
-                        <Calendar className="h-4 w-4 text-slate-400 ml-2" />
-                        <select 
-                            value={selectedSemester}
-                            onChange={(e) => setSelectedSemester(e.target.value)}
-                            className="bg-transparent border-none text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 outline-none pr-4"
-                        >
-                            <option value="all">All-Time Revenue</option>
-                            {semesterList.map(sem => (
-                                <option key={sem.id} value={sem.id}>{sem.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        {lastRefreshed && (
-                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden md:block">
-                                Updated {lastRefreshed.toLocaleTimeString()}
-                            </span>
-                        )}
-                        <button
-                            onClick={() => fetchData(false)}
-                            disabled={loading || isRefreshing}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-60"
-                        >
-                            <RefreshCw className={cn("h-4 w-4", (loading || isRefreshing) && "animate-spin")} />
-                            {isRefreshing ? 'Syncing...' : 'Refresh'}
-                        </button>
-                        <button
-                            onClick={handleRunAutoBilling}
-                            disabled={runningBilling}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-slate-800 dark:bg-slate-700 hover:bg-slate-700 dark:hover:bg-slate-600 rounded-xl shadow-md transition-all disabled:opacity-60"
-                        >
-                            <Zap className={cn("h-4 w-4", runningBilling && "animate-pulse")} />
-                            {runningBilling ? 'Running...' : 'Run Auto-Billing'}
-                        </button>
-                        <button
-                            onClick={handleSyncBilling}
-                            disabled={isSyncing}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all disabled:opacity-60"
-                        >
-                            <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
-                            {isSyncing ? 'Syncing...' : 'Reconcile Sync'}
-                        </button>
-                        <button
-                            onClick={() => setShowCreate(true)}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-[#F26C22] hover:bg-[#d65a16] rounded-xl shadow-md shadow-orange-500/20 transition-all active:scale-95"
-                        >
-                            <Plus className="h-4 w-4" />
-                            New Invoice
-                        </button>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                        {/* Period Selector */}
+                        <div className="flex items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 rounded-2xl shadow-sm h-12">
+                            <Calendar className="h-4 w-4 text-slate-400 ml-2" />
+                            <select 
+                                value={selectedSemester}
+                                onChange={(e) => setSelectedSemester(e.target.value)}
+                                className="bg-transparent border-none text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 outline-none pr-4 cursor-pointer"
+                            >
+                                <option value="all">All-Time Revenue</option>
+                                {semesterList.map(sem => (
+                                    <option key={sem.id} value={sem.id}>{sem.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <button
+                                onClick={() => fetchData(false)}
+                                disabled={loading || isRefreshing}
+                                className="h-12 w-12 sm:w-auto sm:px-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-60"
+                                title="Refresh Data"
+                            >
+                                <RefreshCw className={cn("h-4 w-4", (loading || isRefreshing) && "animate-spin")} />
+                                <span className="hidden sm:inline">Refresh</span>
+                            </button>
+
+                            <button
+                                onClick={handleSyncBilling}
+                                disabled={isSyncing}
+                                className="h-12 w-12 sm:w-auto sm:px-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all disabled:opacity-60"
+                                title="Sync Payments"
+                            >
+                                <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
+                                <span className="hidden sm:inline">Sync</span>
+                            </button>
+
+                            <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mx-1 hidden md:block"></div>
+
+                            <button
+                                onClick={handleRunAutoBilling}
+                                disabled={runningBilling}
+                                className="h-12 px-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-white bg-slate-900 dark:bg-slate-800 hover:bg-[#F26C22] rounded-2xl shadow-lg transition-all disabled:opacity-60"
+                            >
+                                <Zap className={cn("h-4 w-4", runningBilling && "animate-pulse")} />
+                                <span>Auto-Bill</span>
+                            </button>
+
+                            <button
+                                onClick={() => setShowCreate(true)}
+                                className="h-12 px-5 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-white bg-[#F26C22] hover:bg-[#d65a16] rounded-2xl shadow-lg shadow-orange-500/20 transition-all active:scale-95"
+                            >
+                                <Plus className="h-4 w-4" />
+                                <span>Invoice</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
