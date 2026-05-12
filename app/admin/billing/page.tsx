@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import {
     CreditCard, CheckCircle2, Clock, AlertCircle, RefreshCw,
     Filter, FileText, Users, Banknote, TrendingUp, X,
-    ChevronDown, Receipt, Zap, Plus, Search, UserCheck
+    ChevronDown, Receipt, Zap, Plus, Search, UserCheck, Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
