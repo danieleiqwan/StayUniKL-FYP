@@ -142,7 +142,6 @@ function AdminDashboard() {
         return slots;
     };
     const scheduleSlots = generateSlots();
-    const today = new Date().toISOString().split('T')[0];
 
 
 
