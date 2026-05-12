@@ -131,21 +131,21 @@ export default function AuditLogsPage() {
     return (
         <div className="p-8 lg:p-10 space-y-8 min-h-screen">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div>
-                    <div className="flex items-center gap-3 mb-1">
-                        <div className="h-9 w-9 rounded-xl flex items-center justify-center bg-amber-500/10 border border-amber-500/20 shadow-sm">
-                            <History className="h-5 w-5 text-amber-500" />
+                    <div className="flex items-center gap-4 mb-2">
+                        <div className="h-12 w-12 rounded-2xl flex items-center justify-center bg-amber-500/10 border border-amber-500/20 shadow-sm shrink-0">
+                            <History className="h-6 w-6 text-amber-500" />
                         </div>
-                        <h1 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">Audit Log</h1>
+                        <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Security Audit</h1>
                     </div>
-                    <p className="text-sm text-zinc-500 ml-12">
-                        Append-only system activity trail. {total.toLocaleString()} total records.
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium sm:ml-16">
+                        Append-only system activity trail. {total.toLocaleString()} total records verified.
                     </p>
                 </div>
                 <button onClick={fetchLogs}
-                    className="flex items-center gap-2 p-2.5 rounded-xl text-zinc-400 dark:text-slate-500 hover:text-amber-500 transition-all border border-zinc-200 dark:border-white/5 bg-white dark:bg-transparent shadow-sm dark:shadow-none self-start">
-                    <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
+                    className="p-3 rounded-2xl text-zinc-400 dark:text-slate-500 hover:text-amber-500 transition-all border border-zinc-200 dark:border-white/5 bg-white dark:bg-slate-900/40 shadow-sm self-start sm:self-center">
+                    <RefreshCw className={cn('h-5 w-5', loading && 'animate-spin')} />
                 </button>
             </div>
 
@@ -204,26 +204,26 @@ export default function AuditLogsPage() {
             </div>
 
             {/* Log Table */}
-            <div className="rounded-3xl border overflow-hidden bg-white dark:bg-slate-900/20 border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none">
+            <div className="rounded-[2.5rem] border overflow-hidden bg-white dark:bg-slate-900/40 border-zinc-200 dark:border-zinc-800 shadow-xl shadow-black/[0.02]">
                 {/* Table Header */}
-                <div className="grid grid-cols-12 gap-3 px-6 py-4 border-b bg-zinc-50/50 dark:bg-transparent text-[9px] font-black text-zinc-400 dark:text-slate-600 uppercase tracking-widest border-zinc-200 dark:border-white/5">
-                    <div className="col-span-1">#</div>
+                <div className="hidden xl:grid grid-cols-12 gap-3 px-6 py-5 border-b bg-zinc-50/50 dark:bg-transparent text-[10px] font-black text-zinc-400 dark:text-slate-500 uppercase tracking-[0.2em] border-zinc-200 dark:border-zinc-800">
+                    <div className="col-span-1">ID</div>
                     <div className="col-span-2">Actor</div>
-                    <div className="col-span-4">Action</div>
+                    <div className="col-span-4">Action Protocol</div>
                     <div className="col-span-2">Entity</div>
                     <div className="col-span-2">Timestamp</div>
-                    <div className="col-span-1 text-right">Details</div>
+                    <div className="col-span-1 text-right">Info</div>
                 </div>
 
                 {loading ? (
-                    <div className="py-20 flex flex-col items-center gap-3">
-                        <div className="h-8 w-8 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin" />
-                        <p className="text-xs text-zinc-400 dark:text-zinc-600 font-bold">Loading audit records...</p>
+                    <div className="py-24 flex flex-col items-center gap-4">
+                        <div className="h-10 w-10 rounded-full border-4 border-amber-500/10 border-t-amber-500 animate-spin" />
+                        <p className="text-sm text-zinc-400 dark:text-zinc-600 font-black uppercase tracking-widest">Retrieving Logs...</p>
                     </div>
                 ) : logs.length === 0 ? (
-                    <div className="py-20 flex flex-col items-center gap-3">
-                        <AlertCircle className="h-8 w-8 text-zinc-300 dark:text-zinc-700" />
-                        <p className="text-sm text-zinc-400 dark:text-zinc-600 font-bold">No audit records found.</p>
+                    <div className="py-24 flex flex-col items-center gap-4">
+                        <AlertCircle className="h-12 w-12 text-zinc-200 dark:text-zinc-800" />
+                        <p className="text-sm text-zinc-400 dark:text-zinc-600 font-black uppercase tracking-widest">No activity found</p>
                     </div>
                 ) : (
                     logs.map((log, i) => {
@@ -233,66 +233,99 @@ export default function AuditLogsPage() {
 
                         return (
                             <div key={log.id}
-                                className={cn('transition-colors', 
+                                className={cn('transition-all duration-200', 
                                     i < logs.length - 1 && 'border-b border-zinc-100 dark:border-zinc-800/50',
                                     i % 2 === 1 && 'bg-zinc-50/30 dark:bg-white/[0.005]'
                                 )}
                             >
-                                <div className="grid grid-cols-12 gap-3 px-6 py-4 items-center">
-                                    <div className="col-span-1 text-[10px] font-mono text-zinc-400">#{log.id}</div>
-                                    <div className="col-span-2">
-                                        <p className="text-xs font-bold text-zinc-900 dark:text-white truncate">{log.actor_name}</p>
-                                        <p className="text-[10px] text-zinc-400 dark:text-zinc-600 font-mono truncate">{log.actor_id}</p>
+                                <div className="flex flex-col xl:grid xl:grid-cols-12 gap-4 px-6 py-6 xl:py-4 items-start xl:items-center">
+                                    <div className="xl:col-span-1 w-full flex items-center justify-between xl:block">
+                                        <span className="text-[11px] font-mono font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md xl:bg-transparent xl:p-0 xl:text-[10px]">#{log.id}</span>
+                                        <div className="xl:hidden flex items-center gap-3">
+                                            <p className="text-[10px] text-zinc-400 dark:text-zinc-600 font-mono">
+                                                {formatDate(log.created_at).split(',')[1]}
+                                            </p>
+                                            {details && (
+                                                <button
+                                                    onClick={() => setExpandedLog(isExpanded ? null : log.id)}
+                                                    className={cn('p-1.5 rounded-lg text-xs transition-colors',
+                                                        isExpanded ? 'bg-amber-500 text-black' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                                                    )}
+                                                >
+                                                    <Info className="h-3.5 w-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="col-span-4">
-                                        <span className={cn('inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wide border', colorClass)}>
+
+                                    <div className="xl:col-span-2 w-full">
+                                        <p className="text-sm font-black text-zinc-900 dark:text-white truncate">{log.actor_name}</p>
+                                        <p className="text-[10px] text-zinc-400 dark:text-zinc-600 font-mono truncate uppercase tracking-tighter">{log.actor_id}</p>
+                                    </div>
+
+                                    <div className="xl:col-span-4 w-full">
+                                        <span className={cn('inline-flex items-center px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider border shadow-sm', colorClass)}>
                                             {log.action}
                                         </span>
                                     </div>
-                                    <div className="col-span-2">
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50">
+
+                                    <div className="xl:col-span-2 w-full flex items-center justify-between xl:block">
+                                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-xl text-[10px] font-black text-zinc-500 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 uppercase tracking-widest">
                                             {getEntityIcon(log.entity_type)}
                                             {log.entity_type || '—'}
                                         </span>
+                                        <div className="xl:hidden text-[10px] font-bold text-zinc-400 uppercase">
+                                            {formatDate(log.created_at).split(',')[0]}
+                                        </div>
                                     </div>
-                                    <div className="col-span-2">
-                                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono leading-relaxed">
+
+                                    <div className="hidden xl:block xl:col-span-2">
+                                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono leading-relaxed bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800">
                                             {formatDate(log.created_at)}
                                         </p>
                                     </div>
-                                    <div className="col-span-1 flex justify-end">
+
+                                    <div className="hidden xl:flex xl:col-span-1 justify-end">
                                         {details && (
                                             <button
                                                 onClick={() => setExpandedLog(isExpanded ? null : log.id)}
-                                                className={cn('p-1.5 rounded-lg text-xs transition-colors',
+                                                className={cn('p-2.5 rounded-xl transition-all',
                                                     isExpanded
-                                                        ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10'
-                                                        : 'text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10'
+                                                        ? 'text-black bg-amber-500 shadow-lg shadow-amber-500/20'
+                                                        : 'text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 border border-transparent hover:border-amber-500/20'
                                                 )}
                                                 title="View details"
                                             >
-                                                <Info className="h-3.5 w-3.5" />
+                                                <Info className="h-4 w-4" />
                                             </button>
                                         )}
                                     </div>
                                 </div>
 
                                 {isExpanded && details && (
-                                    <div className="px-6 pb-5 animate-in slide-in-from-top-1 duration-200">
-                                        <div className="rounded-xl p-4 border font-mono text-[11px] leading-relaxed overflow-x-auto bg-zinc-50 dark:bg-amber-500/5 border-zinc-200 dark:border-amber-500/10 text-zinc-600 dark:text-amber-300/80">
-                                            <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-2">
-                                                Event Metadata
-                                                {log.entity_id && <span className="ml-3 text-zinc-500 dark:text-zinc-700">Entity ID: {log.entity_id}</span>}
-                                            </p>
-                                            {typeof details === 'object'
-                                                ? Object.entries(details).map(([k, v]) => (
-                                                    <div key={k} className="flex gap-3">
-                                                        <span className="text-zinc-400 dark:text-zinc-600 shrink-0">{k}:</span>
-                                                        <span className="text-zinc-900 dark:text-amber-300/70">{String(v)}</span>
-                                                    </div>
-                                                ))
-                                                : <span>{String(details)}</span>
-                                            }
+                                    <div className="px-6 pb-6 animate-in slide-in-from-top-2 duration-300">
+                                        <div className="rounded-[1.5rem] p-6 border font-mono text-[11px] leading-relaxed overflow-x-auto bg-zinc-50 dark:bg-slate-950 border-zinc-200 dark:border-zinc-800/50 text-zinc-600 dark:text-zinc-400 shadow-inner">
+                                            <div className="flex items-center justify-between mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
+                                                <h4 className="text-[10px] font-black text-zinc-400 dark:text-slate-600 uppercase tracking-[0.2em]">Activity Metadata Trace</h4>
+                                                {log.entity_id && <span className="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 uppercase">E-ID: {log.entity_id}</span>}
+                                            </div>
+                                            <div className="space-y-2">
+                                                {typeof details === 'object'
+                                                    ? Object.entries(details).map(([k, v]) => (
+                                                        <div key={k} className="flex gap-4 group">
+                                                            <span className="text-zinc-400 dark:text-slate-600 shrink-0 font-black min-w-[80px] uppercase text-[9px] mt-0.5">{k}</span>
+                                                            <span className="text-zinc-900 dark:text-zinc-200 break-all">{String(v)}</span>
+                                                        </div>
+                                                    ))
+                                                    : <span className="text-zinc-900 dark:text-zinc-200">{String(details)}</span>
+                                                }
+                                            </div>
+                                            {log.ip_address && (
+                                                <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center gap-2">
+                                                    <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Origin IP:</span>
+                                                    <span className="text-[10px] font-bold text-zinc-500">{log.ip_address}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
