@@ -491,64 +491,68 @@ function AdminDashboard() {
                             statusOptions={['Pending', 'Payment Pending', 'Approved', 'Checked in', 'Checked out', 'Cancelled', 'No show']}
                         />
                         <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
-                            <div className="grid grid-cols-[2fr_1fr_1fr_1fr_2fr] px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Student</span>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Room Type</span>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Applied</span>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</span>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</span>
-                            </div>
-                            <div className="divide-y divide-slate-50 dark:divide-slate-800">
-                                {filteredApps.length === 0 ? (
-                                    <div className="py-20 text-center">
-                                        <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No applications found.</p>
+                            <div className="overflow-x-auto custom-scrollbar">
+                                <div className="min-w-[850px]">
+                                    <div className="grid grid-cols-[2fr_1fr_1fr_1fr_2fr] px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Student</span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Room Type</span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Applied</span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</span>
                                     </div>
-                                ) : filteredApps.map(app => (
-                                    <div key={app.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_2fr] items-center px-8 py-5 hover:bg-orange-50/30 dark:hover:bg-slate-800/30 transition-colors group">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-black text-sm shrink-0">
-                                                {(app.studentName || 'S').charAt(0)}
+                                    <div className="divide-y divide-slate-50 dark:divide-slate-800">
+                                        {filteredApps.length === 0 ? (
+                                            <div className="py-20 text-center">
+                                                <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No applications found.</p>
                                             </div>
-                                            <div>
-                                                <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{app.studentName}</p>
-                                                <p className="text-xs text-slate-400 font-mono">{app.officialId || app.studentId}</p>
+                                        ) : filteredApps.map(app => (
+                                            <div key={app.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_2fr] items-center px-8 py-5 hover:bg-orange-50/30 dark:hover:bg-slate-800/30 transition-colors group">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-black text-sm shrink-0">
+                                                        {(app.studentName || 'S').charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{app.studentName}</p>
+                                                        <p className="text-xs text-slate-400 font-mono">{app.officialId || app.studentId}</p>
+                                                    </div>
+                                                    <button onClick={() => setSelectedStudentId(app.studentId)} className="p-1.5 text-slate-300 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="View Full Profile">
+                                                        <Eye className="h-3.5 w-3.5" />
+                                                    </button>
+                                                </div>
+                                                <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{app.roomType || '—'}</p>
+                                                <p className="text-sm text-slate-400 font-medium">{new Date(app.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                                                <span className={`inline-flex items-center w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                                    app.status === 'Approved' || app.status === 'Approved - Assigned' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                                    app.status === 'Checked in' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' :
+                                                    app.status === 'Checked out' ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' :
+                                                    app.status === 'Payment Pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                                    app.status === 'Cancelled' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
+                                                    app.status === 'No show' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                                                    'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                                                }`}>{app.status || 'Pending'}</span>
+                                                <div className="flex flex-wrap gap-2 justify-end">
+                                                    {(app.status === 'Pending' || !app.status) && (<>
+                                                        <button onClick={() => updateApplicationStatus(app.id, 'Payment Pending')} className="text-[10px] font-black uppercase tracking-widest bg-[#F26C22] text-white px-3 py-1.5 rounded-xl hover:bg-[#d65a16] transition-all">Accept</button>
+                                                        <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Reject</button>
+                                                        <button onClick={() => { const bedId = prompt('Enter Bed ID (e.g., 101-A):'); if (bedId) { fetch('/api/applications', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: app.id, bedId }) }).then(() => refreshData()); } }} className="text-[10px] font-black uppercase tracking-widest bg-slate-700 text-white px-3 py-1.5 rounded-xl hover:bg-slate-800 transition-all">Assign Bed</button>
+                                                    </>)}
+                                                    {app.status === 'Payment Pending' && (<>
+                                                        <button onClick={() => updateApplicationStatus(app.id, 'Approved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Verify Payment</button>
+                                                        <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Cancel</button>
+                                                    </>)}
+                                                    {app.status === 'Approved' && (<>
+                                                        <button onClick={() => updateApplicationStatus(app.id, 'Checked in')} className="text-[10px] font-black uppercase tracking-widest bg-teal-500 text-white px-3 py-1.5 rounded-xl hover:bg-teal-600 transition-all">Check In</button>
+                                                        <button onClick={() => updateApplicationStatus(app.id, 'No show')} className="text-[10px] font-black uppercase tracking-widest bg-amber-500 text-white px-3 py-1.5 rounded-xl hover:bg-amber-600 transition-all">No Show</button>
+                                                        <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Cancel</button>
+                                                    </>)}
+                                                    {app.status === 'Checked in' && (
+                                                        <button onClick={() => updateApplicationStatus(app.id, 'Checked out')} className="text-[10px] font-black uppercase tracking-widest bg-slate-600 text-white px-3 py-1.5 rounded-xl hover:bg-slate-700 transition-all">Check Out</button>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <button onClick={() => setSelectedStudentId(app.studentId)} className="p-1.5 text-slate-300 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="View Full Profile">
-                                                <Eye className="h-3.5 w-3.5" />
-                                            </button>
-                                        </div>
-                                        <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{app.roomType || '—'}</p>
-                                        <p className="text-sm text-slate-400 font-medium">{new Date(app.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                                        <span className={`inline-flex items-center w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                                            app.status === 'Approved' || app.status === 'Approved - Assigned' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                                            app.status === 'Checked in' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' :
-                                            app.status === 'Checked out' ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' :
-                                            app.status === 'Payment Pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                                            app.status === 'Cancelled' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
-                                            app.status === 'No show' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                                            'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-                                        }`}>{app.status || 'Pending'}</span>
-                                        <div className="flex flex-wrap gap-2 justify-end">
-                                            {(app.status === 'Pending' || !app.status) && (<>
-                                                <button onClick={() => updateApplicationStatus(app.id, 'Payment Pending')} className="text-[10px] font-black uppercase tracking-widest bg-[#F26C22] text-white px-3 py-1.5 rounded-xl hover:bg-[#d65a16] transition-all">Accept</button>
-                                                <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Reject</button>
-                                                <button onClick={() => { const bedId = prompt('Enter Bed ID (e.g., 101-A):'); if (bedId) { fetch('/api/applications', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: app.id, bedId }) }).then(() => refreshData()); } }} className="text-[10px] font-black uppercase tracking-widest bg-slate-700 text-white px-3 py-1.5 rounded-xl hover:bg-slate-800 transition-all">Assign Bed</button>
-                                            </>)}
-                                            {app.status === 'Payment Pending' && (<>
-                                                <button onClick={() => updateApplicationStatus(app.id, 'Approved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Verify Payment</button>
-                                                <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Cancel</button>
-                                            </>)}
-                                            {app.status === 'Approved' && (<>
-                                                <button onClick={() => updateApplicationStatus(app.id, 'Checked in')} className="text-[10px] font-black uppercase tracking-widest bg-teal-500 text-white px-3 py-1.5 rounded-xl hover:bg-teal-600 transition-all">Check In</button>
-                                                <button onClick={() => updateApplicationStatus(app.id, 'No show')} className="text-[10px] font-black uppercase tracking-widest bg-amber-500 text-white px-3 py-1.5 rounded-xl hover:bg-amber-600 transition-all">No Show</button>
-                                                <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Cancel</button>
-                                            </>)}
-                                            {app.status === 'Checked in' && (
-                                                <button onClick={() => updateApplicationStatus(app.id, 'Checked out')} className="text-[10px] font-black uppercase tracking-widest bg-slate-600 text-white px-3 py-1.5 rounded-xl hover:bg-slate-700 transition-all">Check Out</button>
-                                            )}
-                                        </div>
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -565,60 +569,64 @@ function AdminDashboard() {
                             showRoomType={false}
                         />
                         <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
-                            <div className="grid grid-cols-[2fr_2fr_1fr_1.5fr] px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Reported By</span>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Issue</span>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</span>
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</span>
-                            </div>
-                            <div className="divide-y divide-slate-50 dark:divide-slate-800">
-                                {filteredComplaints.length === 0 ? (
-                                    <div className="py-20 text-center">
-                                        <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No complaints found.</p>
+                            <div className="overflow-x-auto custom-scrollbar">
+                                <div className="min-w-[850px]">
+                                    <div className="grid grid-cols-[2fr_2fr_1fr_1.5fr] px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Reported By</span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Issue</span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</span>
                                     </div>
-                                ) : filteredComplaints.map(c => (
-                                    <div key={c.id} className="grid grid-cols-[2fr_2fr_1fr_1.5fr] items-center px-8 py-5 hover:bg-blue-50/20 dark:hover:bg-slate-800/30 transition-colors group">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-black text-sm shrink-0">
-                                                {(c.studentName || 'S').charAt(0)}
+                                    <div className="divide-y divide-slate-50 dark:divide-slate-800">
+                                        {filteredComplaints.length === 0 ? (
+                                            <div className="py-20 text-center">
+                                                <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No complaints found.</p>
                                             </div>
-                                            <div>
-                                                <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{c.studentName}</p>
-                                                <p className="text-xs text-slate-400 font-mono">{c.officialId || c.studentId}</p>
-                                            </div>
-                                            <button onClick={() => setSelectedStudentId(c.studentId)} className="p-1.5 text-slate-300 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="View Profile">
-                                                <Eye className="h-3.5 w-3.5" />
-                                            </button>
-                                        </div>
-                                        <div>
-                                            <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{c.title}</p>
-                                            <p className="text-xs text-slate-400 max-w-xs truncate mt-0.5">{c.description}</p>
-                                            {c.images && c.images.length > 0 && (
-                                                <div className="flex gap-2 mt-2 overflow-x-auto pb-1 custom-scrollbar no-scrollbar">
-                                                    {c.images.map((img: string, idx: number) => (
-                                                        <a key={idx} href={img} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 hover:border-[#F26C22] transition-colors">
-                                                            <img src={img} alt="Attachment" className="h-full w-full object-cover" />
-                                                        </a>
-                                                    ))}
+                                        ) : filteredComplaints.map(c => (
+                                            <div key={c.id} className="grid grid-cols-[2fr_2fr_1fr_1.5fr] items-center px-8 py-5 hover:bg-blue-50/20 dark:hover:bg-slate-800/30 transition-colors group">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-black text-sm shrink-0">
+                                                        {(c.studentName || 'S').charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{c.studentName}</p>
+                                                        <p className="text-xs text-slate-400 font-mono">{c.officialId || c.studentId}</p>
+                                                    </div>
+                                                    <button onClick={() => setSelectedStudentId(c.studentId)} className="p-1.5 text-slate-300 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100" title="View Profile">
+                                                        <Eye className="h-3.5 w-3.5" />
+                                                    </button>
                                                 </div>
-                                            )}
-                                        </div>
-                                        <span className={`inline-flex items-center w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                                            c.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                                            c.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                                            'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                                        }`}>{c.status}</span>
-                                        <div className="flex gap-2 justify-end">
-                                            {c.status === 'Pending' && (<>
-                                                <button onClick={() => { const d = prompt('Appointment Date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]); if (d) updateComplaint(c.id, 'In Progress', d); }} className="text-[10px] font-black uppercase tracking-widest bg-blue-500 text-white px-3 py-1.5 rounded-xl hover:bg-blue-600 transition-all">Schedule</button>
-                                                <button onClick={() => updateComplaint(c.id, 'Resolved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Resolve</button>
-                                            </>)}
-                                            {c.status === 'In Progress' && (
-                                                <button onClick={() => updateComplaint(c.id, 'Resolved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Mark Resolved</button>
-                                            )}
-                                        </div>
+                                                <div>
+                                                    <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{c.title}</p>
+                                                    <p className="text-xs text-slate-400 max-w-xs truncate mt-0.5">{c.description}</p>
+                                                    {c.images && c.images.length > 0 && (
+                                                        <div className="flex gap-2 mt-2 overflow-x-auto pb-1 custom-scrollbar no-scrollbar">
+                                                            {c.images.map((img: string, idx: number) => (
+                                                                <a key={idx} href={img} target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 hover:border-[#F26C22] transition-colors">
+                                                                    <img src={img} alt="Attachment" className="h-full w-full object-cover" />
+                                                                </a>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className={`inline-flex items-center w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                                    c.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                                    c.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                                                    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                }`}>{c.status}</span>
+                                                <div className="flex gap-2 justify-end">
+                                                    {c.status === 'Pending' && (<>
+                                                        <button onClick={() => { const d = prompt('Appointment Date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]); if (d) updateComplaint(c.id, 'In Progress', d); }} className="text-[10px] font-black uppercase tracking-widest bg-blue-500 text-white px-3 py-1.5 rounded-xl hover:bg-blue-600 transition-all">Schedule</button>
+                                                        <button onClick={() => updateComplaint(c.id, 'Resolved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Resolve</button>
+                                                    </>)}
+                                                    {c.status === 'In Progress' && (
+                                                        <button onClick={() => updateComplaint(c.id, 'Resolved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Mark Resolved</button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -717,48 +725,52 @@ function AdminDashboard() {
                                             )}
                                         </div>
                                         <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
-                                            <div className="grid grid-cols-[2fr_1fr_1.5fr_1fr_1fr] px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Student</span>
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sport</span>
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Date & Time</span>
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</span>
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</span>
-                                            </div>
-                                            <div className="divide-y divide-slate-50 dark:divide-slate-800">
-                                                {filteredCourtBookings.length === 0 ? (
-                                                    <div className="py-20 text-center"><p className="text-sm font-bold text-slate-400 dark:text-slate-500">No bookings match your filters.</p></div>
-                                                ) : filteredCourtBookings.map(b => (
-                                                    <div key={b.id} className="grid grid-cols-[2fr_1fr_1.5fr_1fr_1fr] items-center px-8 py-5 hover:bg-orange-50/20 dark:hover:bg-slate-800/30 transition-colors group">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white font-black text-sm shrink-0">
-                                                                {(b.studentName || 'S').charAt(0)}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{b.studentName || 'Unknown'}</p>
-                                                                <p className="text-xs text-slate-400 font-mono">{b.studentId}</p>
-                                                            </div>
-                                                            <button onClick={() => setSelectedStudentId(b.studentId)} className="p-1.5 text-slate-300 hover:text-[#F26C22] rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-                                                                <Eye className="h-3.5 w-3.5" />
-                                                            </button>
-                                                        </div>
-                                                        <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{b.sport}</p>
-                                                        <div>
-                                                            <p className="text-sm font-bold text-slate-900 dark:text-white">{new Date(b.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</p>
-                                                            <p className="text-xs text-slate-400">@ {b.timeSlot}</p>
-                                                        </div>
-                                                        <span className={`inline-flex items-center w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                                                            b.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                                                            b.status === 'Rejected' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
-                                                            'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                                                        }`}>{b.status}</span>
-                                                        <div className="flex gap-2 justify-end">
-                                                            {b.status === 'Pending' && (<>
-                                                                <button onClick={() => updateBookingStatus(b.id, 'Approved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Approve</button>
-                                                                <button onClick={() => updateBookingStatus(b.id, 'Rejected')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Reject</button>
-                                                            </>)}
-                                                        </div>
+                                            <div className="overflow-x-auto custom-scrollbar">
+                                                <div className="min-w-[850px]">
+                                                    <div className="grid grid-cols-[2fr_1fr_1.5fr_1fr_1fr] px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Student</span>
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Sport</span>
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Date & Time</span>
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</span>
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</span>
                                                     </div>
-                                                ))}
+                                                    <div className="divide-y divide-slate-50 dark:divide-slate-800">
+                                                        {filteredCourtBookings.length === 0 ? (
+                                                            <div className="py-20 text-center"><p className="text-sm font-bold text-slate-400 dark:text-slate-500">No bookings match your filters.</p></div>
+                                                        ) : filteredCourtBookings.map(b => (
+                                                            <div key={b.id} className="grid grid-cols-[2fr_1fr_1.5fr_1fr_1fr] items-center px-8 py-5 hover:bg-orange-50/20 dark:hover:bg-slate-800/30 transition-colors group">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white font-black text-sm shrink-0">
+                                                                        {(b.studentName || 'S').charAt(0)}
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="font-black text-slate-900 dark:text-white text-sm leading-tight">{b.studentName || 'Unknown'}</p>
+                                                                        <p className="text-xs text-slate-400 font-mono">{b.studentId}</p>
+                                                                    </div>
+                                                                    <button onClick={() => setSelectedStudentId(b.studentId)} className="p-1.5 text-slate-300 hover:text-[#F26C22] rounded-lg transition-colors opacity-0 group-hover:opacity-100">
+                                                                        <Eye className="h-3.5 w-3.5" />
+                                                                    </button>
+                                                                </div>
+                                                                <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{b.sport}</p>
+                                                                <div>
+                                                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{new Date(b.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</p>
+                                                                    <p className="text-xs text-slate-400">@ {b.timeSlot}</p>
+                                                                </div>
+                                                                <span className={`inline-flex items-center w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                                                    b.status === 'Approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                                                    b.status === 'Rejected' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
+                                                                    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                                }`}>{b.status}</span>
+                                                                <div className="flex gap-2 justify-end">
+                                                                    {b.status === 'Pending' && (<>
+                                                                        <button onClick={() => updateBookingStatus(b.id, 'Approved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Approve</button>
+                                                                        <button onClick={() => updateBookingStatus(b.id, 'Rejected')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Reject</button>
+                                                                    </>)}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
