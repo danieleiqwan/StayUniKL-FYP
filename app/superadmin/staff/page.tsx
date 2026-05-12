@@ -183,37 +183,48 @@ export default function StaffManagementPage() {
 
     const renderRow = (member: StaffMember, i: number) => (
         <div key={member?.id || `fallback_${i}`}
-            className={cn('grid grid-cols-12 gap-4 px-6 py-5 items-center transition-colors hover:bg-zinc-50 dark:hover:bg-white/[0.02]',
+            className={cn('flex flex-col sm:grid sm:grid-cols-12 gap-4 px-6 py-6 sm:py-5 items-start sm:items-center transition-colors hover:bg-zinc-50 dark:hover:bg-white/[0.02]',
                 i < filteredStaff.length - 1 && 'border-b border-zinc-100 dark:border-zinc-800/50')}
         >
-            <div className="col-span-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl flex items-center justify-center text-sm font-black shrink-0 shadow-sm"
+            <div className="col-span-3 flex items-center gap-4 w-full">
+                <div className="h-10 w-10 rounded-2xl flex items-center justify-center text-base font-black shrink-0 shadow-sm border border-black/5 dark:border-white/5"
                     style={{
                         background: member?.role === 'superadmin' ? 'rgba(245,158,11,0.1)' : 'rgba(107,114,128,0.05)',
                         color: member?.role === 'superadmin' ? '#f59e0b' : '#6b7280'
                     }}>
                     {(member?.name || '?').charAt(0).toUpperCase()}
                 </div>
-                <div>
-                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{member?.name || 'Unknown'}</p>
-                    <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-wide">{member?.role || 'admin'}</p>
+                <div className="min-w-0">
+                    <p className="text-sm font-black text-zinc-900 dark:text-white truncate">{member?.name || 'Unknown'}</p>
+                    <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">{member?.role || 'admin'}</p>
+                </div>
+                <div className="ml-auto sm:hidden">
+                    {member ? getStatusBadge(member) : null}
                 </div>
             </div>
-            <div className="col-span-3 text-sm text-zinc-500 dark:text-zinc-400 truncate">{member?.email || 'No email'}</div>
-            <div className="col-span-2">{member ? getStatusBadge(member) : null}</div>
-            <div className="col-span-2">
-                <div className="flex flex-col gap-1 text-xs text-zinc-500 dark:text-zinc-400">
-                    <div className="flex items-center gap-1.5">
-                        <Clock className="h-3 w-3 shrink-0" />
-                        <span>Login: {formatDate(member?.last_login)}</span>
+            
+            <div className="col-span-3 text-sm text-zinc-500 dark:text-zinc-400 truncate w-full sm:w-auto">
+                <span className="sm:hidden text-[10px] font-black uppercase text-zinc-400 block mb-1">Email</span>
+                {member?.email || 'No email'}
+            </div>
+            
+            <div className="hidden sm:block col-span-2">{member ? getStatusBadge(member) : null}</div>
+            
+            <div className="col-span-2 w-full">
+                <span className="sm:hidden text-[10px] font-black uppercase text-zinc-400 block mb-2">Activity History</span>
+                <div className="flex flex-col gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                    <div className="flex items-center gap-2">
+                        <Clock className="h-3 w-3 shrink-0 text-zinc-400" />
+                        <span className="font-medium">Login: {formatDate(member?.last_login)}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 opacity-70">
-                        <CheckCircle2 className="h-3 w-3 shrink-0" />
-                        <span>Joined: {member?.created_at ? new Date(member.created_at).toLocaleDateString() : 'Unknown'}</span>
+                    <div className="flex items-center gap-2 opacity-70">
+                        <CheckCircle2 className="h-3 w-3 shrink-0 text-zinc-400" />
+                        <span className="font-medium">Joined: {member?.created_at ? new Date(member.created_at).toLocaleDateString() : 'Unknown'}</span>
                     </div>
                 </div>
             </div>
-            <div className="col-span-2 flex items-center justify-end gap-2">
+            
+            <div className="col-span-2 flex items-center justify-start sm:justify-end gap-2 w-full sm:w-auto pt-4 sm:pt-0 mt-2 sm:mt-0 border-t sm:border-0 border-zinc-100 dark:border-zinc-800">
                 {member?.role !== 'superadmin' && (
                     <>
                         <button onClick={(e) => { 
@@ -228,22 +239,26 @@ export default function StaffManagementPage() {
                             }); 
                             setModal({ type: 'edit', staffId: member?.id }); 
                         }}
-                            className="p-2 rounded-xl text-zinc-400 hover:text-amber-500 hover:bg-amber-500/10 transition-all" title="Edit Details">
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 p-2.5 sm:p-2 rounded-xl text-zinc-500 hover:text-amber-500 hover:bg-amber-500/10 transition-all border border-zinc-100 dark:border-zinc-800 sm:border-0" title="Edit Details">
                             <Users className="h-4 w-4" />
+                            <span className="sm:hidden text-[10px] font-bold uppercase">Edit</span>
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'reset_password', staffId: member?.id }); }}
-                            className="p-2 rounded-xl text-zinc-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all" title="Reset Password">
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 p-2.5 sm:p-2 rounded-xl text-zinc-500 hover:text-blue-500 hover:bg-blue-500/10 transition-all border border-zinc-100 dark:border-zinc-800 sm:border-0" title="Reset Password">
                             <KeyRound className="h-4 w-4" />
+                            <span className="sm:hidden text-[10px] font-bold uppercase">Key</span>
                         </button>
                         {member?.is_active ? (
                             <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'suspend', staffId: member?.id }); }}
-                                className="p-2 rounded-xl text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all" title="Suspend Account">
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-2 p-2.5 sm:p-2 rounded-xl text-zinc-500 hover:text-rose-500 hover:bg-rose-500/10 transition-all border border-zinc-100 dark:border-zinc-800 sm:border-0" title="Suspend Account">
                                 <ShieldOff className="h-4 w-4" />
+                                <span className="sm:hidden text-[10px] font-bold uppercase">Lock</span>
                             </button>
                         ) : (
                             <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'activate', staffId: member?.id }); }}
-                                className="p-2 rounded-xl text-zinc-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all" title="Activate Account">
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-2 p-2.5 sm:p-2 rounded-xl text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all border border-zinc-100 dark:border-zinc-800 sm:border-0" title="Activate Account">
                                 <ShieldCheck className="h-4 w-4" />
+                                <span className="sm:hidden text-[10px] font-bold uppercase">Open</span>
                             </button>
                         )}
                     </>
@@ -268,23 +283,23 @@ export default function StaffManagementPage() {
             )}
 
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div>
-                    <div className="flex items-center gap-3 mb-1">
-                        <div className="h-9 w-9 rounded-xl flex items-center justify-center bg-amber-500/10 border border-amber-500/20 shadow-sm">
-                            <Users className="h-5 w-5 text-amber-500" />
+                    <div className="flex items-center gap-4 mb-2">
+                        <div className="h-12 w-12 rounded-2xl flex items-center justify-center bg-amber-500/10 border border-amber-500/20 shadow-sm shrink-0">
+                            <Users className="h-6 w-6 text-amber-500" />
                         </div>
-                        <h1 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight">Staff Management</h1>
+                        <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Staff Management</h1>
                     </div>
-                    <p className="text-sm text-zinc-500 ml-12">Manage administrative accounts, access levels, and security.</p>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium sm:ml-16">Manage administrative accounts, access levels, and security protocol.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button onClick={fetchStaff} className="p-2.5 rounded-xl text-zinc-400 dark:text-slate-500 hover:text-amber-500 transition-all border border-zinc-200 dark:border-white/5 bg-white dark:bg-transparent shadow-sm dark:shadow-none">
-                        <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
+                    <button onClick={() => fetchStaff('manual')} className="p-3 rounded-2xl text-zinc-400 dark:text-slate-500 hover:text-amber-500 transition-all border border-zinc-200 dark:border-white/5 bg-white dark:bg-slate-900/40 shadow-sm">
+                        <RefreshCw className={cn('h-5 w-5', loading && 'animate-spin')} />
                     </button>
                     <button
                         onClick={() => setModal({ type: 'create' })}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black uppercase tracking-wider transition-all hover:opacity-90 active:scale-95 bg-amber-500 text-black shadow-lg shadow-amber-500/20"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-[0.15em] transition-all hover:opacity-90 active:scale-95 bg-amber-500 text-black shadow-lg shadow-amber-500/20"
                     >
                         <UserPlus className="h-4 w-4" />
                         New Admin
@@ -293,15 +308,15 @@ export default function StaffManagementPage() {
             </div>
 
             {/* Stats Row */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
                     { label: 'Total Staff', value: staff.length, color: 'text-zinc-900 dark:text-white' },
                     { label: 'Active', value: staff.filter(s => s.is_active && s.role === 'admin').length, color: 'text-emerald-600 dark:text-emerald-400' },
                     { label: 'Suspended', value: staff.filter(s => !s.is_active).length, color: 'text-rose-600 dark:text-rose-400' },
                 ].map(stat => (
-                    <div key={stat.label} className="rounded-2xl p-5 border bg-zinc-50/50 dark:bg-slate-900/20 border-zinc-200 dark:border-white/5 shadow-sm dark:shadow-none">
-                        <p className="text-[10px] font-black text-zinc-400 dark:text-slate-600 uppercase tracking-widest mb-1">{stat.label}</p>
-                        <p className={cn('text-3xl font-black', stat.color)}>{stat.value}</p>
+                    <div key={stat.label} className="rounded-3xl p-6 border bg-zinc-50/50 dark:bg-slate-900/40 border-zinc-200 dark:border-white/5 shadow-sm">
+                        <p className="text-[10px] font-black text-zinc-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-2">{stat.label}</p>
+                        <p className={cn('text-4xl font-black tracking-tighter', stat.color)}>{stat.value}</p>
                     </div>
                 ))}
             </div>
@@ -320,17 +335,13 @@ export default function StaffManagementPage() {
             </div>
 
             {/* Staff Table */}
-            <div className="rounded-3xl border overflow-hidden bg-white dark:bg-white/[0.01] border-zinc-200 dark:border-zinc-800/50 shadow-sm dark:shadow-none">
-                {/* DEBUG BADGE — remove after fix confirmed */}
-                <div className="px-4 py-1 text-[10px] font-mono bg-yellow-100 text-yellow-800">
-                    DEBUG: staff={staff.length} filtered={filteredStaff.length} loading={loading.toString()} modal={modal.type||'none'}
-                </div>
+            <div className="rounded-[2.5rem] border overflow-hidden bg-white dark:bg-slate-900/40 border-zinc-200 dark:border-zinc-800 shadow-xl shadow-black/[0.02]">
                 {/* Table Header */}
-                <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b bg-zinc-50/50 dark:bg-transparent text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest border-zinc-200 dark:border-zinc-800/50">
-                    <div className="col-span-3">Name</div>
+                <div className="hidden sm:grid grid-cols-12 gap-4 px-6 py-5 border-b bg-zinc-50/50 dark:bg-transparent text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] border-zinc-200 dark:border-zinc-800">
+                    <div className="col-span-3">Name & Role</div>
                     <div className="col-span-3">Email</div>
                     <div className="col-span-2">Status</div>
-                    <div className="col-span-2">Last Login</div>
+                    <div className="col-span-2">Last Activity</div>
                     <div className="col-span-2 text-right">Actions</div>
                 </div>
 
