@@ -13,7 +13,8 @@ export async function POST() {
         // 2. Identify those where the invoice is NOT marked as 'Paid'
         // 3. Update those invoices to 'Paid'
         
-        const [results]: any = await pool.query(`
+        // 1. Sync by invoice_id
+        const [res1]: any = await pool.query(`
             UPDATE invoices i
             JOIN payments p ON i.id = p.invoice_id
             SET i.status = 'Paid'
@@ -21,10 +22,22 @@ export async function POST() {
             AND i.status != 'Paid'
         `);
 
+        // 2. Sync by application_id (for payments made before invoice generation)
+        const [res2]: any = await pool.query(`
+            UPDATE invoices i
+            JOIN payments p ON i.application_id = p.application_id
+            SET i.status = 'Paid'
+            WHERE p.status IN ('Success', 'Paid')
+            AND i.status != 'Paid'
+            AND p.invoice_id IS NULL
+        `);
+
+        const totalSynced = (res1.affectedRows || 0) + (res2.affectedRows || 0);
+
         return NextResponse.json({ 
             success: true, 
-            syncedCount: results.affectedRows || 0,
-            message: `Successfully synchronized ${results.affectedRows || 0} invoice(s) with confirmed payments.`
+            syncedCount: totalSynced,
+            message: `Successfully synchronized ${totalSynced} invoice(s) with confirmed payments.`
         });
 
     } catch (error: any) {
