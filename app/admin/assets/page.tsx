@@ -110,7 +110,7 @@ export default function AssetManagementPage() {
     ];
 
     return (
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-10 py-8 space-y-8">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-10 py-6 md:py-8 space-y-6 md:space-y-8">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
@@ -163,19 +163,22 @@ export default function AssetManagementPage() {
                                 </select>
                             </div>
                         </div>
-                        {/* Table */}
+                        {/* Assets List - Responsive Table/Cards */}
                         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                             {loading ? (
                                 <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-indigo-500"/></div>
                             ) : (
                                 <>
-                                    <div className="overflow-x-auto">
+                                    {/* Desktop View (xl and up) */}
+                                    <div className="hidden xl:block overflow-x-auto">
                                         <table className="w-full text-left text-sm">
-                                            <thead className="bg-slate-50/80 dark:bg-slate-800/50"><tr>
-                                                {['ID','Asset Name','Type','Location','Condition','Status','Value (RM)','Action'].map(h=>(
-                                                    <th key={h} className={`px-5 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap ${h==='Action'?'text-right':''}`}>{h}</th>
-                                                ))}
-                                            </tr></thead>
+                                            <thead className="bg-slate-50/80 dark:bg-slate-800/50">
+                                                <tr>
+                                                    {['ID','Asset Name','Type','Location','Condition','Status','Value (RM)','Action'].map(h=>(
+                                                        <th key={h} className={`px-5 py-3.5 text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap ${h==='Action'?'text-right':''}`}>{h}</th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
                                             <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                                                 {paginated.length === 0 ? (
                                                     <tr><td colSpan={8} className="px-5 py-16 text-center text-slate-400 text-sm">No assets found matching your filters.</td></tr>
@@ -208,6 +211,65 @@ export default function AssetManagementPage() {
                                                 ))}
                                             </tbody>
                                         </table>
+                                    </div>
+
+                                    {/* Mobile/Tablet View (below xl) */}
+                                    <div className="xl:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                                        {paginated.length === 0 ? (
+                                            <div className="py-20 text-center text-slate-400 text-sm font-medium">No assets found.</div>
+                                        ) : paginated.map(a => (
+                                            <div key={a.id} className="p-4 space-y-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600">
+                                                            <Package className="h-5 w-5" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-bold text-slate-900 dark:text-white text-sm">{a.name}</p>
+                                                            <p className="text-[10px] font-mono text-slate-400 uppercase tracking-tighter">{a.id} • {a.type}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-sm font-black text-slate-900 dark:text-white">RM {parseFloat(a.value||0).toLocaleString()}</p>
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase">Value</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Condition</p>
+                                                        <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border inline-block ${condBadge(a.status)}`}>
+                                                            {a.status}
+                                                        </span>
+                                                    </div>
+                                                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Location</p>
+                                                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{a.location_id||'Storage'}</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between pt-2">
+                                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${statusBadge(a.status==='Good'?'In Use':a.status==='Maintenance'?'Under Repair':'Out of Service')}`}>
+                                                        {a.status==='Good'?'In Use':a.status==='Maintenance'?'Under Repair':'Out of Service'}
+                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                        {a.status==='Good' && (
+                                                            <button onClick={()=>handleReportIssue(a.id)} className="h-8 w-8 flex items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-600 border border-rose-100 dark:border-rose-500/20">
+                                                                <AlertTriangle className="h-4 w-4"/>
+                                                            </button>
+                                                        )}
+                                                        {(a.status==='Damaged'||a.status==='Maintenance') && (
+                                                            <button onClick={()=>handleRepair(a.id)} className="h-8 w-8 flex items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border border-emerald-100 dark:border-emerald-500/20">
+                                                                <Wrench className="h-4 w-4"/>
+                                                            </button>
+                                                        )}
+                                                        <button className="h-8 px-3 flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest transition-all hover:bg-indigo-600 hover:text-white">
+                                                            <Eye className="h-3.5 w-3.5"/> Details
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                     <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-400">
                                         <span>Showing {Math.min((page-1)*perPage+1,filtered.length)} to {Math.min(page*perPage,filtered.length)} of {filtered.length} assets</span>
