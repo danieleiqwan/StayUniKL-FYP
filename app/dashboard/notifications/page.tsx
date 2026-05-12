@@ -13,6 +13,7 @@ export default function NotificationsPage() {
     const { user } = useAuth();
     const { notifications, markNotificationRead, deleteNotification, refreshData, myApplication, invoices } = useData();
     const [loading, setLoading] = useState(true);
+    const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
     const isPaymentPending = myApplication?.status === 'Payment Pending';
     const appOwed = isPaymentPending ? Number(myApplication?.totalPrice) : 0;
@@ -30,6 +31,13 @@ export default function NotificationsPage() {
 
     const handleMarkAllRead = () => {
         markNotificationRead(); // Mark all
+    };
+
+    const confirmDelete = () => {
+        if (deleteTarget) {
+            deleteNotification(deleteTarget);
+            setDeleteTarget(null);
+        }
     };
 
     const getStatusDetails = (type: string) => {
@@ -194,9 +202,7 @@ export default function NotificationsPage() {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        if (confirm('Delete this notification?')) {
-                                                            deleteNotification(item.id);
-                                                        }
+                                                        setDeleteTarget(item.id);
                                                     }}
                                                     className="shrink-0 p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
                                                     title="Delete notification"
@@ -212,6 +218,42 @@ export default function NotificationsPage() {
                     })
                 )}
             </div>
+
+            {/* Custom Delete Confirmation Modal */}
+            {deleteTarget && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="w-full max-w-sm rounded-[2.5rem] bg-white p-8 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-200 text-center relative overflow-hidden">
+                        {/* Decorative background element */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                        
+                        <div className="relative z-10">
+                            <div className="mx-auto h-20 w-20 rounded-3xl bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center mb-6 border border-rose-100 dark:border-rose-900/30">
+                                <Trash2 className="h-10 w-10 text-rose-600 dark:text-rose-400" />
+                            </div>
+                            
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight uppercase">Delete Alert?</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 leading-relaxed font-medium">
+                                Are you sure you want to remove this notification? This action cannot be undone.
+                            </p>
+                            
+                            <div className="flex gap-4">
+                                <button 
+                                    onClick={() => setDeleteTarget(null)}
+                                    className="flex-1 py-4 rounded-2xl border-2 border-slate-100 text-slate-600 text-xs font-black uppercase tracking-widest hover:bg-slate-50 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 transition-all active:scale-95"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    onClick={confirmDelete}
+                                    className="flex-1 py-4 rounded-2xl bg-rose-600 text-white text-xs font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-lg shadow-rose-600/20 active:scale-95"
+                                >
+                                    Confirm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
