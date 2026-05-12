@@ -9,6 +9,10 @@ const SECRET_KEY = new TextEncoder().encode(JWT_SECRET || 'stayunikl_development
 // Note: In a multi-server production environment, you would use Redis/Upstash instead.
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 
+// Live Users State (In-memory)
+// Tracks student IDs and their last seen timestamp
+const liveUsersMap = new Map<string, number>();
+
 function isRateLimited(ip: string, path: string) {
     const now = Date.now();
     const windowMs = 60 * 1000; // 1 minute window
@@ -95,6 +99,29 @@ export async function middleware(request: NextRequest) {
         try {
             const { payload }: any = await jwtVerify(token, SECRET_KEY);
 
+            // Track live students
+            if (payload.role === 'student' && payload.id) {
+                liveUsersMap.set(payload.id, Date.now());
+            }
+
+            // Custom Endpoint: Return live student count
+            if (pathname === '/api/admin/live-users') {
+                if (payload.role !== 'admin' && payload.role !== 'superadmin') {
+                    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+                }
+                const now = Date.now();
+                const activeWindow = 5 * 60 * 1000; // 5 minutes
+                let count = 0;
+                liveUsersMap.forEach((lastSeen, userId) => {
+                    if (now - lastSeen < activeWindow) {
+                        count++;
+                    } else {
+                        liveUsersMap.delete(userId); // Cleanup stale entries
+                    }
+                });
+                return NextResponse.json({ count });
+            }
+
             // 5a. Superadmin-only route guard
             if (isSuperAdminPath && payload.role !== 'superadmin') {
                 if (pathname.startsWith('/api/')) {
@@ -133,6 +160,7 @@ export const config = {
         '/dashboard/:path*',
         '/api/superadmin/:path*',
         '/api/admin/:path*',
+        '/api/admin/live-users',
         '/api/auth/:path*',
         '/api/applications/:path*',
         '/api/complaints/:path*',

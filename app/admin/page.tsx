@@ -50,6 +50,23 @@ function AdminDashboard() {
     const [courtSubTab, setCourtSubTab] = useState<'bookings' | 'settings' | 'schedule' | 'sports'>('bookings');
     const [selectedScheduleDate, setSelectedScheduleDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+    const [liveUserCount, setLiveUserCount] = useState<number | null>(null);
+
+    // Poll for live student count every 30 seconds
+    useEffect(() => {
+        const fetchLiveUsers = async () => {
+            try {
+                const res = await fetch('/api/admin/live-users');
+                if (res.ok) {
+                    const data = await res.json();
+                    setLiveUserCount(data.count ?? 0);
+                }
+            } catch {}
+        };
+        fetchLiveUsers();
+        const interval = setInterval(fetchLiveUsers, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     // Filtering States
     const [appFilters, setAppFilters] = useState<FilterState>({ search: '', status: '', gender: '', roomType: '', startDate: '', endDate: '' });
@@ -289,12 +306,12 @@ function AdminDashboard() {
                         {/* Key Statistics */}
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                             {[
-                                { label: 'Active Students', val: applications.filter(a => a.status === 'Checked in').length, color: 'text-purple-500', bg: 'bg-purple-50', icon: Users },
+                                { label: 'Live Users', val: liveUserCount ?? 0, color: 'text-purple-500', bg: 'bg-purple-50', icon: Users, isLive: true },
                                 { label: 'Pending Apps', val: counts.applications, color: 'text-orange-500', bg: 'bg-orange-50', icon: FileText },
                                 { label: 'Active Complaints', val: counts.complaints, color: 'text-blue-500', bg: 'bg-blue-50', icon: Wrench },
                                 { label: 'Room Transfers', val: counts.roomChanges, color: 'text-indigo-500', bg: 'bg-indigo-50', icon: Building2 },
                                 { label: 'Bookings Today', val: totalCourtBookingsToday, color: 'text-emerald-500', bg: 'bg-emerald-50', icon: CalendarDays },
-                            ].map((stat, i) => {
+                            ].map((stat: any, i) => {
                                 const Icon = stat.icon;
                                 return (
                                 <div key={i} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
@@ -304,10 +321,24 @@ function AdminDashboard() {
                                             <div className={`h-10 w-10 ${stat.bg} dark:bg-slate-800 rounded-xl flex items-center justify-center`}>
                                                 <Icon className={`h-5 w-5 ${stat.color}`} />
                                             </div>
-                                            <ChevronRight className="h-5 w-5 text-slate-300 dark:text-slate-700" />
+                                            {stat.isLive ? (
+                                                <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-md">
+                                                    <span className="relative flex h-2 w-2">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                                    </span>
+                                                    Live
+                                                </span>
+                                            ) : (
+                                                <ChevronRight className="h-5 w-5 text-slate-300 dark:text-slate-700" />
+                                            )}
                                         </div>
                                         <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] mb-1">{stat.label}</p>
-                                        <p className={`text-4xl font-black ${stat.color} dark:text-white leading-none tracking-tighter`}>{stat.val.toString().padStart(2, '0')}</p>
+                                        {stat.isLive && liveUserCount === null ? (
+                                            <p className="text-4xl font-black text-slate-300 dark:text-slate-700 leading-none tracking-tighter">—</p>
+                                        ) : (
+                                            <p className={`text-4xl font-black ${stat.color} dark:text-white leading-none tracking-tighter`}>{stat.val.toString().padStart(2, '0')}</p>
+                                        )}
                                     </div>
                                 </div>
                                 );
