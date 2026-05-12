@@ -14,7 +14,7 @@ import PredictiveMaintenance from '@/components/admin/PredictiveMaintenance';
 import WaitlistOpportunities from '@/components/admin/WaitlistOpportunities';
 import FacilityAnalytics from '@/components/admin/FacilityAnalytics';
 import SportManagement from '@/components/admin/SportManagement';
-import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight, Bell, Wrench, Zap, DollarSign, Megaphone, CalendarDays } from 'lucide-react';
+import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight, Bell, Wrench, Zap, DollarSign, Megaphone, CalendarDays, Users } from 'lucide-react';
 
 export default function AdminDashboardPage() {
     return (
@@ -287,8 +287,9 @@ function AdminDashboard() {
                 {activeTab === 'overview' && (
                     <div className="space-y-8 animate-in fade-in duration-300">
                         {/* Key Statistics */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                             {[
+                                { label: 'Active Students', val: applications.filter(a => a.status === 'Checked in').length, color: 'text-purple-500', bg: 'bg-purple-50', icon: Users },
                                 { label: 'Pending Apps', val: counts.applications, color: 'text-orange-500', bg: 'bg-orange-50', icon: FileText },
                                 { label: 'Active Complaints', val: counts.complaints, color: 'text-blue-500', bg: 'bg-blue-50', icon: Wrench },
                                 { label: 'Room Transfers', val: counts.roomChanges, color: 'text-indigo-500', bg: 'bg-indigo-50', icon: Building2 },
