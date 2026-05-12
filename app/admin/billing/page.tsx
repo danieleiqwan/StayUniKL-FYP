@@ -63,6 +63,8 @@ export default function AdminBillingPage() {
     const [billingLog, setBillingLog] = useState<string[] | null>(null);
     const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [semesterList, setSemesterList] = useState<any[]>([]);
+    const [selectedSemester, setSelectedSemester] = useState<string>('all');
     const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // Create invoice modal
@@ -106,6 +108,12 @@ export default function AdminBillingPage() {
             const payRes = await fetch('/api/payments?userId=admin');
             const payData = await payRes.json();
             if (payData.payments) setPayments(payData.payments);
+
+            // Fetch semesters for filtering
+            const semRes = await fetch('/api/semesters');
+            const semData = await semRes.json();
+            if (semData.semesters) setSemesterList(semData.semesters);
+
             setLastRefreshed(new Date());
         } catch (error) {
             console.error('Fetch error:', error);
@@ -199,11 +207,19 @@ export default function AdminBillingPage() {
 
     const filtered = statusFilter === 'All' ? invoices : invoices.filter(i => i.status === statusFilter);
 
-    // Stats
-    const totalRevenue = invoices.filter(i => i.status === 'Paid').reduce((s, i) => s + Number(i.amount), 0);
-    const totalPending = invoices.filter(i => i.status === 'Unpaid').reduce((s, i) => s + Number(i.amount), 0);
-    const totalOverdue = invoices.filter(i => i.status === 'Overdue').reduce((s, i) => s + Number(i.amount), 0);
-    const overdueCount = invoices.filter(i => i.status === 'Overdue').length;
+    // Filtered stats by semester
+    const currentSemesterData = semesterList.find(s => s.id === selectedSemester);
+    const statsInvoices = selectedSemester === 'all' 
+        ? invoices 
+        : invoices.filter(i => {
+            const date = new Date(i.created_at);
+            return date >= new Date(currentSemesterData.start_date) && date <= new Date(currentSemesterData.end_date);
+        });
+
+    const totalRevenue = statsInvoices.filter(i => i.status === 'Paid').reduce((s, i) => s + Number(i.amount), 0);
+    const totalPending = statsInvoices.filter(i => i.status === 'Unpaid').reduce((s, i) => s + Number(i.amount), 0);
+    const totalOverdue = statsInvoices.filter(i => i.status === 'Overdue').reduce((s, i) => s + Number(i.amount), 0);
+    const overdueCount = statsInvoices.filter(i => i.status === 'Overdue').length;
 
     const statCards = [
         {
@@ -250,6 +266,19 @@ export default function AdminBillingPage() {
                     <div>
                         <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Financial Management</h1>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Track invoices, statuses, and payment history across all students.</p>
+                    </div>
+                    <div className="flex items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 rounded-2xl shadow-sm">
+                        <Calendar className="h-4 w-4 text-slate-400 ml-2" />
+                        <select 
+                            value={selectedSemester}
+                            onChange={(e) => setSelectedSemester(e.target.value)}
+                            className="bg-transparent border-none text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 outline-none pr-4"
+                        >
+                            <option value="all">All-Time Revenue</option>
+                            {semesterList.map(sem => (
+                                <option key={sem.id} value={sem.id}>{sem.name}</option>
+                            ))}
+                        </select>
                     </div>
                     <div className="flex items-center gap-3">
                         {lastRefreshed && (
