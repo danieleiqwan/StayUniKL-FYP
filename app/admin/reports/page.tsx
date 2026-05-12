@@ -397,36 +397,44 @@ export default function AdminReportsPage() {
 
                 {/* Third Row: Check-in Efficiency */}
                 <div className="grid gap-6 grid-cols-1 mt-8">
-                     {/* Check-in Method Distribution */}
-                     <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-800">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-                            <div className="max-w-md">
-                                <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Check-in Efficiency</h3>
+                     <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
+                            <div className="lg:max-w-xs space-y-2">
+                                <div className="h-10 w-10 bg-orange-50 dark:bg-orange-900/20 rounded-xl flex items-center justify-center text-[#F26C22] mb-2 border border-orange-100 dark:border-orange-900/30">
+                                    <ShieldCheck className="h-5 w-5" />
+                                </div>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Check-in Efficiency</h3>
                                 <p className="text-sm text-slate-500 font-medium">Comparison between automated QR self-checkin adoption and traditional manual processing.</p>
                             </div>
                             
-                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-8">
+                            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {reportData.checkinMethods.map((m: any) => {
                                     const total = reportData.checkinMethods.reduce((acc: number, curr: any) => acc + curr.value, 0);
                                     const pct = total > 0 ? (m.value / total) * 100 : 0;
-                                    const isQR = m.label.includes('QR');
+                                    const isQR = m.label.toLowerCase().includes('qr');
                                     
                                     return (
-                                        <div key={m.label} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-[#F26C22]/30 transition-all">
-                                            <div className="flex justify-between items-center mb-3">
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`h-2 w-2 rounded-full ${isQR ? 'bg-[#F26C22]' : 'bg-slate-400'}`} />
-                                                    <span className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest">{m.label}</span>
+                                        <div key={m.label} className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-[#F26C22]/30 transition-all relative overflow-hidden">
+                                            <div className={`absolute top-0 right-0 h-1 w-full ${isQR ? 'bg-[#F26C22]' : 'bg-slate-400'}`} />
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 truncate max-w-[120px] sm:max-w-none">{m.label}</p>
+                                                    <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{Math.round(pct)}%</p>
                                                 </div>
-                                                <span className="text-sm font-black text-slate-900 dark:text-white">{Math.round(pct)}%</span>
+                                                <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${isQR ? 'bg-orange-100 dark:bg-orange-900/40 text-[#F26C22]' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'}`}>
+                                                    {isQR ? <TrendingUp className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
+                                                </div>
                                             </div>
-                                            <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                            <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mb-3">
                                                 <div 
                                                     className={`h-full transition-all duration-1000 ${isQR ? 'bg-[#F26C22] shadow-[0_0_10px_rgba(242,108,34,0.3)]' : 'bg-slate-400'}`} 
                                                     style={{ width: `${pct}%` }}
                                                 />
                                             </div>
-                                            <p className="text-[10px] font-bold text-slate-400 mt-3 uppercase tracking-tighter">Total: {m.value} Students</p>
+                                            <div className="flex justify-between items-center">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Total Intake</p>
+                                                <p className="text-sm font-black text-slate-700 dark:text-slate-300">{m.value} Students</p>
+                                            </div>
                                         </div>
                                     );
                                 })}
