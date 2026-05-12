@@ -22,10 +22,10 @@ export async function POST() {
             AND i.status != 'Paid'
         `);
 
-        // 2. Sync by application_id (for payments made before invoice generation)
+        // 2. Sync by reference_id (often contains application_id for new bookings)
         const [res2]: any = await pool.query(`
             UPDATE invoices i
-            JOIN payments p ON i.application_id = p.application_id
+            JOIN payments p ON i.application_id = p.reference_id
             SET i.status = 'Paid'
             WHERE p.status IN ('Success', 'Paid')
             AND i.status != 'Paid'
