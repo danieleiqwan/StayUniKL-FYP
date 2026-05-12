@@ -64,7 +64,7 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
     ];
 
     return (
-        <aside className={`fixed left-0 top-0 h-screen transition-all duration-300 bg-[#1E1B2E] text-white flex flex-col z-50 
+        <aside className={`fixed inset-y-0 left-0 transition-all duration-300 bg-[#1E1B2E] text-white flex flex-col z-50 
             ${isCollapsed ? 'w-24' : 'w-80'} 
             ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
             {/* Branding */}

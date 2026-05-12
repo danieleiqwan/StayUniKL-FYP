@@ -22,7 +22,7 @@ export default function AdminNavbar({ onMenuClick }: { onMenuClick: () => void }
     ];
 
     return (
-        <nav className="h-24 border-b border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-950 lg:bg-white/50 lg:dark:bg-slate-950/50 backdrop-blur-md px-4 md:px-10 flex items-center justify-between sticky top-0 z-50 transition-all duration-300">
+        <nav className="h-20 md:h-24 border-b border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-950 lg:bg-white/80 lg:dark:bg-slate-950/80 backdrop-blur-md px-4 md:px-10 flex items-center justify-between sticky top-0 z-50 transition-all duration-300 w-full overflow-hidden">
             {/* Left Section: Navigation Links - Starting from the left */}
             <div className="flex items-center gap-2 md:gap-8">
                 <button 
@@ -32,14 +32,14 @@ export default function AdminNavbar({ onMenuClick }: { onMenuClick: () => void }
                     <Menu className="h-6 w-6" />
                 </button>
 
-                <div className="flex items-center gap-1.5 text-xs md:text-sm font-black mr-2 md:mr-6 shrink-0">
+                <div className="hidden md:flex items-center gap-1.5 text-xs md:text-sm font-black mr-2 md:mr-6 shrink-0">
                     <span className="text-slate-900 dark:text-white uppercase tracking-tighter">Admin</span>
                     <span className="text-slate-300 dark:text-slate-700">/</span>
                     <span className="text-[#F26C22] tracking-tighter">Terminal</span>
                 </div>
 
                 {/* Scrollable Links for Tablet/Mobile */}
-                <div className="flex items-center gap-4 md:gap-6 overflow-x-auto no-scrollbar py-1 pr-4">
+                <div className="flex items-center gap-4 md:gap-6 overflow-x-auto no-scrollbar py-1 pr-4 max-w-[65vw] md:max-w-none">
                     {navLinks.map((link) => {
                         // Overview is only "active" if we are on /admin AND tab is overview (or no tab)
                         const isActive = link.path === '/admin' 

@@ -257,7 +257,7 @@ function AdminDashboard() {
     if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <div className="p-10 text-center">Access Denied. Admins only.</div>;
 
     return (
-        <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-10 py-6 md:py-12 space-y-6 md:space-y-10">
             {/* Header Section */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
                 <div>
