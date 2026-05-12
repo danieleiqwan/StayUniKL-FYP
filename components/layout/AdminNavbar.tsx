@@ -22,17 +22,17 @@ export default function AdminNavbar({ onMenuClick }: { onMenuClick: () => void }
     ];
 
     return (
-        <nav className="h-24 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-950/50 backdrop-blur-md px-6 md:px-10 flex items-center justify-between sticky top-0 z-40 transition-all duration-300">
+        <nav className="h-24 border-b border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-950 lg:bg-white/50 lg:dark:bg-slate-950/50 backdrop-blur-md px-4 md:px-10 flex items-center justify-between sticky top-0 z-50 transition-all duration-300">
             {/* Left Section: Navigation Links - Starting from the left */}
-            <div className="flex items-center gap-4 md:gap-8">
+            <div className="flex items-center gap-2 md:gap-8">
                 <button 
                     onClick={onMenuClick}
-                    className="lg:hidden p-3 -ml-2 mr-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl transition-colors text-slate-500"
+                    className="lg:hidden p-2.5 -ml-2 mr-1 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl transition-colors text-slate-500"
                 >
                     <Menu className="h-6 w-6" />
                 </button>
 
-                <div className="flex items-center gap-2 text-sm font-black mr-6 shrink-0">
+                <div className="flex items-center gap-1.5 text-xs md:text-sm font-black mr-2 md:mr-6 shrink-0">
                     <span className="text-slate-900 dark:text-white uppercase tracking-tighter">Admin</span>
                     <span className="text-slate-300 dark:text-slate-700">/</span>
                     <span className="text-[#F26C22] tracking-tighter">Terminal</span>
