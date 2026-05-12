@@ -63,6 +63,7 @@ export default function AdminBillingPage() {
     const [billingLog, setBillingLog] = useState<string[] | null>(null);
     const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
     const [semesterList, setSemesterList] = useState<any[]>([]);
     const [selectedSemester, setSelectedSemester] = useState<string>('all');
     const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -153,6 +154,24 @@ export default function AdminBillingPage() {
             }
         } finally {
             setRunningBilling(false);
+        }
+    };
+
+    const handleSyncBilling = async () => {
+        setIsSyncing(true);
+        try {
+            const res = await fetch('/api/admin/billing/sync', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                await fetchData();
+            } else {
+                alert(data.error || 'Sync failed.');
+            }
+        } catch (err) {
+            alert('Failed to connect to sync API.');
+        } finally {
+            setIsSyncing(false);
         }
     };
 
@@ -301,6 +320,14 @@ export default function AdminBillingPage() {
                         >
                             <Zap className={cn("h-4 w-4", runningBilling && "animate-pulse")} />
                             {runningBilling ? 'Running...' : 'Run Auto-Billing'}
+                        </button>
+                        <button
+                            onClick={handleSyncBilling}
+                            disabled={isSyncing}
+                            className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all disabled:opacity-60"
+                        >
+                            <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
+                            {isSyncing ? 'Syncing...' : 'Reconcile Sync'}
                         </button>
                         <button
                             onClick={() => setShowCreate(true)}
