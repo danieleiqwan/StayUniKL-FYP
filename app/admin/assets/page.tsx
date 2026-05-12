@@ -1,22 +1,24 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useData } from '@/context/DataContext';
 import AssetFormPanel from '@/components/admin/AssetFormPanel';
 import { Search, Package, Wrench, AlertTriangle, DollarSign, Eye, Pencil, MoreHorizontal, ChevronLeft, ChevronRight, Filter, FileText, Clock, Loader2 } from 'lucide-react';
 
 const condBadge = (c: string) => {
-    if (c === 'Good') return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800';
-    if (c === 'Damaged') return 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800';
-    return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800';
+    if (c === 'Good') return 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
+    if (c === 'Damaged') return 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20';
+    return 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20';
 };
 const statusBadge = (s: string) => {
-    if (s === 'In Use' || s === 'Good') return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400';
-    if (s === 'Under Repair' || s === 'Maintenance') return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400';
-    return 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-400';
+    if (s === 'In Use' || s === 'Good') return 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
+    if (s === 'Under Repair' || s === 'Maintenance') return 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20';
+    return 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20';
 };
 
 export default function AssetManagementPage() {
     const { user } = useAuth();
+    const { refreshData } = useData();
     const [tab, setTab] = useState<'inventory'|'maintenance'>('inventory');
     const [assets, setAssets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -79,6 +81,7 @@ export default function AssetManagementPage() {
             }) 
         });
         fetchAssets();
+        refreshData();
     };
     const handleReportIssue = async (id: string) => {
         if(!confirm('Mark this asset as Damaged?')) return;
@@ -94,6 +97,7 @@ export default function AssetManagementPage() {
             }) 
         });
         fetchAssets();
+        refreshData();
     };
 
     if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <div className="p-10 text-center text-slate-500">Access Denied.</div>;
@@ -181,9 +185,17 @@ export default function AssetManagementPage() {
                                                         <td className="px-5 py-3.5 font-bold text-slate-900 dark:text-white text-sm">{a.name}</td>
                                                         <td className="px-5 py-3.5 text-slate-600 dark:text-slate-400">{a.type}</td>
                                                         <td className="px-5 py-3.5 text-slate-600 dark:text-slate-400">{a.location_id||'Storage'}</td>
-                                                        <td className="px-5 py-3.5"><span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${condBadge(a.status)}`}>{a.status}</span></td>
-                                                        <td className="px-5 py-3.5"><span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${statusBadge(a.status==='Good'?'In Use':a.status==='Maintenance'?'Under Repair':'Out of Service')}`}>{a.status==='Good'?'In Use':a.status==='Maintenance'?'Under Repair':'Out of Service'}</span></td>
-                                                        <td className="px-5 py-3.5 text-slate-700 dark:text-slate-300 font-medium">{parseFloat(a.value||0).toFixed(2)}</td>
+                                                        <td className="px-5 py-3.5 text-center">
+                                                            <span className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border whitespace-nowrap inline-flex items-center justify-center min-w-[90px] shadow-sm ${condBadge(a.status)}`}>
+                                                                {a.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-5 py-3.5 text-center">
+                                                            <span className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border whitespace-nowrap inline-flex items-center justify-center min-w-[130px] shadow-sm ${statusBadge(a.status==='Good'?'In Use':a.status==='Maintenance'?'Under Repair':'Out of Service')}`}>
+                                                                {a.status==='Good'?'In Use':a.status==='Maintenance'?'Under Repair':'Out of Service'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-5 py-3.5 text-slate-700 dark:text-slate-300 font-bold">RM {parseFloat(a.value||0).toLocaleString()}</td>
                                                         <td className="px-5 py-3.5 text-right">
                                                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                                 <button title="View" className="p-1.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-slate-400 hover:text-indigo-600 transition-colors"><Eye className="h-3.5 w-3.5"/></button>
@@ -230,7 +242,7 @@ export default function AssetManagementPage() {
                             <div className="flex items-center gap-4">
                                 <div className="h-10 w-10 rounded-xl bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center"><AlertTriangle className="h-5 w-5 text-rose-500"/></div>
                                 <div>
-                                    <div className="flex items-center gap-2"><h3 className="font-bold text-slate-900 dark:text-white">{a.name}</h3><span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${condBadge(a.status)}`}>{a.status}</span></div>
+                                    <div className="flex items-center gap-2"><h3 className="font-bold text-slate-900 dark:text-white">{a.name}</h3><span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border whitespace-nowrap inline-flex items-center justify-center ${condBadge(a.status)}`}>{a.status}</span></div>
                                     <p className="text-xs text-slate-500 mt-0.5">Location: {a.location_id||'N/A'} · ID: {a.id} · Type: {a.type}</p>
                                 </div>
                             </div>

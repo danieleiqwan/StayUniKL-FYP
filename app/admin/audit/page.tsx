@@ -53,9 +53,14 @@ export default function AuditLogViewerPage() {
 
             const res = await fetch(`/api/admin/audit-logs?${params.toString()}`);
             const data = await res.json();
-            if (data.logs) setLogs(data.logs);
+            if (res.ok && data.logs) {
+                setLogs(data.logs);
+            } else {
+                setLogs([]);
+            }
         } catch (error) {
             console.error(error);
+            setLogs([]);
         } finally {
             setLoading(false);
         }
@@ -140,7 +145,7 @@ export default function AuditLogViewerPage() {
                         <User className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Actor ID"
+                            placeholder="Search Actor (ID or Name)"
                             className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm outline-none focus:ring-2 focus:ring-orange-500/20"
                             value={filters.actorId}
                             onChange={(e) => setFilters(prev => ({ ...prev, actorId: e.target.value }))}
@@ -185,8 +190,8 @@ export default function AuditLogViewerPage() {
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-2">
                                                     <div className={`h-7 w-7 rounded flex items-center justify-center font-bold text-[10px] ${
-                                                        log.actor_role === 'admin' 
-                                                            ? 'bg-orange-100 text-[#F26C22] dark:bg-orange-900/30' 
+                                                        log.actor_role === 'admin' || log.actor_role === 'superadmin'
+                                                            ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30' 
                                                             : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30'
                                                     }`}>
                                                         {log.actor_name.charAt(0)}
@@ -195,8 +200,8 @@ export default function AuditLogViewerPage() {
                                                         <div className="flex items-center gap-1.5">
                                                             <span className="font-bold text-slate-900 dark:text-white">{log.actor_name}</span>
                                                             <span className={`text-[8px] font-black uppercase tracking-tighter px-1 rounded ${
-                                                                log.actor_role === 'admin' 
-                                                                    ? 'bg-[#F26C22] text-white' 
+                                                                log.actor_role === 'admin' || log.actor_role === 'superadmin'
+                                                                    ? 'bg-rose-600 text-white' 
                                                                     : 'bg-blue-500 text-white'
                                                             }`}>{log.actor_role || 'System'}</span>
                                                         </div>

@@ -25,8 +25,8 @@ export async function GET(request: Request) {
         let whereClauses: string[] = [];
 
         if (actorId) {
-            whereClauses.push('al.actor_id = ?');
-            params.push(actorId);
+            whereClauses.push('(al.actor_id LIKE ? OR al.actor_name LIKE ?)');
+            params.push(`%${actorId}%`, `%${actorId}%`);
         }
         if (entityType) {
             whereClauses.push('al.entity_type = ?');

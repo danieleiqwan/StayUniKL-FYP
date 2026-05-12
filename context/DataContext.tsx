@@ -471,7 +471,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
     };
 
     const myApplication = user 
-        ? (applications.find(app => ['Pending', 'Payment Pending', 'Approved', 'Checked in'].includes(app.status)) || applications[0]) 
+        ? (applications
+            .filter(app => ['Pending', 'Payment Pending', 'Approved', 'Checked in'].includes(app.status))
+            .sort((a, b) => {
+                const priority: Record<string, number> = { 'Checked in': 4, 'Approved': 3, 'Payment Pending': 2, 'Pending': 1 };
+                return (priority[b.status] || 0) - (priority[a.status] || 0);
+            })[0] || applications[0]) 
         : undefined;
     const myRoomChangeRequest = roomChangeRequest;
     const myComplaints = user ? complaints.filter(c => c.studentId === user.id) : [];

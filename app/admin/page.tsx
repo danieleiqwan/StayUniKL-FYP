@@ -40,6 +40,9 @@ function AdminDashboard() {
         const tab = searchParams.get('tab');
         if (tab && ['overview', 'applications', 'complaints', 'facilities', 'room-changes'].includes(tab)) {
             setActiveTab(tab as any);
+        } else if (!tab) {
+            // Default to overview if tab param is missing (e.g. user clicks logo or /admin)
+            setActiveTab('overview');
         }
     }, [searchParams]);
 

@@ -1,5 +1,25 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
+import { createNotification } from '@/lib/notifications';
+import { logAction } from '@/lib/audit';
+
+// ─────────────────────────────────────────────────────────────
+// ASSET SYNC HELPERS (Shared pattern with complaints API)
+// ─────────────────────────────────────────────────────────────
+const ASSET_KEYWORD_MAP: Record<string, string[]> = {
+    'Fan':             ['Ceiling Fan', 'Fan'],
+    'Air Conditioner': ['Air Conditioner', 'AC'],
+    'AC':              ['Air Conditioner', 'AC'],
+    'Desk':            ['Study Desk', 'Desk'],
+    'Chair':           ['Study Chair', 'Chair'],
+    'Mattress':        ['Mattress'],
+    'Wardrobe':        ['Wardrobe'],
+    'Bed':             ['Mattress', 'Bed Frame'],
+    'Toilet':          ['Toilet', 'Bathroom Fixture'],
+    'Light':           ['Light', 'Ceiling Light', 'Lamp'],
+    'Window':          ['Window'],
+    'Door':            ['Door'],
+};
 
 // GET: Fetch all assets, optionally filtered
 export async function GET(request: Request) {
@@ -34,7 +54,6 @@ export async function GET(request: Request) {
     }
 }
 
-import { logAction } from '@/lib/audit';
 
 // POST: Create Asset OR Update Status OR Log Maintenance
 export async function POST(request: Request) {
@@ -99,6 +118,65 @@ export async function POST(request: Request) {
                 entityId: assetId,
                 details: { maintenanceAction, cost, performedBy, newStatus: body.newStatus }
             });
+
+            // ── COMPLAINT SYNC: Resolve complaints linked to this asset ──
+            if (maintenanceAction === 'Repair' || body.newStatus === 'Good') {
+                try {
+                    // 1. Get asset details to know its name and room
+                    const [assetRows]: any = await db.query('SELECT name, location_id FROM assets WHERE id = ?', [assetId]);
+                    if (assetRows.length > 0) {
+                        const asset = assetRows[0];
+                        const assetName = asset.name;
+                        const roomId = asset.location_id;
+
+                        if (roomId) {
+                            // 2. Find which complaint keywords match this asset name
+                            const matchingKeywords = Object.keys(ASSET_KEYWORD_MAP).filter(key => 
+                                ASSET_KEYWORD_MAP[key].some(pattern => assetName.toLowerCase().includes(pattern.toLowerCase()))
+                            );
+
+                            if (matchingKeywords.length > 0) {
+                                // 3. Find pending complaints for these keywords from students in this room
+                                const [pendingComplaints]: any = await db.query(`
+                                    SELECT c.id, c.student_id, c.title
+                                    FROM complaints c
+                                    WHERE c.status != 'Resolved'
+                                    AND c.asset IN (?)
+                                    AND c.student_id IN (
+                                        SELECT a.student_id 
+                                        FROM applications a
+                                        JOIN beds b ON a.bed_id = b.id
+                                        WHERE b.room_id = ? AND a.status IN ('Approved', 'Checked in')
+                                    )
+                                `, [matchingKeywords, roomId]);
+
+                                // 4. Resolve them and notify
+                                for (const comp of pendingComplaints) {
+                                    await db.query(
+                                        'UPDATE complaints SET status = "Resolved", resolved_at = CURRENT_TIMESTAMP WHERE id = ?',
+                                        [comp.id]
+                                    );
+
+                                    await createNotification({
+                                        userId: comp.student_id,
+                                        title: 'Issue Resolved',
+                                        message: `Great news! The issue with ${assetName} in your room ("${comp.title}") has been repaired by the maintenance team.`,
+                                        type: 'success',
+                                        relatedEntityId: comp.id,
+                                        relatedEntityType: 'Complaint'
+                                    });
+
+                                    console.log(`[Asset-Complaint Sync] Automatically resolved complaint ${comp.id} via asset ${assetId} repair`);
+                                }
+                            }
+                        }
+                    }
+                } catch (syncErr) {
+                    console.error('[Asset-Complaint Sync] Error:', syncErr);
+                    // Non-fatal, continue with success response
+                }
+            }
+            // ─────────────────────────────────────────────────────────────
 
             return NextResponse.json({ success: true, logId });
         }

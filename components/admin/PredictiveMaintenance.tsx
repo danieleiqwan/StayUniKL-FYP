@@ -13,7 +13,12 @@ export default function PredictiveMaintenance() {
         const activeComplaints = complaints.filter(c => c.status !== 'Resolved');
 
         activeComplaints.forEach(c => {
-            const app = applications.find(a => a.studentId === c.studentId && ['Checked in', 'Approved', 'Payment Pending'].includes(a.status));
+            const app = applications
+                .filter(a => a.studentId === c.studentId && ['Checked in', 'Approved', 'Payment Pending'].includes(a.status))
+                .sort((a, b) => {
+                    const priority: Record<string, number> = { 'Checked in': 3, 'Approved': 2, 'Payment Pending': 1 };
+                    return (priority[b.status] || 0) - (priority[a.status] || 0);
+                })[0];
             if (app && app.roomId) {
                 if (!roomCounts[app.roomId]) {
                     roomCounts[app.roomId] = { count: 0, issues: [] };
