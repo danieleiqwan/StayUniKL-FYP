@@ -33,7 +33,7 @@ export default function SuperAdminSidebar({ isCollapsed, setIsCollapsed }: Super
 
     return (
         <aside className={cn(
-            "h-screen fixed left-0 top-0 flex flex-col border-r transition-all duration-500 bg-[#1E1B2E] border-white/5 z-50",
+            "fixed inset-y-0 left-0 flex flex-col border-r transition-all duration-500 bg-[#1E1B2E] border-white/5 z-50",
             isCollapsed ? "w-24" : "w-72"
         )}>
             {/* Header / Logo Area */}
