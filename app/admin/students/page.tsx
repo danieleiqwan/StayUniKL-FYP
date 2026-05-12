@@ -9,7 +9,7 @@ import StudentDetailModal from '@/components/admin/StudentDetailModal';
 import { 
     Search, Filter, User, Mail, Phone, MoreHorizontal, 
     ChevronLeft, ChevronRight, Eye, Users, Building, 
-    ArrowUpDown, Download, Plus, CheckCircle, Upload
+    ArrowUpDown, Download, Plus, CheckCircle, Upload, Clock
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -490,6 +490,13 @@ export default function StudentsDirectoryPage() {
                                                     ) : s.latest_status === 'Checked out' ? (
                                                         <span className="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400 uppercase tracking-widest w-fit italic opacity-80">Checked Out</span>
                                                     ) : null}
+
+                                                    {s.latest_status !== 'Checked in' && s.latest_status !== 'Approved' && s.latest_status !== 'Payment Pending' && s.latest_status !== 'Pending' && s.latest_application_date && (
+                                                        <span className="text-[10px] font-bold text-slate-400 mt-1 flex items-center gap-1">
+                                                            <Clock className="h-3 w-3" />
+                                                            {Math.ceil(Math.abs(new Date().getTime() - new Date(s.latest_application_date).getTime()) / (1000 * 60 * 60 * 24))} days inactive
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="px-8 py-6 text-right">
