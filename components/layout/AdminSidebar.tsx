@@ -36,9 +36,11 @@ interface AdminSidebarProps {
     };
     isCollapsed: boolean;
     setIsCollapsed: (val: boolean) => void;
+    isMobileOpen?: boolean;
+    setIsMobileOpen?: (val: boolean) => void;
 }
 
-export default function AdminSidebar({ activeTab, onTabChange, counts, isCollapsed, setIsCollapsed }: AdminSidebarProps) {
+export default function AdminSidebar({ activeTab, onTabChange, counts, isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen }: AdminSidebarProps) {
     const { logout, user } = useAuth();
     const pathname = usePathname();
     const router = useRouter();
@@ -62,7 +64,9 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
     ];
 
     return (
-        <aside className={`fixed left-0 top-0 h-screen transition-all duration-300 bg-[#1E1B2E] text-white flex flex-col z-50 ${isCollapsed ? 'w-24' : 'w-80'}`}>
+        <aside className={`fixed left-0 top-0 h-screen transition-all duration-300 bg-[#1E1B2E] text-white flex flex-col z-50 
+            ${isCollapsed ? 'w-24' : 'w-80'} 
+            ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
             {/* Branding */}
             <div className={`p-8 pb-10 flex items-center justify-between ${isCollapsed ? 'flex-col gap-6' : ''}`}>
                 <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
@@ -79,9 +83,17 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
                 
                 <button 
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="p-2 hover:bg-white/10 rounded-xl transition-colors text-slate-400 hover:text-white"
+                    className="p-2 hover:bg-white/10 rounded-xl transition-colors text-slate-400 hover:text-white hidden lg:block"
                 >
                     {isCollapsed ? <Menu className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+                </button>
+
+                {/* Mobile Close Button */}
+                <button 
+                    onClick={() => setIsMobileOpen?.(false)}
+                    className="p-2 hover:bg-white/10 rounded-xl transition-colors text-slate-400 hover:text-white lg:hidden"
+                >
+                    <ChevronLeft className="h-6 w-6" />
                 </button>
             </div>
 

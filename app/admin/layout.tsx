@@ -26,6 +26,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     const searchParams = useSearchParams();
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
 
     const activeTab = searchParams.get('tab') || (pathname === '/admin' ? 'overview' : undefined);
 
@@ -63,13 +64,23 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
                     counts={counts}
                     isCollapsed={isCollapsed}
                     setIsCollapsed={setIsCollapsed}
+                    isMobileOpen={isMobileOpen}
+                    setIsMobileOpen={setIsMobileOpen}
                 />
             </div>
+
+            {/* Mobile Overlay */}
+            {isMobileOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-300"
+                    onClick={() => setIsMobileOpen(false)}
+                />
+            )}
 
             {/* Main Content Area */}
             <main className={`transition-all duration-300 min-h-screen flex flex-col print:pl-0 print:bg-white ${isCollapsed ? 'lg:pl-24' : 'lg:pl-80'}`}>
                 <div className="print:hidden">
-                    <AdminNavbar />
+                    <AdminNavbar onMenuClick={() => setIsMobileOpen(true)} />
                 </div>
 
                 {/* Page Content */}
