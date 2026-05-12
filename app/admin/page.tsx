@@ -126,8 +126,9 @@ function AdminDashboard() {
     }, [courtBookings, courtFilters]);
 
 
-    // Stats
-    const totalCourtBookingsToday = (courtBookings || []).filter(b => b.date === new Date().toISOString().split('T')[0]).length;
+    // Stats — use local date (en-CA gives YYYY-MM-DD) to avoid UTC offset mismatch for UTC+8
+    const today = new Date().toLocaleDateString('en-CA'); // e.g. "2026-05-13" in local time
+    const totalCourtBookingsToday = (courtBookings || []).filter(b => b.date === today).length;
 
     // Generate Slots for Schedule View
     const generateSlots = () => {
