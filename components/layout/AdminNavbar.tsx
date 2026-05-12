@@ -38,7 +38,8 @@ export default function AdminNavbar({ onMenuClick }: { onMenuClick: () => void }
                     <span className="text-[#F26C22] tracking-tighter">Terminal</span>
                 </div>
 
-                <div className="hidden lg:flex items-center gap-6">
+                {/* Scrollable Links for Tablet/Mobile */}
+                <div className="flex items-center gap-4 md:gap-6 overflow-x-auto no-scrollbar py-1 pr-4">
                     {navLinks.map((link) => {
                         // Overview is only "active" if we are on /admin AND tab is overview (or no tab)
                         const isActive = link.path === '/admin' 
@@ -55,7 +56,7 @@ export default function AdminNavbar({ onMenuClick }: { onMenuClick: () => void }
                                         router.push('/admin'); // This will clear query params
                                     }
                                 }}
-                                className={`text-xs font-bold transition-all uppercase tracking-widest ${
+                                className={`text-[10px] md:text-xs font-bold transition-all uppercase tracking-widest whitespace-nowrap ${
                                     isActive 
                                         ? 'text-slate-900 dark:text-white border-b-2 border-[#F26C22] pb-1' 
                                         : 'text-slate-400 hover:text-slate-900 dark:text-slate-500 dark:hover:text-white'
