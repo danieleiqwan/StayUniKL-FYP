@@ -13,7 +13,7 @@ export async function GET(request: Request) {
             const [rows]: any = await pool.query(`
                 SELECT 
                     (SELECT COUNT(*) FROM beds) as total_beds,
-                    (SELECT COUNT(*) FROM beds WHERE status = 'Occupied') as occupied_beds
+                    (SELECT COUNT(DISTINCT bed_id) FROM applications WHERE status IN ('Payment Pending', 'Approved', 'Checked in') AND bed_id IS NOT NULL) as occupied_beds
             `);
             if (rows && rows[0]) occupancy = rows[0];
         } catch (e: any) { 
