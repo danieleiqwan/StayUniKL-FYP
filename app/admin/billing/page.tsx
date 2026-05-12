@@ -251,8 +251,8 @@ export default function AdminBillingPage() {
             value: invoices.length.toString(),
             sub: 'Across all students',
             icon: <Receipt className="h-5 w-5" />,
-            color: 'text-slate-700 dark:text-slate-300',
-            bg: 'bg-slate-50 dark:bg-slate-800',
+            color: 'text-indigo-600 dark:text-indigo-400',
+            bg: 'bg-indigo-50 dark:bg-indigo-900/20',
         },
     ];
 
