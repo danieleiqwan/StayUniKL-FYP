@@ -209,7 +209,7 @@ export default function AdminBillingPage() {
 
     // Filtered stats by semester
     const currentSemesterData = semesterList.find(s => s.id === selectedSemester);
-    const statsInvoices = selectedSemester === 'all' 
+    const statsInvoices = (selectedSemester === 'all' || !currentSemesterData)
         ? invoices 
         : invoices.filter(i => {
             const date = new Date(i.created_at);
