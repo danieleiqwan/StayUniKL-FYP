@@ -11,7 +11,7 @@ import Link from 'next/link';
 
 export default function NotificationsPage() {
     const { user } = useAuth();
-    const { notifications, markNotificationRead, refreshData, myApplication, invoices } = useData();
+    const { notifications, markNotificationRead, deleteNotification, refreshData, myApplication, invoices } = useData();
     const [loading, setLoading] = useState(true);
 
     const isPaymentPending = myApplication?.status === 'Payment Pending';
@@ -178,15 +178,32 @@ export default function NotificationsPage() {
                                                     )}
                                                 </div>
                                             </div>
-                                            {!item.is_read && (
+                                            <div className="flex items-center gap-2">
+                                                {!item.is_read && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleMarkAsRead(item.id);
+                                                        }}
+                                                        className="shrink-0 p-2 text-[#F26C22] dark:text-orange-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all"
+                                                        title="Mark as read"
+                                                    >
+                                                        <CheckCircle2 className="h-5 w-5" />
+                                                    </button>
+                                                )}
                                                 <button
-                                                    onClick={() => handleMarkAsRead(item.id)}
-                                                    className="shrink-0 p-2 text-[#F26C22] dark:text-orange-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all"
-                                                    title="Mark as read"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (confirm('Delete this notification?')) {
+                                                            deleteNotification(item.id);
+                                                        }
+                                                    }}
+                                                    className="shrink-0 p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
+                                                    title="Delete notification"
                                                 >
-                                                    <CheckCircle2 className="h-5 w-5" />
+                                                    <Trash2 className="h-4 w-4" />
                                                 </button>
-                                            )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

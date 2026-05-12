@@ -27,17 +27,17 @@ export async function GET(request: Request) {
         // ----------------------
 
         // --- AUTO CLEANUP ---
-        // Delete notifications older than 24 hours to keep the UI clean and database small
+        // Delete notifications older than 72 hours (3 days) to keep the UI clean
         await pool.query(`
             DELETE FROM notifications 
-            WHERE created_at < DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            WHERE created_at < DATE_SUB(NOW(), INTERVAL 72 HOUR)
         `);
         // --------------------
 
         let query = `
             SELECT * FROM notifications 
             WHERE user_id = ? 
-            AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            AND created_at >= DATE_SUB(NOW(), INTERVAL 72 HOUR)
         `;
         const params: any[] = [userId];
 
@@ -117,6 +117,39 @@ export async function PUT(request: Request) {
 
     } catch (error: any) {
         console.error('[Notifications PUT Error]', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+// DELETE: Remove a notification
+export async function DELETE(request: Request) {
+    try {
+        const authUser = await getAuthUser();
+        if (!authUser) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'Notification ID is required' }, { status: 400 });
+        }
+
+        // Verify ownership (unless admin)
+        if (authUser.role !== 'admin') {
+            const [rows]: any = await pool.query('SELECT user_id FROM notifications WHERE id = ?', [id]);
+            if (rows.length > 0 && rows[0].user_id !== authUser.id) {
+                return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            }
+        }
+
+        await pool.query('DELETE FROM notifications WHERE id = ?', [id]);
+
+        return NextResponse.json({ success: true, message: 'Notification deleted' });
+
+    } catch (error: any) {
+        console.error('[Notifications DELETE Error]', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

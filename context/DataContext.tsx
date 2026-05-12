@@ -60,6 +60,7 @@ interface DataContextType {
     notifications: any[];
     unreadNotificationsCount: number;
     markNotificationRead: (id?: string) => void;
+    deleteNotification: (id: string) => Promise<void>;
 
 
     complaints: Complaint[];
@@ -423,6 +424,31 @@ export function DataProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const deleteNotification = async (id: string) => {
+        if (!user) return;
+        
+        // Optimistic UI Update: Remove locally first
+        setNotifications(prev => prev.filter(n => n.id !== id));
+        setUnreadNotificationsCount(prev => {
+            const notif = notifications.find(n => n.id === id);
+            return (notif && !notif.is_read) ? Math.max(0, prev - 1) : prev;
+        });
+
+        try {
+            const res = await fetch(`/api/notifications?id=${id}`, {
+                method: 'DELETE'
+            });
+            if (!res.ok) {
+                const data = await res.json();
+                console.error('Delete failed:', data.error);
+                fetchData(); // Revert on failure
+            }
+        } catch (e) {
+            console.error(e);
+            fetchData(); // Revert on failure
+        }
+    };
+
     // --- Helpers (Local Mock for Rooms) ---
     const getRoomsByFloor = (floorId: number) => rooms.filter(r => r.floorId === floorId);
     const getAvailableFloors = (gender: 'Male' | 'Female') => gender === 'Male' ? [1, 2, 3] : [4, 5, 6, 7];
@@ -489,7 +515,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             createComplaint, updateComplaint,
             createBooking, updateBookingStatus, cancelBooking, updateFacilitySettings, toggleSlotBlock,
             myApplication, myRoomChangeRequest, myComplaints,
-            notifications, unreadNotificationsCount, markNotificationRead,
+            notifications, unreadNotificationsCount, markNotificationRead, deleteNotification,
             roomChangeRequests,
             payments, invoices, myDocuments,
             sports, allSports, addSport, updateSport, deleteSport,
