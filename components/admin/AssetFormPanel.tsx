@@ -18,7 +18,7 @@ export default function AssetFormPanel({ onSubmit }: { onSubmit: (data: any) => 
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm sticky top-24">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm lg:sticky lg:top-24">
             <div className="p-5 border-b border-slate-100 dark:border-slate-800">
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">Add New Asset</h2>
                 <p className="text-xs text-slate-400 mt-0.5">Register a new facility or asset to inventory.</p>
