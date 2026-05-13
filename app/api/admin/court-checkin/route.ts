@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { getAuthUser } from '@/lib/auth';
 import pool from '@/lib/db';
 import { createNotification } from '@/lib/notifications';
+import { getKLDate } from '@/lib/utils';
 
 export async function PUT(request: Request) {
     try {
@@ -54,7 +55,7 @@ export async function PUT(request: Request) {
             }
 
             // Validate time window (e.g., check-in opens 30 mins before, closes 15 mins after)
-            const now = new Date();
+            const now = getKLDate();
             const bookingDate = new Date(booking.date);
             const [hours, minutes] = booking.time_slot.split(':').map(Number);
             bookingDate.setHours(hours, minutes, 0, 0);
@@ -79,7 +80,8 @@ export async function PUT(request: Request) {
                     message += "This is your first warning.";
                 } else {
                     const banDays = newNoShows === 2 ? 3 : 7;
-                    const banUntil = new Date(now.getTime() + banDays * 24 * 60 * 60 * 1000);
+                    const banUntil = getKLDate();
+                    banUntil.setDate(banUntil.getDate() + banDays);
                     banQuery = 'UPDATE users SET court_no_shows = ?, court_ban_until = ? WHERE id = ?';
                     banParams = [newNoShows, banUntil, booking.student_id];
                     message += `Due to multiple no-shows, your court booking privileges are suspended until ${banUntil.toLocaleDateString()}.`;

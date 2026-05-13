@@ -13,8 +13,9 @@ import { useTheme } from 'next-themes';
 
 const NAV_ITEMS = [
     { id: 'dashboard', label: 'Terminal Home', icon: LayoutDashboard, path: '/superadmin' },
+    { id: 'admin-portal', label: 'Admin Portal', icon: ShieldCheck, path: '/admin' },
     { id: 'staff', label: 'Staff Management', icon: Users, path: '/superadmin/staff' },
-    { id: 'audit', label: 'Security Audit', icon: ShieldCheck, path: '/superadmin/audit' },
+    { id: 'audit', label: 'Security Audit', icon: ShieldAlert, path: '/superadmin/audit' },
 ];
 
 interface SuperAdminSidebarProps {
@@ -32,6 +33,7 @@ export default function SuperAdminSidebar({ isCollapsed, setIsCollapsed }: Super
     useEffect(() => { setMounted(true); }, []);
 
     return (
+        <>
         <aside className={cn(
             "fixed inset-y-0 left-0 flex flex-col border-r transition-all duration-500 bg-[#1E1B2E] border-white/5 z-50",
             isCollapsed ? "w-24" : "w-72"
@@ -150,35 +152,36 @@ export default function SuperAdminSidebar({ isCollapsed, setIsCollapsed }: Super
                     </div>
                 </div>
             </div>
+        </aside>
 
-            {/* Modern Logout Confirmation Modal */}
-            {showLogoutModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="w-full max-w-sm rounded-[2.5rem] border border-white/5 bg-[#1E1B2E] p-8 shadow-2xl animate-in zoom-in-95 duration-200 text-center">
-                        <div className="mx-auto h-16 w-16 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-6">
-                            <AlertTriangle className="h-8 w-8 text-rose-500" />
-                        </div>
-                        <h3 className="text-xl font-black text-white mb-2">Sign Out?</h3>
-                        <p className="text-sm text-slate-400 mb-8 leading-relaxed">
-                            Are you sure you want to end your current superadmin session? You will need to re-authenticate to access the governance terminal.
-                        </p>
-                        <div className="flex gap-3">
-                            <button 
-                                onClick={() => setShowLogoutModal(false)}
-                                className="flex-1 py-3.5 rounded-2xl border border-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
-                            >
-                                Cancel
-                            </button>
-                            <button 
-                                onClick={() => logout()}
-                                className="flex-1 py-3.5 rounded-2xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20"
-                            >
-                                Sign Out
-                            </button>
-                        </div>
+        {/* Modern Logout Confirmation Modal - Moved outside aside to prevent layout trapping */}
+        {showLogoutModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="w-full max-w-sm rounded-[2.5rem] border border-white/5 bg-[#1E1B2E] p-8 shadow-2xl animate-in zoom-in-95 duration-200 text-center">
+                    <div className="mx-auto h-16 w-16 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-6">
+                        <AlertTriangle className="h-8 w-8 text-rose-500" />
+                    </div>
+                    <h3 className="text-xl font-black text-white mb-2">Sign Out?</h3>
+                    <p className="text-sm text-slate-400 mb-8 leading-relaxed">
+                        Are you sure you want to end your current superadmin session? You will need to re-authenticate to access the governance terminal.
+                    </p>
+                    <div className="flex gap-3">
+                        <button 
+                            onClick={() => setShowLogoutModal(false)}
+                            className="flex-1 py-3.5 rounded-2xl border border-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={() => logout()}
+                            className="flex-1 py-3.5 rounded-2xl bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20"
+                        >
+                            Sign Out
+                        </button>
                     </div>
                 </div>
-            )}
-        </aside>
+            </div>
+        )}
+        </>
     );
 }

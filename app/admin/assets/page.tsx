@@ -118,8 +118,8 @@ export default function AssetManagementPage() {
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track inventory, monitor asset conditions, and manage maintenance.</p>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={()=>setTab('inventory')} className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${tab==='inventory'?'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20':'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-indigo-300'}`}>Inventory</button>
-                    <button onClick={()=>setTab('maintenance')} className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${tab==='maintenance'?'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20':'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-indigo-300'}`}>
+                    <button onClick={()=>setTab('inventory')} className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${tab==='inventory'?'bg-[#F26C22] text-white shadow-lg shadow-orange-500/20':'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-orange-300'}`}>Inventory</button>
+                    <button onClick={()=>setTab('maintenance')} className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${tab==='maintenance'?'bg-[#F26C22] text-white shadow-lg shadow-orange-500/20':'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-orange-300'}`}>
                         Maintenance Queue {damaged.length > 0 && <span className="bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black">{damaged.length}</span>}
                     </button>
                 </div>
@@ -369,7 +369,7 @@ export default function AssetManagementPage() {
                             <div key={t} className="flex items-center gap-3">
                                 <span className="text-sm text-slate-700 dark:text-slate-300 font-medium w-24 shrink-0">{t}</span>
                                 <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
-                                    <div className="h-full bg-indigo-500 rounded-full transition-all" style={{width:`${assets.length?(c/assets.length*100):0}%`}}/>
+                                    <div className="h-full bg-blue-500 rounded-full transition-all" style={{width:`${assets.length?(c/assets.length*100):0}%`}}/>
                                 </div>
                                 <span className="text-xs font-bold text-slate-900 dark:text-white w-8 text-right">{c}</span>
                             </div>

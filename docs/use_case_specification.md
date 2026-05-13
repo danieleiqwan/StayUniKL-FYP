@@ -9,6 +9,7 @@ flowchart LR
     %% Actors
     Student([Student])
     Admin([System Administrator])
+    System([Automated System])
 
     %% System Boundary
     subgraph StayUniKL System
@@ -17,6 +18,7 @@ flowchart LR
         subgraph Authentication & Security
             UC1(UC01: User Authentication & Recovery)
             UC2(UC02: Profile & Preferences Management)
+            UC14(UC14: System Security Governance)
         end
         
         subgraph Hostel Core Processes
@@ -32,6 +34,9 @@ flowchart LR
             UC9(UC09: Manage Complaints & Assets)
             UC10(UC10: Post Global Announcements)
             UC11(UC11: Generate Revenue/Occupancy Reports)
+            UC12(UC12: Manage Student Accounts)
+            UC13(UC13: Manage Facility Maintenance)
+            UC15(UC15: Automated Notifications)
         end
     end
 
@@ -43,6 +48,7 @@ flowchart LR
     Student --> UC6
     Student --> UC7
     Student --> UC8
+    Student --> UC15
 
     %% Admin Relationships
     Admin --> UC1
@@ -53,6 +59,12 @@ flowchart LR
     Admin --> UC9
     Admin --> UC10
     Admin --> UC11
+    Admin --> UC12
+    Admin --> UC13
+
+    %% System Relationships
+    System --> UC14
+    System --> UC15
 ```
 
 ---
@@ -787,3 +799,195 @@ flowchart LR
   </tr>
 </table>
 
+
+<!-- UC12: Manage Student Accounts -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:20%;"><strong>Use Case ID</strong></td>
+    <td colspan="2">UC_12</td>
+  </tr>
+  <tr>
+    <td><strong>Use Case Name</strong></td>
+    <td colspan="2">Manage Student Accounts</td>
+  </tr>
+  <tr>
+    <td><strong>Description</strong></td>
+    <td colspan="2">Allows Admin to monitor, search, and manage student account statuses (Activate/Deactivate).</td>
+  </tr>
+  <tr>
+    <td><strong>Primary Actor</strong></td>
+    <td colspan="2">System Administrator</td>
+  </tr>
+  <tr>
+    <td><strong>Include use cases</strong></td>
+    <td colspan="2">-</td>
+  </tr>
+  <tr>
+    <td><strong>Pre-Condition</strong></td>
+    <td colspan="2">Admin is authenticated with administrative privileges.</td>
+  </tr>
+  <tr>
+    <td><strong>Post-Condition</strong></td>
+    <td colspan="2">Student account status is updated in the database and reflected in the UI.</td>
+  </tr>
+  <tr>
+    <td rowspan="5"><strong>Main Flow</strong></td>
+    <td style="width:15%;"><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Admin navigates to the "Student Management" module.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Admin searches for a student by Name or ID.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Admin clicks on the "Toggle Status" (Deactivate/Activate) button.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>System prompts for confirmation and updates the record.</td>
+  </tr>
+</table>
+
+<!-- UC13: Manage Facility Maintenance -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:20%;"><strong>Use Case ID</strong></td>
+    <td colspan="2">UC_13</td>
+  </tr>
+  <tr>
+    <td><strong>Use Case Name</strong></td>
+    <td colspan="2">Manage Facility Maintenance</td>
+  </tr>
+  <tr>
+    <td><strong>Description</strong></td>
+    <td colspan="2">Allows Admin to block specific facility time slots for repair or maintenance.</td>
+  </tr>
+  <tr>
+    <td><strong>Primary Actor</strong></td>
+    <td colspan="2">System Administrator</td>
+  </tr>
+  <tr>
+    <td><strong>Pre-Condition</strong></td>
+    <td colspan="2">Admin is on the Facility Management dashboard.</td>
+  </tr>
+  <tr>
+    <td><strong>Post-Condition</strong></td>
+    <td colspan="2">Specific slots are marked as "Unavailable" for student booking.</td>
+  </tr>
+  <tr>
+    <td rowspan="5"><strong>Main Flow</strong></td>
+    <td style="width:15%;"><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Admin selects a facility (e.g., Badminton Court).</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Admin views the schedule calendar.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Admin selects a time slot and clicks "Set Maintenance".</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>System blocks the slot using row-level locking to prevent race conditions.</td>
+  </tr>
+</table>
+
+<!-- UC14: System Security Governance -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:20%;"><strong>Use Case ID</strong></td>
+    <td colspan="2">UC_14</td>
+  </tr>
+  <tr>
+    <td><strong>Use Case Name</strong></td>
+    <td colspan="2">System Security Governance</td>
+  </tr>
+  <tr>
+    <td><strong>Description</strong></td>
+    <td colspan="2">The system monitors API requests and login attempts to prevent brute-force attacks.</td>
+  </tr>
+  <tr>
+    <td><strong>Primary Actor</strong></td>
+    <td colspan="2">System (Automated)</td>
+  </tr>
+  <tr>
+    <td><strong>Pre-Condition</strong></td>
+    <td colspan="2">System is active and monitoring traffic.</td>
+  </tr>
+  <tr>
+    <td><strong>Post-Condition</strong></td>
+    <td colspan="2">Unauthorized or excessive requests are throttled (HTTP 429).</td>
+  </tr>
+  <tr>
+    <td rowspan="4"><strong>Main Flow</strong></td>
+    <td style="width:15%;"><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>User sends multiple rapid requests to the login/API endpoint.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>System middleware detects the threshold violation.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>System returns "Too Many Requests" and logs the incident.</td>
+  </tr>
+</table>
+
+<!-- UC15: Automated Notifications -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:20%;"><strong>Use Case ID</strong></td>
+    <td colspan="2">UC_15</td>
+  </tr>
+  <tr>
+    <td><strong>Use Case Name</strong></td>
+    <td colspan="2">Automated Notifications</td>
+  </tr>
+  <tr>
+    <td><strong>Description</strong></td>
+    <td colspan="2">The system notifies students of status changes in their applications or bookings.</td>
+  </tr>
+  <tr>
+    <td><strong>Primary Actor</strong></td>
+    <td colspan="2">System (Automated)</td>
+  </tr>
+  <tr>
+    <td><strong>Pre-Condition</strong></td>
+    <td colspan="2">A data event occurs (e.g., Application Approved).</td>
+  </tr>
+  <tr>
+    <td><strong>Post-Condition</strong></td>
+    <td colspan="2">Notification is displayed on the Student Dashboard.</td>
+  </tr>
+  <tr>
+    <td rowspan="4"><strong>Main Flow</strong></td>
+    <td style="width:15%;"><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>System detects a status update in the database.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>System creates a notification record linked to the student ID.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Student Dashboard fetches and displays the alert in real-time.</td>
+  </tr>
+</table>

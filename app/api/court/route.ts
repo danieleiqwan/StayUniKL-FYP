@@ -3,6 +3,7 @@ import pool from '@/lib/db';
 import { getAuthUser, isAdmin } from '@/lib/auth';
 import { createNotification } from '@/lib/notifications';
 import { z } from 'zod';
+import { getKLDate } from '@/lib/utils';
 
 const bookingSchema = z.object({
     studentId: z.string().min(1),
@@ -208,7 +209,7 @@ export async function POST(request: Request) {
             const [banRows]: any = await pool.query('SELECT court_ban_until FROM users WHERE id = ?', [studentId]);
             if (banRows.length > 0 && banRows[0].court_ban_until) {
                 const banDate = new Date(banRows[0].court_ban_until);
-                if (banDate > new Date()) {
+                if (banDate > getKLDate()) {
                     return NextResponse.json({ 
                         error: `Your court booking privileges are suspended until ${banDate.toLocaleDateString()} due to multiple no-shows.` 
                     }, { status: 403 });
@@ -230,7 +231,7 @@ export async function POST(request: Request) {
         }
 
         // 1. Check if the slot is in the past
-        const now = new Date();
+        const now = getKLDate();
         const requestDate = new Date(date);
         const [hours, minutes] = timeSlot.split(':').map(Number);
         requestDate.setHours(hours, minutes, 0, 0);
@@ -242,7 +243,7 @@ export async function POST(request: Request) {
         // 1.1 Check if the slot is too far in the future (Limit: 30 days advance)
         if (user.role !== 'admin') {
             const maxAdvanceDays = 30;
-            const maxDate = new Date();
+            const maxDate = getKLDate();
             maxDate.setDate(maxDate.getDate() + maxAdvanceDays);
             maxDate.setHours(23, 59, 59, 999);
 
@@ -257,36 +258,47 @@ export async function POST(request: Request) {
         await connection.beginTransaction();
 
         try {
-        // 2. Check daily and weekly limits (Admin exempt)
-        if (user.role !== 'admin') {
-            // Daily Limit (2)
-            const [dailyCount]: any = await connection.query(
-                'SELECT COUNT(*) as count FROM court_bookings WHERE student_id = ? AND DATE(date) = DATE(?) AND status IN ("Pending", "Approved")',
-                [studentId, date]
+            // 2. CHECK FOR DOUBLE BOOKING (Inside transaction with lock)
+            const [existing]: any = await connection.query(
+                'SELECT id FROM court_bookings WHERE date = ? AND time_slot = ? AND status IN ("Pending", "Approved") FOR UPDATE',
+                [date, timeSlot]
             );
 
-            if (dailyCount[0].count >= 2) {
+            if (existing.length > 0) {
                 await connection.rollback();
-                return NextResponse.json({ 
-                    error: 'Daily Limit Exceeded: You can only make up to 2 court bookings per day.' 
-                }, { status: 400 });
+                return NextResponse.json({ error: 'This time slot has already been reserved. Please select another slot.' }, { status: 400 });
             }
 
-            // Weekly Limit (5)
-            const [weeklyCount]: any = await connection.query(
-                'SELECT COUNT(*) as count FROM court_bookings WHERE student_id = ? AND YEARWEEK(date, 1) = YEARWEEK(?, 1) AND status IN ("Pending", "Approved")',
-                [studentId, date]
-            );
+            // 2.1 Check daily and weekly limits (Admin exempt)
+            if (user.role !== 'admin') {
+                // Daily Limit (2)
+                const [dailyCount]: any = await connection.query(
+                    'SELECT COUNT(*) as count FROM court_bookings WHERE student_id = ? AND DATE(date) = DATE(?) AND status IN ("Pending", "Approved")',
+                    [studentId, date]
+                );
 
-            if (weeklyCount[0].count >= 5) {
-                await connection.rollback();
-                return NextResponse.json({ 
-                    error: 'Weekly Limit Exceeded: You can only make up to 5 court bookings per week (Sun-Sat).' 
-                }, { status: 400 });
+                if (dailyCount[0].count >= 2) {
+                    await connection.rollback();
+                    return NextResponse.json({ 
+                        error: 'Daily Limit Exceeded: You can only make up to 2 court bookings per day.' 
+                    }, { status: 400 });
+                }
+
+                // Weekly Limit (5)
+                const [weeklyCount]: any = await connection.query(
+                    'SELECT COUNT(*) as count FROM court_bookings WHERE student_id = ? AND YEARWEEK(date, 1) = YEARWEEK(?, 1) AND status IN ("Pending", "Approved")',
+                    [studentId, date]
+                );
+
+                if (weeklyCount[0].count >= 5) {
+                    await connection.rollback();
+                    return NextResponse.json({ 
+                        error: 'Weekly Limit Exceeded: You can only make up to 5 court bookings per week (Sun-Sat).' 
+                    }, { status: 400 });
+                }
             }
-        }
 
-        // 3. Check if blocked by admin
+            // 3. Check if blocked by admin
             const [settingsRows]: any = await connection.query('SELECT setting_value FROM court_settings WHERE setting_key = "main"');
             if (settingsRows.length > 0) {
                 let settings = settingsRows[0].setting_value;
@@ -379,7 +391,7 @@ export async function DELETE(request: Request) {
             const [slotHour, slotMin] = booking.time_slot.split(':').map(Number);
             bookingDate.setHours(slotHour, slotMin, 0, 0);
 
-            const now = new Date();
+            const now = getKLDate();
             if (bookingDate <= now) {
                 await connection.rollback();
                 return NextResponse.json({ error: 'Cannot cancel a booking that has already started or passed.' }, { status: 400 });

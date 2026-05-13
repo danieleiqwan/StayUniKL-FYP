@@ -146,36 +146,69 @@ export async function POST(request: Request) {
         const id = `app_${Date.now()}`;
         const resolvedDurationType = durationType || (stayDuration === 4 ? '1_semester' : '1_month');
 
-        // 1. Create Application
-        await pool.query(
-            'INSERT INTO applications (id, student_id, room_type, floor_id, room_id, bed_id, stay_duration, duration_type, total_price, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, studentId, roomType, floorId, roomId, bedId, stayDuration, resolvedDurationType, totalPrice || 120.00, 'Pending']
-        );
+        // --- TRANSACTION WITH ROW LOCKING ---
+        const connection = await pool.getConnection();
+        await connection.beginTransaction();
 
-        // 2. Mark Bed as Occupied
-        await pool.query('UPDATE beds SET status = ? WHERE id = ?', ['Occupied', bedId]);
+        try {
+            // 1. Lock the bed row for update to prevent double booking
+            const [beds]: any = await connection.query(
+                'SELECT id, status FROM beds WHERE id = ? FOR UPDATE',
+                [bedId]
+            );
 
-        // 3. Log Action
-        await logAction({
-            actorId: studentId,
-            actorName: studentName,
-            action: 'CREATED_APPLICATION',
-            entityType: 'Application',
-            entityId: id,
-            details: { roomId, bedId }
-        });
+            if (beds.length === 0) {
+                await connection.rollback();
+                return NextResponse.json({ error: 'Selected bed not found' }, { status: 404 });
+            }
 
-        // 4. Send Notification
-        await createNotification({
-            userId: studentId,
-            title: 'Application Received',
-            message: `Your application for a ${roomType} has been successfully submitted and is currently pending review.`,
-            type: 'info',
-            relatedEntityId: id,
-            relatedEntityType: 'Application'
-        });
+            if (beds[0].status !== 'Available') {
+                await connection.rollback();
+                return NextResponse.json({ 
+                    error: 'Bed Unavailable', 
+                    message: 'Sorry, this bed was just taken by another student. Please select a different bed.' 
+                }, { status: 400 });
+            }
 
-        return NextResponse.json({ success: true, id });
+            // 2. Create Application
+            await connection.query(
+                'INSERT INTO applications (id, student_id, room_type, floor_id, room_id, bed_id, stay_duration, duration_type, total_price, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [id, studentId, roomType, floorId, roomId, bedId, stayDuration, resolvedDurationType, totalPrice || 120.00, 'Pending']
+            );
+
+            // 3. Mark Bed as Occupied
+            await connection.query('UPDATE beds SET status = ? WHERE id = ?', ['Occupied', bedId]);
+
+            await connection.commit();
+
+            // 4. Log Action
+            await logAction({
+                actorId: studentId,
+                actorName: studentName,
+                action: 'CREATED_APPLICATION',
+                entityType: 'Application',
+                entityId: id,
+                details: { roomId, bedId }
+            });
+
+            // 5. Send Notification
+            await createNotification({
+                userId: studentId,
+                title: 'Application Received',
+                message: `Your application for a ${roomType} has been successfully submitted and is currently pending review.`,
+                type: 'info',
+                relatedEntityId: id,
+                relatedEntityType: 'Application'
+            });
+
+            return NextResponse.json({ success: true, id });
+
+        } catch (error) {
+            await connection.rollback();
+            throw error;
+        } finally {
+            connection.release();
+        }
 
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });

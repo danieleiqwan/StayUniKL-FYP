@@ -159,7 +159,7 @@ function NavContent({
             </div>
 
             {/* Navigation Links */}
-            <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+            <nav className="flex-1 px-3 space-y-1 overflow-y-auto overflow-x-hidden">
                 {navItems.map((item) => {
                     const isActive = pathname === item.path || (item.path !== '/dashboard' && pathname.startsWith(item.path));
                     const Icon = item.icon;
@@ -172,6 +172,7 @@ function NavContent({
                                     ? 'bg-[#F26C22] text-white'
                                     : 'text-white/50 hover:bg-white/5 hover:text-white'
                             } ${collapsed ? 'justify-center' : ''}`}
+                            title={collapsed && !isMobile ? item.name : undefined}
                         >
                             <Icon style={{ height: '18px', width: '18px' }} className="shrink-0" />
                             {!collapsed && <span className="text-sm truncate">{item.name}</span>}
@@ -181,13 +182,6 @@ function NavContent({
                                 <span className="ml-auto text-xs font-black bg-orange-500 text-white px-1.5 py-0.5 rounded-full">
                                     {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
                                 </span>
-                            )}
-
-                            {/* Tooltip in collapsed mode */}
-                            {collapsed && !isMobile && (
-                                <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 border border-white/10 text-white text-xs font-black uppercase tracking-widest rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[100] whitespace-nowrap shadow-xl dark:bg-slate-800 dark:border-white/20">
-                                    {item.name}
-                                </div>
                             )}
                         </Link>
                     );
@@ -213,13 +207,6 @@ function NavContent({
                                     isFacilitiesOpen ? 'rotate-180' : 'rotate-0'
                                 }`}
                             />
-                        )}
-
-                        {/* Tooltip in collapsed mode */}
-                        {collapsed && !isMobile && (
-                            <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 border border-white/10 text-white text-xs font-black uppercase tracking-widest rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[100] whitespace-nowrap dark:bg-slate-800 dark:border-white/20">
-                                Facilities
-                            </div>
                         )}
                     </button>
 
@@ -270,13 +257,6 @@ function NavContent({
                                 }`}
                             />
                         )}
-
-                        {/* Tooltip in collapsed mode */}
-                        {collapsed && !isMobile && (
-                            <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 border border-white/10 text-white text-xs font-black uppercase tracking-widest rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[100] whitespace-nowrap dark:bg-slate-800 dark:border-white/20">
-                                Resources
-                            </div>
-                        )}
                     </button>
 
                     <div
@@ -325,13 +305,6 @@ function NavContent({
                                 }`}
                             />
                         )}
-
-                        {/* Tooltip in collapsed mode */}
-                        {collapsed && !isMobile && (
-                            <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 border border-white/10 text-white text-xs font-black uppercase tracking-widest rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[100] whitespace-nowrap dark:bg-slate-800 dark:border-white/20">
-                                Miscellaneous
-                            </div>
-                        )}
                     </button>
 
                     <div
@@ -365,26 +338,18 @@ function NavContent({
                 <Link
                     href="/dashboard/settings"
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/40 hover:bg-white/5 hover:text-white font-bold transition-all relative group ${collapsed ? 'justify-center' : ''}`}
+                    title={collapsed && !isMobile ? "Settings" : undefined}
                 >
                     <Settings style={{ height: '18px', width: '18px' }} className="shrink-0 group-hover:rotate-45 transition-transform" />
                     {!collapsed && <span className="text-sm">Settings</span>}
-                    {collapsed && !isMobile && (
-                        <div className="absolute left-full ml-4 px-3 py-2 bg-slate-900 border border-white/10 text-white text-xs font-black uppercase tracking-widest rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[100] whitespace-nowrap dark:bg-slate-800 dark:border-white/20">
-                            Settings
-                        </div>
-                    )}
                 </Link>
                 <button
                     onClick={() => setShowLogoutModal(true)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-rose-400/70 hover:bg-rose-500/10 hover:text-rose-400 font-bold transition-all relative group ${collapsed ? 'justify-center' : ''}`}
+                    title={collapsed && !isMobile ? "Logout" : undefined}
                 >
                     <LogOut style={{ height: '18px', width: '18px' }} className="shrink-0 transition-transform group-hover:translate-x-1" />
                     {!collapsed && <span className="text-sm">Logout</span>}
-                    {collapsed && !isMobile && (
-                        <div className="absolute left-full ml-4 px-3 py-2 bg-rose-600 text-white text-xs font-black uppercase tracking-widest rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[100] whitespace-nowrap">
-                            Logout
-                        </div>
-                    )}
                 </button>
             </div>
 

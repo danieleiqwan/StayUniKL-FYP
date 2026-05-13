@@ -56,7 +56,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-foreground transition-colors duration-300">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 text-foreground transition-colors duration-300 overflow-x-hidden">
             {/* Sidebar */}
             <div className="print:hidden">
                 <AdminSidebar 

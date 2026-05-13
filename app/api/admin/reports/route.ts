@@ -24,45 +24,53 @@ export async function GET(request: Request) {
         // 2. Revenue Data (Last 6 Months)
         let revenueData = [];
         try {
+            // We use Invoices as the primary source to match the Finance Dashboard 'Total Collected'
+            // We get the LAST 6 months by ordering DESC, then we'll reverse it for the chart
             const [rows]: any = await pool.query(`
                 SELECT 
                     DATE_FORMAT(created_at, '%b %Y') as month,
-                    SUM(amount) as total
-                FROM payments 
-                WHERE status IN ('Success', 'Paid')
+                    SUM(amount) as total,
+                    MIN(created_at) as sort_date
+                FROM invoices 
+                WHERE status = 'Paid'
                 GROUP BY month
-                ORDER BY MIN(created_at) ASC
+                ORDER BY sort_date DESC
                 LIMIT 6
             `);
-            revenueData = rows;
+            
+            // Reverse to show chronological order in the chart (Oldest -> Newest)
+            revenueData = rows.reverse();
 
-            // If payments table is empty, fallback to counting Invoices, then Applications
+            // If no invoices yet, fallback to payments table (e.g. for partial transition data)
             if (revenueData.length === 0) {
-                const [invRows]: any = await pool.query(`
+                const [payRows]: any = await pool.query(`
                     SELECT 
                         DATE_FORMAT(created_at, '%b %Y') as month,
-                        SUM(amount) as total
-                    FROM invoices 
-                    WHERE status = 'Paid'
+                        SUM(amount) as total,
+                        MIN(created_at) as sort_date
+                    FROM payments 
+                    WHERE status IN ('Success', 'Paid')
                     GROUP BY month
-                    ORDER BY MIN(created_at) ASC
+                    ORDER BY sort_date DESC
                     LIMIT 6
                 `);
-                revenueData = invRows;
+                revenueData = payRows.reverse();
             }
 
+            // Absolute fallback to application prices if everything else is empty
             if (revenueData.length === 0) {
                 const [appRows]: any = await pool.query(`
                     SELECT 
                         DATE_FORMAT(date, '%b %Y') as month,
-                        SUM(total_price) as total
+                        SUM(total_price) as total,
+                        MIN(date) as sort_date
                     FROM applications 
                     WHERE (status LIKE 'Approved%' OR status = 'Checked in') AND total_price > 0
                     GROUP BY month
-                    ORDER BY MIN(date) ASC
+                    ORDER BY sort_date DESC
                     LIMIT 6
                 `);
-                revenueData = appRows;
+                revenueData = appRows.reverse();
             }
         } catch (e: any) { 
             console.error("Revenue query failed", e); 
@@ -75,13 +83,14 @@ export async function GET(request: Request) {
             const [rows]: any = await pool.query(`
                 SELECT 
                     DATE_FORMAT(date, '%b %Y') as month,
-                    COUNT(*) as count
+                    COUNT(*) as count,
+                    MIN(date) as sort_date
                 FROM applications
                 GROUP BY month
-                ORDER BY MIN(date) ASC
+                ORDER BY sort_date DESC
                 LIMIT 6
             `);
-            intakeData = rows;
+            intakeData = rows.reverse();
         } catch (e: any) { 
             console.error("Intake query failed", e); 
             debug_errors.intake = String(e);

@@ -64,6 +64,7 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
     ];
 
     return (
+        <>
         <aside className={`fixed inset-y-0 left-0 transition-all duration-300 bg-[#1E1B2E] text-white flex flex-col z-50 
             ${isCollapsed ? 'w-24' : 'w-80'} 
             ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
@@ -98,7 +99,7 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
             </div>
 
             {/* Navigation */}
-            <div className="flex-1 px-4 space-y-8 overflow-y-auto custom-scrollbar pb-10">
+            <div className="flex-1 px-4 space-y-8 overflow-y-auto overflow-x-hidden custom-scrollbar pb-10">
                 {/* Main Management */}
                 <div>
                     {!isCollapsed && <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4 animate-in fade-in">Core Management</p>}
@@ -178,11 +179,6 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
                         >
                             <ShieldCheck className={`h-5 w-5 shrink-0 ${isCollapsed ? '' : 'group-hover:scale-110 transition-transform'}`} />
                             {!isCollapsed && <span className="text-[10px] font-black uppercase tracking-[0.2em] animate-in fade-in">Superadmin Portal</span>}
-                            {isCollapsed && (
-                                <div className="absolute left-full ml-4 px-3 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[100] whitespace-nowrap">
-                                    Return to Super Portal
-                                </div>
-                            )}
                         </Link>
                     </div>
                 )}
@@ -210,35 +206,37 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
                     {!isCollapsed && <span className="animate-in fade-in slide-in-from-left-2 text-left">Sign Out</span>}
                 </button>
 
-                {/* Modern Logout Confirmation Modal */}
-                {showLogoutModal && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                        <div className="w-full max-w-sm rounded-[2.5rem] border border-white/5 bg-[#1E1B2E] p-8 shadow-2xl animate-in zoom-in-95 duration-200 text-center">
-                            <div className="mx-auto h-16 w-16 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-6">
-                                <AlertTriangle className="h-8 w-8 text-rose-500" />
-                            </div>
-                            <h3 className="text-xl font-black text-white mb-2">Sign Out?</h3>
-                            <p className="text-sm text-slate-400 mb-8 leading-relaxed">
-                                Are you sure you want to end your current session? You will need to re-authenticate to access the terminal.
-                            </p>
-                            <div className="flex gap-3">
-                                <button 
-                                    onClick={() => setShowLogoutModal(false)}
-                                    className="flex-1 py-3.5 rounded-2xl border border-white/5 text-slate-400 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all"
-                                >
-                                    Cancel
-                                </button>
-                                <button 
-                                    onClick={() => logout()}
-                                    className="flex-1 py-3.5 rounded-2xl bg-rose-500 text-white text-xs font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20"
-                                >
-                                    Sign Out
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
         </aside>
+
+        {/* Modern Logout Confirmation Modal - Moved outside aside to prevent layout trapping */}
+        {showLogoutModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="w-full max-w-sm rounded-[2.5rem] border border-white/5 bg-[#1E1B2E] p-8 shadow-2xl animate-in zoom-in-95 duration-200 text-center">
+                    <div className="mx-auto h-16 w-16 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mb-6">
+                        <AlertTriangle className="h-8 w-8 text-rose-500" />
+                    </div>
+                    <h3 className="text-xl font-black text-white mb-2">Sign Out?</h3>
+                    <p className="text-sm text-slate-400 mb-8 leading-relaxed">
+                        Are you sure you want to end your current session? You will need to re-authenticate to access the terminal.
+                    </p>
+                    <div className="flex gap-3">
+                        <button 
+                            onClick={() => setShowLogoutModal(false)}
+                            className="flex-1 py-3.5 rounded-2xl border border-white/5 text-slate-400 text-xs font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={() => logout()}
+                            className="flex-1 py-3.5 rounded-2xl bg-rose-500 text-white text-xs font-black uppercase tracking-widest hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/20"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
+        </>
     );
 }

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 
-const inputCls = "w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900/20 outline-none transition-all placeholder:text-slate-400";
+const inputCls = "w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-white focus:border-[#F26C22] focus:ring-2 focus:ring-orange-100 dark:focus:ring-orange-900/20 outline-none transition-all placeholder:text-slate-400";
 const labelCls = "block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5";
 
 export default function AssetFormPanel({ onSubmit }: { onSubmit: (data: any) => Promise<void> }) {
@@ -73,7 +73,7 @@ export default function AssetFormPanel({ onSubmit }: { onSubmit: (data: any) => 
                     <label className={labelCls}>Notes <span className="text-slate-300 font-normal">(Optional)</span></label>
                     <textarea rows={2} value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className={`${inputCls} resize-none`} placeholder="Additional notes about this asset..." />
                 </div>
-                <button type="submit" disabled={submitting} className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50">
+                <button type="submit" disabled={submitting} className="w-full flex items-center justify-center gap-2 bg-[#F26C22] hover:bg-[#F26C22]/90 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50">
                     {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                     {submitting ? 'Adding...' : 'Add to Inventory'}
                 </button>

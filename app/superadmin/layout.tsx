@@ -3,7 +3,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import SuperAdminSidebar from '@/components/layout/SuperAdminSidebar';
+import SuperAdminSidebar from '../../components/layout/SuperAdminSidebar';
 import { cn } from '@/lib/utils';
 
 export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
@@ -36,7 +36,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
     }, [isCheckingAuth, user, router]);
 
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-950 text-zinc-900 dark:text-white flex transition-colors duration-500">
+        <div className="min-h-screen bg-white dark:bg-slate-950 text-zinc-900 dark:text-white flex transition-colors duration-500 overflow-x-hidden">
             {/* Auth overlay — ON TOP of children, never instead of them */}
             {isCheckingAuth && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center bg-white dark:bg-slate-950 transition-colors">
