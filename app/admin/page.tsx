@@ -98,7 +98,12 @@ function AdminDashboard() {
 
     const handleBulkStatusUpdate = async (status: any) => {
         if (selectedAppIds.length === 0) return;
-        if (!confirm(`Are you sure you want to update ${selectedAppIds.length} applications to "${status}"?`)) return;
+        
+        const actionLabel = status === 'Payment Pending' ? 'ACCEPT' : 'REJECT';
+        const count = selectedAppIds.length;
+        const msg = `Are you sure you want to ${actionLabel} ${count} student application${count > 1 ? 's' : ''}?`;
+        
+        if (!confirm(msg)) return;
 
         setIsBulkProcessing(true);
         const res = await updateBulkApplicationStatus(selectedAppIds, status);
