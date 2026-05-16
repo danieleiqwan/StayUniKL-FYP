@@ -55,6 +55,7 @@ interface DataContextType {
     createApplication: (app: { roomType: Application['roomType'], bedId: string, floorId: number, roomId: string, stayDuration: number, durationType: '1_month' | '1_semester', totalPrice: number }) => void;
     reapplyApplication: (id: string) => void;
     updateApplicationStatus: (id: string, status: Application['status']) => void;
+    updateBulkApplicationStatus: (ids: string[], status: Application['status']) => Promise<{ success?: boolean; error?: string }>;
     myApplication: Application | undefined;
     myRoomChangeRequest: any | undefined;
     notifications: any[];
@@ -278,6 +279,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
             });
             fetchData();
         } catch (e) { console.error(e); }
+    };
+
+    const updateBulkApplicationStatus = async (ids: string[], status: Application['status']) => {
+        try {
+            const res = await fetch('/api/admin/bulk-applications', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids, status })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                await fetchData();
+                return { success: true };
+            }
+            return { error: data.error || 'Failed to update applications' };
+        } catch (e: any) {
+            console.error(e);
+            return { error: e.message || 'Network error' };
+        }
     };
 
     // --- Actions: Complaints ---
@@ -511,7 +531,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         <DataContext.Provider value={{
             applications, rooms, complaints, courtBookings, facilitySettings,
             getRoomsByFloor, getAvailableFloors, bookBed,
-            createApplication, reapplyApplication, updateApplicationStatus,
+            createApplication, reapplyApplication, updateApplicationStatus, updateBulkApplicationStatus,
             createComplaint, updateComplaint,
             createBooking, updateBookingStatus, cancelBooking, updateFacilitySettings, toggleSlotBlock,
             myApplication, myRoomChangeRequest, myComplaints,

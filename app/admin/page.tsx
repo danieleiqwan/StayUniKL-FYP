@@ -14,7 +14,7 @@ import PredictiveMaintenance from '@/components/admin/PredictiveMaintenance';
 import WaitlistOpportunities from '@/components/admin/WaitlistOpportunities';
 import FacilityAnalytics from '@/components/admin/FacilityAnalytics';
 import SportManagement from '@/components/admin/SportManagement';
-import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight, Bell, Wrench, Zap, DollarSign, Megaphone, CalendarDays, Users } from 'lucide-react';
+import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight, Bell, Wrench, Zap, DollarSign, Megaphone, CalendarDays, Users, CheckSquare, Square, Check, Trash2 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
     return (
@@ -26,9 +26,8 @@ export default function AdminDashboardPage() {
 
 function AdminDashboard() {
     const { user } = useAuth();
-    const {
         applications, complaints, courtBookings, facilitySettings, roomChangeRequests, refreshData,
-        updateApplicationStatus, updateComplaint, updateBookingStatus, updateFacilitySettings, toggleSlotBlock,
+        updateApplicationStatus, updateBulkApplicationStatus, updateComplaint, updateBookingStatus, updateFacilitySettings, toggleSlotBlock,
         allSports
     } = useData();
     const router = useRouter();
@@ -77,6 +76,39 @@ function AdminDashboard() {
     // Room Change UI State
     const [assignModalOpen, setAssignModalOpen] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState<any>(null);
+
+    // Bulk Selection State
+    const [selectedAppIds, setSelectedAppIds] = useState<string[]>([]);
+    const [isBulkProcessing, setIsBulkProcessing] = useState(false);
+
+    const toggleAppSelection = (id: string) => {
+        setSelectedAppIds(prev => 
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const toggleSelectAllApps = () => {
+        if (selectedAppIds.length === filteredApps.length) {
+            setSelectedAppIds([]);
+        } else {
+            setSelectedAppIds(filteredApps.map(a => a.id));
+        }
+    };
+
+    const handleBulkStatusUpdate = async (status: any) => {
+        if (selectedAppIds.length === 0) return;
+        if (!confirm(`Are you sure you want to update ${selectedAppIds.length} applications to "${status}"?`)) return;
+
+        setIsBulkProcessing(true);
+        const res = await updateBulkApplicationStatus(selectedAppIds, status);
+        setIsBulkProcessing(false);
+
+        if (res.success) {
+            setSelectedAppIds([]);
+        } else {
+            alert(`Bulk update failed: ${res.error}`);
+        }
+    };
 
     // Filtered Data
     const filteredApps = useMemo(() => {
@@ -486,14 +518,47 @@ function AdminDashboard() {
                 {/* Applications Tab */}
                 {activeTab === 'applications' && (
                     <div className="space-y-4 animate-in fade-in duration-300">
-                        <AdminFilterBar
-                            onFilterChange={setAppFilters}
-                            statusOptions={['Pending', 'Payment Pending', 'Approved', 'Checked in', 'Checked out', 'Cancelled', 'No show']}
-                        />
+                        <div className="flex items-center justify-between">
+                            <AdminFilterBar
+                                onFilterChange={setAppFilters}
+                                statusOptions={['Pending', 'Payment Pending', 'Approved', 'Checked in', 'Checked out', 'Cancelled', 'No show']}
+                            />
+                            {selectedAppIds.length > 0 && (
+                                <div className="flex items-center gap-3 bg-white dark:bg-slate-900 px-6 py-2 rounded-2xl border border-orange-200 dark:border-orange-900/30 shadow-sm animate-in slide-in-from-right-4">
+                                    <span className="text-xs font-black text-[#F26C22] uppercase tracking-widest">{selectedAppIds.length} Selected</span>
+                                    <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
+                                    <button 
+                                        disabled={isBulkProcessing}
+                                        onClick={() => handleBulkStatusUpdate('Payment Pending')}
+                                        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-[#F26C22] text-white px-3 py-1.5 rounded-xl hover:bg-[#d65a16] transition-all disabled:opacity-50"
+                                    >
+                                        <Check className="h-3 w-3" /> Bulk Accept
+                                    </button>
+                                    <button 
+                                        disabled={isBulkProcessing}
+                                        onClick={() => handleBulkStatusUpdate('Cancelled')}
+                                        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all disabled:opacity-50"
+                                    >
+                                        <Trash2 className="h-3 w-3" /> Bulk Reject
+                                    </button>
+                                    <button 
+                                        onClick={() => setSelectedAppIds([])}
+                                        className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                         <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
                             <div className="overflow-x-auto custom-scrollbar">
                                 <div className="min-w-[850px]">
-                                    <div className="grid grid-cols-[2fr_1fr_1fr_1fr_2fr] px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                    <div className="grid grid-cols-[40px_2fr_1fr_1fr_1fr_2fr] px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                        <div className="flex items-center">
+                                            <button onClick={toggleSelectAllApps} className="text-slate-400 hover:text-[#F26C22] transition-colors">
+                                                {selectedAppIds.length === filteredApps.length && filteredApps.length > 0 ? <CheckSquare className="h-4 w-4 text-[#F26C22]" /> : <Square className="h-4 w-4" />}
+                                            </button>
+                                        </div>
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Student</span>
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Room Type</span>
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Applied</span>
@@ -506,7 +571,12 @@ function AdminDashboard() {
                                                 <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No applications found.</p>
                                             </div>
                                         ) : filteredApps.map(app => (
-                                            <div key={app.id} className="grid grid-cols-[2fr_1fr_1fr_1fr_2fr] items-center px-8 py-5 hover:bg-orange-50/30 dark:hover:bg-slate-800/30 transition-colors group">
+                                            <div key={app.id} className={`grid grid-cols-[40px_2fr_1fr_1fr_1fr_2fr] items-center px-8 py-5 hover:bg-orange-50/30 dark:hover:bg-slate-800/30 transition-colors group ${selectedAppIds.includes(app.id) ? 'bg-orange-50/50 dark:bg-orange-900/10' : ''}`}>
+                                                <div className="flex items-center">
+                                                    <button onClick={() => toggleAppSelection(app.id)} className={`${selectedAppIds.includes(app.id) ? 'text-[#F26C22]' : 'text-slate-300'} hover:text-[#F26C22] transition-colors`}>
+                                                        {selectedAppIds.includes(app.id) ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                                                    </button>
+                                                </div>
                                                 <div className="flex items-center gap-3">
                                                     <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-black text-sm shrink-0">
                                                         {(app.studentName || 'S').charAt(0)}

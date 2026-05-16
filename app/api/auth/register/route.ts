@@ -8,7 +8,7 @@ import { validateNRIC } from '@/lib/validation';
 
 const registerSchema = z.object({
     name: z.string().min(2),
-    studentId: z.string().optional(), // Now optional
+    studentId: z.string().min(1, { message: 'Student ID is required' }), // Now mandatory
     nric: z.string().min(5), // Accepts Passport or NRIC — primary unique identifier
     email: z.string().email().endsWith('@s.unikl.edu.my', { message: 'Only UniKL student email addresses are allowed (@s.unikl.edu.my)' }),
     gender: z.enum(['Male', 'Female']),
@@ -71,17 +71,14 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'ID/Passport number has already been registered' }, { status: 409 });
         }
 
-        // 5. If Student ID provided, check uniqueness
-        if (studentId && studentId.trim()) {
-            const [existingStudentId]: any = await pool.query('SELECT id FROM users WHERE student_id = ?', [studentId.trim()]);
-            if (existingStudentId.length > 0) {
-                return NextResponse.json({ error: 'Student ID has already been registered' }, { status: 409 });
-            }
+        // 5. Check if Student ID exists (now mandatory)
+        const [existingStudentId]: any = await pool.query('SELECT id FROM users WHERE student_id = ?', [studentId.trim()]);
+        if (existingStudentId.length > 0) {
+            return NextResponse.json({ error: 'Student ID has already been registered' }, { status: 409 });
         }
 
-        // 6. Generate a unique primary key: use studentId if provided, otherwise use NRIC-based ID
-        const cleanNric = nric.replace(/\D/g, '').slice(0, 12) || nric.replace(/[^A-Z0-9]/g, '').slice(0, 12);
-        const generatedId = studentId?.trim() || `STU-${cleanNric}-${Date.now().toString().slice(-4)}`;
+        // 6. Generate a unique primary key: use studentId as it is now mandatory
+        const generatedId = studentId.trim();
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -97,7 +94,7 @@ export async function POST(request: Request) {
                 hashedPassword,
                 nationality || 'Local',
                 dob || null,
-                studentId?.trim() || null  // null if not provided
+                studentId.trim()
             ]
         );
 
@@ -113,7 +110,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ 
             success: true, 
-            user: { id: generatedId, name, email, role, gender, studentId: studentId?.trim() || null } 
+            user: { id: generatedId, name, email, role, gender, studentId: studentId.trim() } 
         });
 
     } catch (error: any) {

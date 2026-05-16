@@ -831,9 +831,13 @@ flowchart LR
     <td colspan="2">Student account status is updated in the database and reflected in the UI.</td>
   </tr>
   <tr>
-    <td rowspan="5"><strong>Main Flow</strong></td>
+    <td rowspan="7"><strong>Main Flow</strong></td>
     <td style="width:15%;"><strong>Step</strong></td>
     <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>Pre-Condition</td>
+    <td>Admin is authenticated with administrative privileges.</td>
   </tr>
   <tr>
     <td>1</td>
@@ -850,6 +854,10 @@ flowchart LR
   <tr>
     <td>4</td>
     <td>System prompts for confirmation and updates the record.</td>
+  </tr>
+  <tr>
+    <td>Post-Condition</td>
+    <td>Student account status is updated in the database and reflected in the UI.</td>
   </tr>
 </table>
 
@@ -880,9 +888,13 @@ flowchart LR
     <td colspan="2">Specific slots are marked as "Unavailable" for student booking.</td>
   </tr>
   <tr>
-    <td rowspan="5"><strong>Main Flow</strong></td>
+    <td rowspan="7"><strong>Main Flow</strong></td>
     <td style="width:15%;"><strong>Step</strong></td>
     <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>Pre-Condition</td>
+    <td>Admin is on the Facility Management dashboard.</td>
   </tr>
   <tr>
     <td>1</td>
@@ -899,6 +911,10 @@ flowchart LR
   <tr>
     <td>4</td>
     <td>System blocks the slot using row-level locking to prevent race conditions.</td>
+  </tr>
+  <tr>
+    <td>Post-Condition</td>
+    <td>Specific slots are marked as "Unavailable" for student booking.</td>
   </tr>
 </table>
 
@@ -929,9 +945,13 @@ flowchart LR
     <td colspan="2">Unauthorized or excessive requests are throttled (HTTP 429).</td>
   </tr>
   <tr>
-    <td rowspan="4"><strong>Main Flow</strong></td>
+    <td rowspan="6"><strong>Main Flow</strong></td>
     <td style="width:15%;"><strong>Step</strong></td>
     <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>Pre-Condition</td>
+    <td>System is active and monitoring traffic.</td>
   </tr>
   <tr>
     <td>1</td>
@@ -944,6 +964,10 @@ flowchart LR
   <tr>
     <td>3</td>
     <td>System returns "Too Many Requests" and logs the incident.</td>
+  </tr>
+  <tr>
+    <td>Post-Condition</td>
+    <td>Unauthorized or excessive requests are throttled (HTTP 429).</td>
   </tr>
 </table>
 
@@ -974,9 +998,13 @@ flowchart LR
     <td colspan="2">Notification is displayed on the Student Dashboard.</td>
   </tr>
   <tr>
-    <td rowspan="4"><strong>Main Flow</strong></td>
+    <td rowspan="6"><strong>Main Flow</strong></td>
     <td style="width:15%;"><strong>Step</strong></td>
     <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>Pre-Condition</td>
+    <td>A data event occurs (e.g., Application Approved).</td>
   </tr>
   <tr>
     <td>1</td>
@@ -989,5 +1017,9 @@ flowchart LR
   <tr>
     <td>3</td>
     <td>Student Dashboard fetches and displays the alert in real-time.</td>
+  </tr>
+  <tr>
+    <td>Post-Condition</td>
+    <td>Notification is displayed on the Student Dashboard.</td>
   </tr>
 </table>
