@@ -296,13 +296,19 @@ try {
                     message = `Great news! Your application for ${app.room_type} has been approved. Please proceed to payment to confirm your room.`;
                     type = 'success';
 
-                    // Create Invoice for the application
-                    const invoiceId = `INV-APP-${Date.now()}`;
-                    await connection.query(
-                        `INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date)
-                         VALUES (?, ?, ?, 'Hostel Fee', ?, ?, 'Unpaid', DATE_ADD(NOW(), INTERVAL 7 DAY))`,
-                        [invoiceId, studentId, id, `Hostel Fee for ${app.room_type}`, app.total_price || 0]
+                    // Create Invoice only if one doesn't already exist for this application
+                    const [existingInvoices]: any = await connection.query(
+                        'SELECT id FROM invoices WHERE application_id = ? AND type = "Hostel Fee" LIMIT 1',
+                        [id]
                     );
+                    if (existingInvoices.length === 0) {
+                        const invoiceId = `INV-APP-${Date.now()}`;
+                        await connection.query(
+                            `INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date)
+                             VALUES (?, ?, ?, 'Hostel Fee', ?, ?, 'Unpaid', DATE_ADD(NOW(), INTERVAL 7 DAY))`,
+                            [invoiceId, studentId, id, `Hostel Fee for ${app.room_type}`, app.total_price || 0]
+                        );
+                    }
                 } else if (status === 'Approved') {
                     title = 'Payment Confirmed';
                     message = `Your payment has been verified. Your stay in ${app.room_type} is now confirmed.`;
