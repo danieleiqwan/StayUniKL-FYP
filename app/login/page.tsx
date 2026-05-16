@@ -15,17 +15,30 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
 
+    const ensureEmailDomain = (value: string) => {
+        if (!value) return value;
+        // If it's not an email (no @) and doesn't look like a technical admin string
+        if (!value.includes('@') && !['admin', 'superadmin', 'staff'].includes(value.toLowerCase())) {
+            return `${value}@s.unikl.edu.my`;
+        }
+        return value;
+    };
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
+        // Auto-fill domain if missing
+        const finalEmail = ensureEmailDomain(email);
+        setEmail(finalEmail);
+
         try {
             await new Promise(resolve => setTimeout(resolve, 800));
 
-            if (email.includes('admin')) {
-                await login('admin', email, password, rememberMe);
+            if (finalEmail.includes('admin')) {
+                await login('admin', finalEmail, password, rememberMe);
             } else {
-                await login('student', email, password, rememberMe);
+                await login('student', finalEmail, password, rememberMe);
             }
         } catch (error) {
             console.error(error);
@@ -94,12 +107,25 @@ export default function LoginPage() {
                                     </div>
                                     <input
                                         type="text"
-                                        placeholder="student@s.unikl.edu.my"
+                                        placeholder="student ID or email"
                                         required
                                         className="block w-full pl-12 pr-4 py-3.5 bg-[#f8fafc] dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-[#F26C22]/30 focus:border-[#F26C22] dark:text-white transition-all outline-none font-medium shadow-inner"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
+                                        onBlur={(e) => setEmail(ensureEmailDomain(e.target.value))}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                setEmail(ensureEmailDomain(email));
+                                            }
+                                        }}
                                     />
+                                    {!email.includes('@') && email.length > 0 && (
+                                        <div className="absolute right-4 inset-y-0 flex items-center pointer-events-none">
+                                            <span className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-tighter">
+                                                @s.unikl.edu.my
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
