@@ -313,6 +313,11 @@ try {
                     title = 'Payment Confirmed';
                     message = `Your payment has been verified. Your stay in ${app.room_type} is now confirmed.`;
                     type = 'success';
+                    // Mark the related Hostel Fee invoice as Paid
+                    await connection.query(
+                        `UPDATE invoices SET status = 'Paid' WHERE application_id = ? AND type = 'Hostel Fee' AND status != 'Paid'`,
+                        [id]
+                    );
                 } else if (status === 'Rejected' || status === 'Cancelled') {
                     title = 'Application Cancelled';
                     message = `Your application for ${app.room_type} has been ${status.toLowerCase()}. ${cancellationReason ? `Reason: ${cancellationReason}` : ''}`;
