@@ -26,6 +26,7 @@ export default function AdminDashboardPage() {
 
 function AdminDashboard() {
     const { user } = useAuth();
+    const {
         applications, complaints, courtBookings, facilitySettings, roomChangeRequests, refreshData,
         updateApplicationStatus, updateBulkApplicationStatus, updateComplaint, updateBookingStatus, updateFacilitySettings, toggleSlotBlock,
         allSports
