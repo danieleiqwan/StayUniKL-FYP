@@ -48,6 +48,14 @@ export default function SettingsHub() {
 
     const handleAccountSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Mandatory field validation
+        if (!accountForm.address || !accountForm.emergencyContact1Name || !accountForm.emergencyContact1Phone || !accountForm.emergencyContact1Relation) {
+            setMsg({ type: 'error', text: 'All identity and emergency contact fields are mandatory.' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
         setIsSaving(true);
         setMsg(null);
         try {
@@ -259,7 +267,7 @@ export default function SettingsHub() {
                                         <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest ml-1 transition-colors">Hometown Address</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                             <div className="md:col-span-3 space-y-2">
-                                                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Street Address</label>
+                                                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Street Address <span className="text-rose-500">*</span></label>
                                                 <textarea
                                                     rows={2}
                                                     value={accountForm.address}
@@ -304,9 +312,9 @@ export default function SettingsHub() {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                                             {/* Contact 1 */}
                                             <div className="space-y-4">
-                                                <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em]">Contact #1</p>
+                                                <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em]">Contact #1 (Mandatory)</p>
                                                 <div className="space-y-2">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name <span className="text-rose-500">*</span></label>
                                                     <input 
                                                         type="text" 
                                                         value={accountForm.emergencyContact1Name}
@@ -315,7 +323,7 @@ export default function SettingsHub() {
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship to Student</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship to Student <span className="text-rose-500">*</span></label>
                                                     <select 
                                                         value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact1Relation) ? accountForm.emergencyContact1Relation : (accountForm.emergencyContact1Relation ? 'Other' : '')}
                                                         onChange={(e) => {
@@ -349,7 +357,7 @@ export default function SettingsHub() {
                                                 )}
 
                                                 <div className="space-y-2">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number <span className="text-rose-500">*</span></label>
                                                     <input 
                                                         type="text" 
                                                         value={accountForm.emergencyContact1Phone}
