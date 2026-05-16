@@ -524,7 +524,7 @@ function AdminDashboard() {
                                 onFilterChange={setAppFilters}
                                 statusOptions={['Pending', 'Payment Pending', 'Approved', 'Checked in', 'Checked out', 'Cancelled', 'No show']}
                             />
-                            {selectedAppIds.length > 0 && (
+                            {selectedAppIds.length > 0 && appFilters.status === 'Pending' && (
                                 <div className="flex items-center gap-3 bg-white dark:bg-slate-900 px-6 py-2 rounded-2xl border border-orange-200 dark:border-orange-900/30 shadow-sm animate-in slide-in-from-right-4">
                                     <span className="text-xs font-black text-[#F26C22] uppercase tracking-widest">{selectedAppIds.length} Selected</span>
                                     <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
@@ -554,12 +554,14 @@ function AdminDashboard() {
                         <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
                             <div className="overflow-x-auto custom-scrollbar">
                                 <div className="min-w-[850px]">
-                                    <div className="grid grid-cols-[40px_2fr_1fr_1fr_1fr_2fr] px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                                        <div className="flex items-center">
-                                            <button onClick={toggleSelectAllApps} className="text-slate-400 hover:text-[#F26C22] transition-colors">
-                                                {selectedAppIds.length === filteredApps.length && filteredApps.length > 0 ? <CheckSquare className="h-4 w-4 text-[#F26C22]" /> : <Square className="h-4 w-4" />}
-                                            </button>
-                                        </div>
+                                    <div className={`grid ${appFilters.status === 'Pending' ? 'grid-cols-[40px_2fr_1fr_1fr_1fr_2fr]' : 'grid-cols-[2fr_1fr_1fr_1fr_2fr]'} px-8 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800`}>
+                                        {appFilters.status === 'Pending' && (
+                                            <div className="flex items-center">
+                                                <button onClick={toggleSelectAllApps} className="text-slate-400 hover:text-[#F26C22] transition-colors">
+                                                    {selectedAppIds.length === filteredApps.length && filteredApps.length > 0 ? <CheckSquare className="h-4 w-4 text-[#F26C22]" /> : <Square className="h-4 w-4" />}
+                                                </button>
+                                            </div>
+                                        )}
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Student</span>
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Room Type</span>
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Applied</span>
@@ -572,12 +574,14 @@ function AdminDashboard() {
                                                 <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No applications found.</p>
                                             </div>
                                         ) : filteredApps.map(app => (
-                                            <div key={app.id} className={`grid grid-cols-[40px_2fr_1fr_1fr_1fr_2fr] items-center px-8 py-5 hover:bg-orange-50/30 dark:hover:bg-slate-800/30 transition-colors group ${selectedAppIds.includes(app.id) ? 'bg-orange-50/50 dark:bg-orange-900/10' : ''}`}>
-                                                <div className="flex items-center">
-                                                    <button onClick={() => toggleAppSelection(app.id)} className={`${selectedAppIds.includes(app.id) ? 'text-[#F26C22]' : 'text-slate-300'} hover:text-[#F26C22] transition-colors`}>
-                                                        {selectedAppIds.includes(app.id) ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-                                                    </button>
-                                                </div>
+                                            <div key={app.id} className={`grid ${appFilters.status === 'Pending' ? 'grid-cols-[40px_2fr_1fr_1fr_1fr_2fr]' : 'grid-cols-[2fr_1fr_1fr_1fr_2fr]'} items-center px-8 py-5 hover:bg-orange-50/30 dark:hover:bg-slate-800/30 transition-colors group ${selectedAppIds.includes(app.id) ? 'bg-orange-50/50 dark:bg-orange-900/10' : ''}`}>
+                                                {appFilters.status === 'Pending' && (
+                                                    <div className="flex items-center">
+                                                        <button onClick={() => toggleAppSelection(app.id)} className={`${selectedAppIds.includes(app.id) ? 'text-[#F26C22]' : 'text-slate-300'} hover:text-[#F26C22] transition-colors`}>
+                                                            {selectedAppIds.includes(app.id) ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                                                        </button>
+                                                    </div>
+                                                )}
                                                 <div className="flex items-center gap-3">
                                                     <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-black text-sm shrink-0">
                                                         {(app.studentName || 'S').charAt(0)}
