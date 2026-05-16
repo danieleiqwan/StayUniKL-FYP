@@ -92,24 +92,49 @@ export default function VirtualIDCard() {
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resident Status</span>
                             </div>
                             <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
-                                <div className="h-1.5 w-1.5 bg-[#F26C22] rounded-full"></div>
-                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Active Stay</span>
+                                <div className={`h-1.5 w-1.5 rounded-full ${
+                                    myApplication?.status === 'Checked in' ? 'bg-emerald-500' :
+                                    myApplication?.status === 'Approved' ? 'bg-blue-500' :
+                                    myApplication?.status === 'Payment Pending' ? 'bg-amber-500' :
+                                    'bg-slate-500'
+                                }`}></div>
+                                <span className="text-[10px] font-black text-white uppercase tracking-widest">
+                                    {myApplication?.status === 'Checked in' ? 'Active Stay' : 
+                                     myApplication?.status === 'Approved' ? 'Ready for Move-in' :
+                                     myApplication?.status === 'Payment Pending' ? 'Payment Required' :
+                                     myApplication?.status === 'Pending' ? 'Reviewing' : 'No Active Stay'}
+                                </span>
                             </div>
-                            <p className="text-[9px] text-slate-500 font-medium italic">Scanned at Check-in Hub</p>
+                            <p className="text-[9px] text-slate-500 font-medium italic">
+                                {myApplication?.status === 'Checked in' ? 'Scanned at Check-in Hub' : 
+                                 myApplication?.status === 'Approved' ? 'Visit warden for keys' :
+                                 'Access restricted'}
+                            </p>
                         </div>
 
-                        <button 
-                            onClick={() => setIsQrModalOpen(true)}
-                            className="bg-white p-2.5 rounded-2xl shadow-2xl shadow-black/50 hover:scale-105 transition-transform duration-500 cursor-pointer focus:outline-none focus:ring-4 focus:ring-orange-500/50"
-                            title="Click to enlarge QR Code"
-                        >
-                            <QRCode 
-                                value={qrData}
-                                size={64}
-                                level="H"
-                                fgColor="#0F172A"
-                            />
-                        </button>
+                        {/* QR Code / Locked State */}
+                        {(myApplication?.status === 'Approved' || myApplication?.status === 'Checked in') ? (
+                            <button 
+                                onClick={() => setIsQrModalOpen(true)}
+                                className="bg-white p-2.5 rounded-2xl shadow-2xl shadow-black/50 hover:scale-105 transition-transform duration-500 cursor-pointer focus:outline-none focus:ring-4 focus:ring-orange-500/50"
+                                title="Click to enlarge QR Code"
+                            >
+                                <QRCode 
+                                    value={qrData}
+                                    size={64}
+                                    level="H"
+                                    fgColor="#0F172A"
+                                />
+                            </button>
+                        ) : (
+                            <div 
+                                className="bg-slate-800/50 p-2.5 rounded-2xl border border-white/10 flex flex-col items-center justify-center gap-1 w-20 h-20 opacity-50 cursor-not-allowed group/locked"
+                                title="QR Code Locked - Application not approved"
+                            >
+                                <ShieldCheck className="h-6 w-6 text-slate-500 group-hover/locked:text-[#F26C22] transition-colors" />
+                                <span className="text-[8px] font-black text-slate-500 uppercase tracking-tighter">Locked</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
