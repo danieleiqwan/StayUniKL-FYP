@@ -519,32 +519,32 @@ function AdminDashboard() {
                 {/* Applications Tab */}
                 {activeTab === 'applications' && (
                     <div className="space-y-4 animate-in fade-in duration-300">
-                        <div className="flex items-center justify-between">
+                        <div className="space-y-4">
                             <AdminFilterBar
                                 onFilterChange={setAppFilters}
                                 statusOptions={['Pending', 'Payment Pending', 'Approved', 'Checked in', 'Checked out', 'Cancelled', 'No show']}
                             />
                             {selectedAppIds.length > 0 && appFilters.status === 'Pending' && (
-                                <div className="flex items-center gap-3 bg-white dark:bg-slate-900 px-6 py-2 rounded-2xl border border-orange-200 dark:border-orange-900/30 shadow-sm animate-in slide-in-from-right-4">
+                                <div className="flex items-center gap-3 bg-white dark:bg-slate-900 px-6 py-3 rounded-2xl border border-orange-200 dark:border-orange-900/30 shadow-sm animate-in slide-in-from-top-2 w-fit mx-auto">
                                     <span className="text-xs font-black text-[#F26C22] uppercase tracking-widest">{selectedAppIds.length} Selected</span>
                                     <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
                                     <button 
                                         disabled={isBulkProcessing}
                                         onClick={() => handleBulkStatusUpdate('Payment Pending')}
-                                        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-[#F26C22] text-white px-3 py-1.5 rounded-xl hover:bg-[#d65a16] transition-all disabled:opacity-50"
+                                        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-[#F26C22] text-white px-4 py-2 rounded-xl hover:bg-[#d65a16] transition-all disabled:opacity-50"
                                     >
                                         <Check className="h-3 w-3" /> Bulk Accept
                                     </button>
                                     <button 
                                         disabled={isBulkProcessing}
                                         onClick={() => handleBulkStatusUpdate('Cancelled')}
-                                        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all disabled:opacity-50"
+                                        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-4 py-2 rounded-xl hover:bg-rose-600 transition-all disabled:opacity-50"
                                     >
                                         <Trash2 className="h-3 w-3" /> Bulk Reject
                                     </button>
                                     <button 
                                         onClick={() => setSelectedAppIds([])}
-                                        className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                        className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 ml-2"
                                     >
                                         Cancel
                                     </button>
