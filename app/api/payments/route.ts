@@ -67,22 +67,14 @@ export async function POST(request: Request) {
             const [existingInv]: any = await pool.query('SELECT id FROM invoices WHERE application_id = ?', [finalRef]);
             
             if (existingInv.length > 0) {
+                // Mark the existing hostel fee invoice as Paid
                 await pool.query(
-                    'UPDATE invoices SET status = "Paid" WHERE application_id = ? AND status = "Unpaid"',
+                    'UPDATE invoices SET status = "Paid" WHERE application_id = ? AND status IN ("Unpaid", "Overdue")',
                     [finalRef]
                 );
-            } else {
-                // Create the missing invoice for history visibility
-                const invId = `INV-AUTO-${Date.now()}`;
-                await pool.query(
-                    `INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date)
-                     VALUES (?, ?, ?, 'Hostel Fee', 'Hostel Application Fee', ?, 'Paid', NOW())`,
-                    [invId, userId, finalRef, amount]
-                );
-                
-                // Link this new payment record to the newly created invoice
-                await pool.query('UPDATE payments SET invoice_id = ? WHERE id = ?', [invId, id]);
             }
+            // NOTE: We intentionally do NOT create invoices here.
+            // Invoices are only created by the admin acceptance flow (POST /api/applications).
         }
 
         // Fetch user name for logging
