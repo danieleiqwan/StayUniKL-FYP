@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS hostel_billing_settings (
 INSERT IGNORE INTO hostel_billing_settings (setting_key, setting_value) VALUES ('grace_period_days', '10');
 
 -- 7. Create index for faster installment queries
-CREATE INDEX IF NOT EXISTS idx_invoices_application_installment 
+CREATE INDEX idx_invoices_application_installment 
     ON invoices (application_id, installment_no);
 
 SELECT 'Installment migration completed successfully.' AS result;
