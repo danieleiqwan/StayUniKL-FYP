@@ -18,9 +18,9 @@ export async function POST(request: Request) {
                 WHERE role = 'student' 
                 AND (
                     address IS NULL OR address = '' OR 
-                    emergencyContact1Name IS NULL OR emergencyContact1Name = '' OR 
-                    emergencyContact1Phone IS NULL OR emergencyContact1Phone = '' OR
-                    emergencyContact1Relation IS NULL OR emergencyContact1Relation = ''
+                    emergency_contact1_name IS NULL OR emergency_contact1_name = '' OR 
+                    emergency_contact1_phone IS NULL OR emergency_contact1_phone = '' OR
+                    emergency_contact1_relation IS NULL OR emergency_contact1_relation = ''
                 )
             `);
 
