@@ -16,9 +16,16 @@ export default function NotificationsPage() {
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
     const isPaymentPending = myApplication?.status === 'Payment Pending';
-    const appOwed = isPaymentPending ? Number(myApplication?.totalPrice) : 0;
+    const appInvoices = invoices?.filter(i => i.application_id === myApplication?.id) || [];
+    const firstUnpaidInvoice = appInvoices.find(i => i.status === 'Unpaid');
+    const appOwed = isPaymentPending && appInvoices.length === 0 ? Number(myApplication?.totalPrice) : 0;
     const unpaidInvoices = invoices?.filter(i => i.status === 'Unpaid') || [];
     const outstandingTotal = unpaidInvoices.reduce((acc, curr) => acc + Number(curr.amount), 0) + appOwed;
+
+    const paymentAmount = firstUnpaidInvoice ? Number(firstUnpaidInvoice.amount) : Number(myApplication?.totalPrice || 0);
+    const paymentLink = firstUnpaidInvoice 
+        ? `/dashboard/payment?amount=${paymentAmount}&invoiceId=${firstUnpaidInvoice.id}&ref=${myApplication?.id}`
+        : `/dashboard/payment?amount=${paymentAmount}&ref=${myApplication?.id}`;
 
     useEffect(() => {
         // Refresh when entering
@@ -107,12 +114,12 @@ export default function NotificationsPage() {
                             <div>
                                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1 leading-tight uppercase">Payment Required</h3>
                                 <p className="text-sm text-slate-600 dark:text-slate-400 font-medium max-w-md">
-                                    Your hostel application has been approved. Please settle the payment of <span className="font-bold text-slate-900 dark:text-white underline underline-offset-4">RM {Number(myApplication?.totalPrice).toFixed(2)}</span> to confirm your room.
+                                    Your hostel application has been approved. Please settle the payment of <span className="font-bold text-slate-900 dark:text-white underline underline-offset-4">RM {Number(paymentAmount).toFixed(2)}</span> to confirm your room.
                                 </p>
                             </div>
                         </div>
                         <a 
-                            href={`/dashboard/payment?amount=${myApplication?.totalPrice}&ref=${myApplication?.id}`}
+                            href={paymentLink}
                             className="bg-amber-600 text-white px-8 py-3.5 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-amber-500/20 hover:bg-amber-700 transition-all active:scale-95 whitespace-nowrap"
                         >
                             Proceed to Payment

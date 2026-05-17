@@ -99,6 +99,13 @@ function DashboardContent() {
 
     // Derived States
     const isPaymentPending = myApplication?.status === 'Payment Pending';
+    const appInvoices = invoices?.filter(i => i.application_id === myApplication?.id) || [];
+    const firstUnpaidInvoice = appInvoices.find(i => i.status === 'Unpaid');
+    const paymentAmount = firstUnpaidInvoice ? Number(firstUnpaidInvoice.amount) : Number(myApplication?.totalPrice || 0);
+    const paymentLink = firstUnpaidInvoice 
+        ? `/dashboard/payment?amount=${paymentAmount}&invoiceId=${firstUnpaidInvoice.id}&ref=${myApplication?.id}`
+        : `/dashboard/payment?amount=${paymentAmount}&ref=${myApplication?.id}`;
+
     const pendingInvoices = invoices.filter(i => i.status === 'Unpaid' || i.status === 'Overdue');
     const totalPendingInvoicesAmount = pendingInvoices.reduce((s, i) => s + Number(i.amount), 0);
     const myAllBookings = courtBookings.filter(b => b.studentId === user.id);
@@ -200,11 +207,11 @@ function DashboardContent() {
                         </div>
                         <div className="text-white">
                             <p className="font-black text-sm">Payment Required</p>
-                            <p className="text-xs opacity-90">Complete your fee of <span className="font-bold underline">RM {Number(myApplication?.totalPrice).toFixed(2)}</span> to secure your room.</p>
+                            <p className="text-xs opacity-90">Complete your fee of <span className="font-bold underline">RM {Number(paymentAmount).toFixed(2)}</span> to secure your room.</p>
                         </div>
                     </div>
                     <Link
-                        href={`/dashboard/payment?amount=${myApplication?.totalPrice}&ref=${myApplication?.id}`}
+                        href={paymentLink}
                         className="bg-white text-orange-600 px-6 py-2.5 rounded-xl font-black text-xs tracking-widest uppercase hover:bg-orange-50 transition-all whitespace-nowrap shrink-0"
                     >
                         Pay Now →

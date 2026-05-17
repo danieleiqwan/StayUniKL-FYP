@@ -30,7 +30,8 @@ export default function ProfilePage() {
 
     if (!user) return null;
 
-    const appOwed = myApplication?.status === 'Payment Pending' ? Number(myApplication.totalPrice) : 0;
+    const appInvoices = invoices?.filter(i => i.application_id === myApplication?.id) || [];
+    const appOwed = myApplication?.status === 'Payment Pending' && appInvoices.length === 0 ? Number(myApplication.totalPrice) : 0;
     const outstandingTotal = invoices.filter(i => i.status === 'Unpaid').reduce((acc, curr) => acc + parseFloat(curr.amount), 0) + appOwed;
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
