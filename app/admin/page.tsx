@@ -657,7 +657,7 @@ function AdminDashboard() {
                                                         <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Cancel</button>
                                                     </>)}
                                                     {app.status === 'Approved' && (<>
-                                                        <button onClick={() => updateApplicationStatus(app.id, 'Checked in')} className="text-[10px] font-black uppercase tracking-widest bg-teal-500 text-white px-3 py-1.5 rounded-xl hover:bg-teal-600 transition-all">Check In</button>
+                                                        <button onClick={() => updateApplicationStatus(app.id, 'Checked in')} className="text-[10px] font-black uppercase tracking-widest bg-teal-500 text-white px-3 py-1.5 rounded-xl hover:bg-teal-600 transition-all">Manual Check-In</button>
                                                         <button onClick={() => updateApplicationStatus(app.id, 'No show')} className="text-[10px] font-black uppercase tracking-widest bg-amber-500 text-white px-3 py-1.5 rounded-xl hover:bg-amber-600 transition-all">No Show</button>
                                                         <button onClick={() => updateApplicationStatus(app.id, 'Cancelled')} className="text-[10px] font-black uppercase tracking-widest bg-rose-500 text-white px-3 py-1.5 rounded-xl hover:bg-rose-600 transition-all">Cancel</button>
                                                     </>)}
