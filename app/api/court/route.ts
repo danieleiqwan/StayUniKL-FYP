@@ -50,13 +50,15 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const studentId = searchParams.get('studentId');
 
+        const isUserAdmin = user.role === 'admin' || user.role === 'superadmin';
+
         // Security check: If not admin, you can only see your own bookings
-        if (user.role !== 'admin' && studentId && user.id !== studentId) {
+        if (!isUserAdmin && studentId && user.id !== studentId) {
             return NextResponse.json({ error: 'Forbidden: You cannot access bookings for another user' }, { status: 403 });
         }
 
         // If no studentId is provided and not admin, default to the user's own ID
-        const activeId = user.role === 'admin' ? studentId : user.id;
+        const activeId = isUserAdmin ? studentId : user.id;
 
         let query = `
             SELECT b.*, u.name as student_name, u.student_id as official_id
@@ -113,9 +115,11 @@ export async function POST(request: Request) {
 
         const body = await request.json();
 
+        const isUserAdmin = user.role === 'admin' || user.role === 'superadmin';
+
         // Check if update settings or create booking
         if (body.action === 'update_settings') {
-            if (user.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            if (!isUserAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
             
             const validation = settingsUpdateSchema.safeParse(body);
             if (!validation.success) {
@@ -131,7 +135,7 @@ export async function POST(request: Request) {
         }
 
         if (body.action === 'update_status') {
-            if (user.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+            if (!isUserAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
             
             const validation = statusUpdateSchema.safeParse(body);
             if (!validation.success) {
@@ -188,12 +192,12 @@ export async function POST(request: Request) {
         const studentName = studentRows[0]?.name || 'Student';
 
         // Security check: Student can only book for themselves
-        if (user.role !== 'admin' && user.id !== studentId) {
+        if (!isUserAdmin && user.id !== studentId) {
             return NextResponse.json({ error: 'Forbidden: You cannot create a booking for another user' }, { status: 403 });
         }
 
         // 0. ACCESS CONTROL: Check if student has an approved room application
-        if (user.role !== 'admin') {
+        if (!isUserAdmin) {
             const [appRows]: any = await pool.query(
                 'SELECT status FROM applications WHERE student_id = ? AND status IN ("Approved", "Checked in") LIMIT 1',
                 [studentId]
@@ -241,7 +245,7 @@ export async function POST(request: Request) {
         }
 
         // 1.1 Check if the slot is too far in the future (Limit: 30 days advance)
-        if (user.role !== 'admin') {
+        if (!isUserAdmin) {
             const maxAdvanceDays = 30;
             const maxDate = getKLDate();
             maxDate.setDate(maxDate.getDate() + maxAdvanceDays);
@@ -270,7 +274,7 @@ export async function POST(request: Request) {
             }
 
             // 2.1 Check daily and weekly limits (Admin exempt)
-            if (user.role !== 'admin') {
+            if (!isUserAdmin) {
                 // Daily Limit (2)
                 const [dailyCount]: any = await connection.query(
                     'SELECT COUNT(*) as count FROM court_bookings WHERE student_id = ? AND DATE(date) = DATE(?) AND status IN ("Pending", "Approved")',
@@ -349,6 +353,8 @@ export async function DELETE(request: Request) {
         const user = await getAuthUser();
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+        const isUserAdmin = user.role === 'admin' || user.role === 'superadmin';
+
         const body = await request.json();
         const validation = cancelSchema.safeParse(body);
         if (!validation.success) {
@@ -375,7 +381,7 @@ export async function DELETE(request: Request) {
             const booking = rows[0];
 
             // 2. Authorization: only the owner or admin can cancel
-            if (user.role !== 'admin' && user.id !== booking.student_id) {
+            if (!isUserAdmin && user.id !== booking.student_id) {
                 await connection.rollback();
                 return NextResponse.json({ error: 'Forbidden: You can only cancel your own bookings.' }, { status: 403 });
             }
@@ -399,7 +405,7 @@ export async function DELETE(request: Request) {
 
             // 5. Business rule (student only): must cancel at least 2 hours before start
             const twoHoursBefore = new Date(bookingDate.getTime() - 2 * 60 * 60 * 1000);
-            if (user.role !== 'admin' && now > twoHoursBefore) {
+            if (!isUserAdmin && now > twoHoursBefore) {
                 await connection.rollback();
                 return NextResponse.json({
                     error: 'Cancellations must be made at least 2 hours before the booking start time.'

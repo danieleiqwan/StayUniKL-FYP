@@ -391,13 +391,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     const updateBookingStatus = async (id: string, status: CourtBooking['status']) => {
         try {
-            await fetch('/api/court', {
+            const res = await fetch('/api/court', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'update_status', id, status })
             });
+            const data = await res.json();
+            if (!res.ok) {
+                alert(data.error || 'Failed to update booking status.');
+            }
             fetchData();
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e); 
+            alert('Failed to update booking status due to a network error.');
+        }
     };
 
     const cancelBooking = async (id: string): Promise<{ success?: boolean; error?: string }> => {
