@@ -20,6 +20,7 @@ interface RoomChangeRequest {
     waitlist_position?: number;
     preferred_bed_id?: string;
     preferred_room_type?: string;
+    completed_at?: string;
 }
 
 export default function RoomChangePage() {
@@ -30,6 +31,7 @@ export default function RoomChangePage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [activeRequest, setActiveRequest] = useState<RoomChangeRequest | null>(null);
+    const [pastRequests, setPastRequests] = useState<RoomChangeRequest[]>([]);
 
     // Wizard State
     const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -69,6 +71,15 @@ export default function RoomChangePage() {
                     ['Pending Review', 'Approved - Assigned', 'Approved - Waitlist'].includes(r.status)
                 );
                 setActiveRequest(active || null);
+
+                // Find completed/inactive requests
+                const inactive = data.requests.filter((r: RoomChangeRequest) =>
+                    ['Completed', 'Rejected', 'Cancelled'].includes(r.status)
+                );
+                setPastRequests(inactive);
+            } else {
+                setActiveRequest(null);
+                setPastRequests([]);
             }
 
         } catch (error) {
@@ -567,6 +578,81 @@ export default function RoomChangePage() {
                                 </button>
                             )}
                         </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Room Change History Section */}
+                {pastRequests.length > 0 && (
+                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-sm border border-slate-100 dark:border-slate-800 transition-colors mt-8">
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="h-12 w-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 shadow-sm">
+                                <Clock className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Room Change History</h2>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Logs of your completed, rejected, or cancelled transfer requests.</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            {pastRequests.map((req) => (
+                                <div key={req.id} className="p-6 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all hover:border-[#F26C22]/30">
+                                    <div className="space-y-3">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <span className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                                                REF: {req.id.split('_')[1] || req.id.split('-')[0]}
+                                            </span>
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border ${
+                                                req.status === 'Completed' ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
+                                                req.status === 'Rejected' ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-100 dark:border-rose-900/30 text-rose-600 dark:text-rose-400' :
+                                                'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                                            }`}>
+                                                {req.status}
+                                            </span>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                            <span className="font-bold text-slate-400 uppercase text-[10px] tracking-wider">Previous:</span>
+                                            <span className="font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200/50 dark:border-slate-700 px-2 py-0.5 rounded-lg text-xs">
+                                                {req.current_room_number || 'Room ID'}
+                                            </span>
+                                            {req.status === 'Completed' && req.new_room_number && (
+                                                <>
+                                                    <ArrowRight className="h-3.5 w-3.5 text-[#F26C22] mx-1" />
+                                                    <span className="font-bold text-slate-400 uppercase text-[10px] tracking-wider">New Room:</span>
+                                                    <span className="font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 px-2.5 py-0.5 rounded-lg text-xs">
+                                                        {req.new_room_number}
+                                                    </span>
+                                                </>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 italic max-w-2xl leading-relaxed">
+                                            "Justification: {req.reason}"
+                                        </p>
+                                        {req.admin_notes && (
+                                            <p className="text-xs font-medium text-rose-600 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-900/10 p-3 rounded-2xl border border-rose-100/50 dark:border-rose-900/20">
+                                                <strong className="font-black uppercase tracking-wider text-[9px] block mb-1">Admin Response:</strong>
+                                                {req.admin_notes}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="text-right shrink-0 flex flex-col items-start md:items-end justify-between gap-1">
+                                        <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                                            Requested: {new Date(req.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                        </p>
+                                        {req.completed_at && (
+                                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">
+                                                Completed: {new Date(req.completed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            </p>
+                                        )}
+                                        {req.reviewed_at && !req.completed_at && (
+                                            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                                                Reviewed: {new Date(req.reviewed_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
