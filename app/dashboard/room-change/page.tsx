@@ -284,6 +284,28 @@ export default function RoomChangePage() {
 
                         <div className="grid md:grid-cols-2 gap-8 relative z-10">
                             <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800">
+                                <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-widest mb-2">Previous Placement</p>
+                                <div className="flex items-center gap-2">
+                                    <Home className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                                    <span className="font-bold text-slate-900 dark:text-white text-lg">
+                                        {activeRequest.current_room_number} • Bed {activeRequest.current_bed_id}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {activeRequest.status === 'Approved - Assigned' && activeRequest.new_room_number && (
+                                <div className="bg-emerald-50 dark:bg-emerald-950/20 p-6 rounded-3xl border border-emerald-100 dark:border-emerald-900/30">
+                                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 uppercase font-black tracking-widest mb-2 font-black">Newly Assigned Placement</p>
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircle className="h-5 w-5 text-emerald-500" />
+                                        <span className="font-black text-emerald-600 dark:text-emerald-400 text-lg">
+                                            {activeRequest.new_room_number} • Bed {activeRequest.new_bed_id}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-3xl border border-slate-100 dark:border-slate-800">
                                 <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-widest mb-2">Requested Type</p>
                                 <p className="font-bold text-slate-900 dark:text-white text-lg">{activeRequest.preferred_room_type || 'Same Type'}</p>
                             </div>
