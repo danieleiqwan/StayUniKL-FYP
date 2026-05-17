@@ -8,6 +8,20 @@ export async function GET() {
         if (!admin) {
             return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 401 });
         }
+        // 1. Align live database ENUM types for installment support
+        await pool.query(`
+            ALTER TABLE applications 
+            MODIFY COLUMN payment_status ENUM('Pending', 'Partially Paid', 'Fully Paid', 'Overdue') NOT NULL DEFAULT 'Pending'
+        `);
+        await pool.query(`
+            ALTER TABLE invoices 
+            MODIFY COLUMN type ENUM('Hostel Fee', 'Hostel Fee - Installment', 'Deposit', 'Fine', 'Other') NOT NULL
+        `);
+        await pool.query(`
+            ALTER TABLE invoices 
+            MODIFY COLUMN status ENUM('Unpaid', 'Paid', 'Partially Paid', 'Overdue', 'Cancelled') DEFAULT 'Unpaid'
+        `);
+
         // Fix records with empty status that were previously rejected
         await pool.query("UPDATE applications SET status = 'Reapplied' WHERE status = '' AND previous_status = 'Rejected'");
 
