@@ -310,6 +310,50 @@ export default function StudentDetailModal({ studentId, onClose, onUpdate }: Stu
                                                 </div>
                                             </div>
                                         ))}
+
+                                        {/* Room Change History Section */}
+                                        {data.roomChanges && data.roomChanges.length > 0 && (
+                                            <div className="mt-10 pt-10 border-t border-slate-100 dark:border-slate-800">
+                                                <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-6">Room Transfer History</h4>
+                                                <div className="space-y-6">
+                                                    {data.roomChanges.map((change: any) => (
+                                                        <div key={change.id} className="group relative pl-10">
+                                                            <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-slate-100 dark:bg-slate-800"></div>
+                                                            <div className="absolute left-0 top-1 h-6 w-6 rounded-xl bg-white dark:bg-slate-950 border-4 border-indigo-500 shadow-sm z-10"></div>
+                                                            <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 group-hover:border-indigo-200 dark:group-hover:border-indigo-900/30 transition-all">
+                                                                <div className="flex items-center justify-between mb-4">
+                                                                    <h5 className="font-black text-slate-900 dark:text-white uppercase text-xs tracking-widest flex items-center gap-2">
+                                                                        🔄 Room Change Request
+                                                                    </h5>
+                                                                    <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
+                                                                        change.status === 'Completed' || change.status === 'Approved - Assigned' ? 'bg-emerald-100 text-emerald-700' :
+                                                                        change.status === 'Rejected' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+                                                                    }`}>
+                                                                        {change.status}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                                                    <DetailItem label="Previous Room" value={change.current_room_number || 'N/A'} />
+                                                                    <DetailItem label="Previous Bed" value={change.current_bed_id || 'N/A'} />
+                                                                    <DetailItem label="Assigned Room" value={change.new_room_number || 'Pending'} />
+                                                                    <DetailItem label="Assigned Bed" value={change.new_bed_id || 'Pending'} />
+                                                                    <DetailItem label="Reason" value={change.reason} />
+                                                                    <DetailItem label="Date Requested" value={new Date(change.created_at).toLocaleDateString()} />
+                                                                    {change.reviewed_at && <DetailItem label="Date Reviewed" value={new Date(change.reviewed_at).toLocaleDateString()} />}
+                                                                    {change.completed_at && <DetailItem label="Date Completed" value={new Date(change.completed_at).toLocaleDateString()} />}
+                                                                </div>
+                                                                {change.admin_notes && (
+                                                                    <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs text-slate-600 dark:text-slate-400 font-medium">
+                                                                        <strong className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">Admin Remarks:</strong>
+                                                                        {change.admin_notes}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

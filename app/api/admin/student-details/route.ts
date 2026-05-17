@@ -93,6 +93,19 @@ export async function GET(request: Request) {
             }
         }
 
+        // 7. Fetch Room Change Requests
+        const [rcrRows]: any = await pool.query(
+            `SELECT rcr.*,
+                    curr_room.id as current_room_number,
+                    new_room.id as new_room_number
+             FROM room_change_requests rcr
+             LEFT JOIN rooms curr_room ON rcr.current_room_id COLLATE utf8mb4_unicode_ci = curr_room.id
+             LEFT JOIN rooms new_room ON rcr.new_room_id COLLATE utf8mb4_unicode_ci = new_room.id
+             WHERE rcr.student_id = ?
+             ORDER BY rcr.created_at DESC`,
+            [internalId]
+        );
+
         return NextResponse.json({
             success: true,
             data: {
@@ -112,6 +125,7 @@ export async function GET(request: Request) {
                 complaints: parsedCompRows,
                 documents: docRows,
                 roomDetails,
+                roomChanges: rcrRows,
             }
         });
 
