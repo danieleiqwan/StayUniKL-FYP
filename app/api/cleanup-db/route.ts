@@ -11,7 +11,10 @@ export async function GET() {
         // 1. Align live database ENUM types for installment support
         await pool.query(`
             ALTER TABLE applications 
-            MODIFY COLUMN payment_status ENUM('Pending', 'Partially Paid', 'Fully Paid', 'Overdue') NOT NULL DEFAULT 'Pending'
+            MODIFY COLUMN payment_status ENUM('Pending', 'Partially Paid', 'Fully Paid', 'Overdue', 'Paid') NOT NULL DEFAULT 'Pending'
+        `);
+        await pool.query(`
+            UPDATE applications SET payment_status = 'Fully Paid' WHERE payment_status = 'Paid'
         `);
         await pool.query(`
             ALTER TABLE invoices 
