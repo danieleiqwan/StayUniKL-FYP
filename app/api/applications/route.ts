@@ -4,6 +4,7 @@ import { logAction } from '@/lib/audit';
 import { isAdmin, getAuthUser } from '@/lib/auth';
 import { createNotification } from '@/lib/notifications';
 import { generateHostelInvoices, syncApplicationPaymentStatus } from '@/lib/hostel-billing';
+import { hasPreviousResidency } from '@/lib/student-classification';
 import { z } from 'zod';
 
 // Validation Schemas
@@ -116,6 +117,43 @@ export async function POST(request: Request) {
         if (user.role === 'student' && studentId !== user.id) {
             return NextResponse.json({ error: 'Unauthorized: Cannot apply for another student' }, { status: 403 });
         }
+
+        // ─── PHASE 1: APPLICATION SESSION ENFORCEMENT ───────────────────────────
+        // Students can only apply when there is an OPEN session AND they meet eligibility.
+        if (user.role === 'student') {
+            const [sessionRows]: any = await pool.query(
+                `SELECT * FROM application_sessions
+                 WHERE start_date <= NOW() AND end_date >= NOW()
+                 ORDER BY start_date DESC LIMIT 1`
+            ).catch(() => [[]]); // Graceful fallback if table doesn't exist yet
+
+            if (!sessionRows || sessionRows.length === 0) {
+                return NextResponse.json({
+                    error: 'Applications are currently closed.',
+                    message: 'There is no open application session at this time. Please check back when a session is open.'
+                }, { status: 403 });
+            }
+
+            const session = sessionRows[0];
+
+            // ─── PHASE 2: ELIGIBILITY CHECK ────────────────────────────────────────
+            if (session.eligibility !== 'Both') {
+                const isReturning = await hasPreviousResidency(studentId);
+                if (session.eligibility === 'New Students Only' && isReturning) {
+                    return NextResponse.json({
+                        error: 'Not eligible.',
+                        message: 'This application session is restricted to new students only. As a returning student, you are not eligible for this intake.'
+                    }, { status: 403 });
+                }
+                if (session.eligibility === 'Returning Students Only' && !isReturning) {
+                    return NextResponse.json({
+                        error: 'Not eligible.',
+                        message: 'This application session is restricted to returning students only. As a new student, you are not eligible for this intake.'
+                    }, { status: 403 });
+                }
+            }
+        }
+        // ──────────────────────────────────────────────────────────────────────────
 
         // 1. CHECK FOR EXISTING ACTIVE APPLICATIONS
         // We block new applications if student already has one that isn't Cancelled, Rejected, or Checked out.

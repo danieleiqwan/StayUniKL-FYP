@@ -20,7 +20,8 @@ import {
     ScanLine,
     GraduationCap,
     History,
-    AlertTriangle
+    AlertTriangle,
+    CalendarClock
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -52,6 +53,7 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
         { id: 'complaints', label: 'Facility Complaints', icon: Wrench, tab: 'complaints' },
         { id: 'facilities', label: 'Sport & Facilities', icon: CalendarDays, tab: 'facilities' },
         { id: 'room-changes', label: 'Room Change Request', icon: Building2, tab: 'room-changes' },
+        { id: 'sessions', label: 'Application Sessions', icon: CalendarClock, tab: 'sessions' },
         { id: 'announcements', label: 'Announcements', icon: Megaphone, path: '/admin/announcements' },
     ];
 

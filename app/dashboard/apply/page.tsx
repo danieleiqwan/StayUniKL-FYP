@@ -3,10 +3,11 @@
 import { useAuth } from '@/context/AuthContext';
 import { useData, Room, Bed } from '@/context/DataContext';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     CheckCircle2, ChevronRight, BedDouble, CalendarDays, Key,
-    AlertTriangle, QrCode, CreditCard, GraduationCap, Banknote, Info
+    AlertTriangle, QrCode, CreditCard, GraduationCap, Banknote, Info,
+    Lock, Clock, UserCheck, UserX
 } from 'lucide-react';
 
 type PaymentMethod = 'Full Payment' | 'Installment Plan';
@@ -14,6 +15,17 @@ type PaymentMethod = 'Full Payment' | 'Installment Plan';
 const SEMESTER_FEE = 600;
 const INSTALLMENT_AMOUNT = 150;
 const INSTALLMENT_COUNT = 4;
+
+interface AppSession {
+    id: string;
+    name: string;
+    semester_type: 'Long' | 'Short';
+    intake_batch: string;
+    eligibility: 'New Students Only' | 'Returning Students Only' | 'Both';
+    start_date: string;
+    end_date: string;
+    status: 'Upcoming' | 'Open' | 'Closed';
+}
 
 export default function ApplyPage() {
     const { user } = useAuth();
@@ -28,12 +40,40 @@ export default function ApplyPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Session & Classification state
+    const [session, setSession] = useState<AppSession | null | 'loading'>('loading');
+    const [studentType, setStudentType] = useState<'new' | 'returning' | null>(null);
+
+    useEffect(() => {
+        if (!user) return;
+        // Fetch open session
+        fetch('/api/admin/application-sessions')
+            .then(r => r.json())
+            .then(d => setSession(d.session ?? null))
+            .catch(() => setSession(null));
+        // Fetch student type
+        fetch('/api/student-classification')
+            .then(r => r.json())
+            .then(d => setStudentType(d.studentType ?? 'new'))
+            .catch(() => setStudentType('new'));
+    }, [user]);
+
     const allowedFloors = user ? getAvailableFloors(user.gender) : [];
     const roomsOnFloor = selectedFloor ? getRoomsByFloor(selectedFloor) : [];;
 
     if (!user) return null;
 
+    // Check if student is eligible for the open session
+    const isSessionOpen = session && session !== 'loading' && (session as AppSession).status === 'Open';
+    const eligibility = session && session !== 'loading' ? (session as AppSession).eligibility : null;
+    const isEligible = isSessionOpen && (
+        eligibility === 'Both' ||
+        (eligibility === 'New Students Only' && studentType === 'new') ||
+        (eligibility === 'Returning Students Only' && studentType === 'returning')
+    );
+
     const activeApplication = myApplication && ['Pending', 'Payment Pending', 'Approved', 'Checked in'].includes(myApplication.status) ? myApplication : null;
+
 
     if (activeApplication) {
         const myRoom = rooms.find(r => r.id === activeApplication?.roomId);
@@ -165,7 +205,51 @@ export default function ApplyPage() {
                 <p className="text-slate-500 dark:text-slate-400 text-sm">All students are required to stay for a full semester (RM600).</p>
             </div>
 
+            {/* Session & eligibility loading state */}
+            {session === 'loading' && (
+                <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 animate-pulse">
+                    <Clock className="h-5 w-5 text-slate-400 shrink-0" />
+                    <p className="text-sm font-bold text-slate-400">Checking application session status…</p>
+                </div>
+            )}
+
+            {/* Phase 4: Combined Blocked State */}
+            {session !== 'loading' && (!isSessionOpen || !isEligible) && (
+                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-red-200 dark:border-red-800/50 shadow-sm p-12 text-center">
+                    <div className="mx-auto h-20 w-20 rounded-3xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-6">
+                        <Lock className="h-9 w-9 text-red-500" />
+                    </div>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Access Denied</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                        Applications are currently closed or not available for your category.
+                    </p>
+                    <p className="mt-4 text-xs font-black uppercase tracking-widest text-slate-400">
+                        Detected Category: {studentType === 'returning' ? 'Returning Student' : 'New Student'}
+                    </p>
+                </div>
+            )}
+
+            {/* Open session info banner */}
+            {session !== 'loading' && isSessionOpen && isEligible && (
+                <div className="flex flex-wrap items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl">
+                    <UserCheck className="h-5 w-5 text-emerald-600 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-black text-emerald-700 dark:text-emerald-400">
+                            {(session as AppSession).name} · {(session as AppSession).semester_type} Semester · {(session as AppSession).intake_batch}
+                        </p>
+                        <p className="text-xs text-emerald-600/70 dark:text-emerald-500 mt-0.5">
+                            Applications open until {new Date((session as AppSession).end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {' '}· You are a <strong>{studentType}</strong> student · Eligible ✓
+                        </p>
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 px-2 py-1 rounded-lg">Session Open</span>
+                </div>
+            )}
+
+            {/* Application form — only shown when eligible */}
+            {session !== 'loading' && isSessionOpen && isEligible && (
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+
                 {/* Progress */}
                 <div className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 p-8 flex justify-between items-center relative">
                     <div className="absolute top-[48px] left-[10%] right-[10%] h-1 bg-slate-100 dark:bg-slate-800 -z-10 rounded-full"></div>
@@ -377,6 +461,7 @@ export default function ApplyPage() {
                     )}
                 </div>
             </div>
+            )}
         </div>
     );
 }
