@@ -231,7 +231,7 @@ function NavContent({
 
                             {/* Announcements badge */}
                             {item.name === 'Announcements' && unreadAnnouncementsCount > 0 && !collapsed && (
-                                <span className="ml-auto text-xs font-black bg-emerald-500 text-white px-1.5 py-0.5 rounded-full animate-pulse">
+                                <span className="ml-auto text-xs font-black bg-orange-500 text-white px-1.5 py-0.5 rounded-full">
                                     {unreadAnnouncementsCount > 9 ? '9+' : unreadAnnouncementsCount}
                                 </span>
                             )}
