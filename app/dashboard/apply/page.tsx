@@ -46,8 +46,14 @@ export default function ApplyPage() {
                     <p className="text-slate-500 dark:text-slate-400 text-sm">You have an active application or stay.</p>
                 </div>
                 <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 p-8 max-w-2xl mx-auto mt-10 text-center flex flex-col items-center">
-                    <div className="h-24 w-24 bg-orange-50 dark:bg-orange-900/20 rounded-full ring-8 ring-orange-50/50 flex items-center justify-center mb-6">
-                        <CheckCircle2 className="h-10 w-10 text-[#F26C22]" />
+                    <div className={`h-24 w-24 rounded-full flex items-center justify-center mb-6 ring-8 ${
+                        activeApplication.status === 'Checked in'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/30 ring-emerald-100/50 dark:ring-emerald-950/20'
+                            : 'bg-orange-50 dark:bg-orange-900/20 ring-orange-50/50'
+                    }`}>
+                        <CheckCircle2 className={`h-10 w-10 ${
+                            activeApplication.status === 'Checked in' ? 'text-emerald-500' : 'text-[#F26C22]'
+                        }`} />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
                         {activeApplication.status === 'Checked in' ? 'Check-in Confirmed' :
@@ -80,7 +86,9 @@ export default function ApplyPage() {
                     <div className="w-full bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 text-left space-y-4">
                         <div className="flex justify-between items-center pb-4 border-b border-slate-200/60 dark:border-slate-700">
                             <span className="text-slate-500 font-bold text-sm">Status</span>
-                            <span className="bg-[#F26C22] text-white px-3 py-1 text-[10px] font-bold rounded-lg uppercase tracking-widest">{activeApplication.status}</span>
+                            <span className={`px-3 py-1 text-[10px] font-bold rounded-lg uppercase tracking-widest text-white ${
+                                activeApplication.status === 'Checked in' ? 'bg-emerald-600' : 'bg-[#F26C22]'
+                            }`}>{activeApplication.status}</span>
                         </div>
                         <div className="flex justify-between items-center pb-4 border-b border-slate-200/60 dark:border-slate-700">
                             <span className="text-slate-500 font-bold text-sm flex items-center gap-2"><Key className="h-4 w-4 text-[#F26C22]"/>Room Block</span>
