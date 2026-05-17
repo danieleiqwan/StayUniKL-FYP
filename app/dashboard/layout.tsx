@@ -77,28 +77,40 @@ function NavContent({
                 const res = await fetch('/api/announcements');
                 const data = await res.json();
                 if (data.announcements) {
-                    const lastViewedStr = localStorage.getItem('stayunikl_last_announcement_view') || '1970-01-01T00:00:00.000Z';
-                    const lastViewed = new Date(lastViewedStr);
-
-                    // Filter for unread and active announcements
-                    const unread = data.announcements.filter((a: any) => {
-                        const isExpired = a.expires_at && new Date(a.expires_at) < new Date();
-                        const isNew = new Date(a.created_at) > lastViewed;
-                        return !isExpired && isNew;
+                    const activeAnnouncements = data.announcements.filter((a: any) => {
+                        return !a.expires_at || new Date(a.expires_at) > new Date();
                     });
-                    setUnreadAnnouncementsCount(unread.length);
+
+                    // Sort alphabetically by ID ("ann_<timestamp>") to find the latest
+                    const sorted = [...activeAnnouncements].sort((a: any, b: any) => b.id.localeCompare(a.id));
+                    const latestActiveId = sorted[0]?.id || '';
+
+                    const lastViewedId = localStorage.getItem('stayunikl_last_viewed_announcement_id');
+
+                    if (pathname === '/dashboard/announcements') {
+                        if (latestActiveId) {
+                            localStorage.setItem('stayunikl_last_viewed_announcement_id', latestActiveId);
+                        }
+                        setUnreadAnnouncementsCount(0);
+                    } else {
+                        if (!lastViewedId) {
+                            // If they have never viewed, display the total active announcements
+                            setUnreadAnnouncementsCount(activeAnnouncements.length);
+                        } else {
+                            // Count active announcements that are strictly newer (greater ID) than the last viewed one
+                            const unread = activeAnnouncements.filter((a: any) => a.id.localeCompare(lastViewedId) > 0);
+                            setUnreadAnnouncementsCount(unread.length);
+                        }
+                    }
+                } else {
+                    setUnreadAnnouncementsCount(0);
                 }
             } catch (e) {
                 console.error(e);
             }
         };
 
-        if (pathname === '/dashboard/announcements') {
-            localStorage.setItem('stayunikl_last_announcement_view', new Date().toISOString());
-            setUnreadAnnouncementsCount(0);
-        } else {
-            checkAnnouncements();
-        }
+        checkAnnouncements();
     }, [pathname, user]);
 
     // Keep dropdown open when navigating to a child route
