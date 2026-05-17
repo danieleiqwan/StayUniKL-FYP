@@ -67,6 +67,39 @@ function NavContent({
         (pathname?.includes('/financials') || pathname?.includes('/announcements') || pathname?.includes('/documents')) || false
     );
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [unreadAnnouncementsCount, setUnreadAnnouncementsCount] = useState(0);
+
+    useEffect(() => {
+        if (!user || user.role !== 'student') return;
+
+        const checkAnnouncements = async () => {
+            try {
+                const res = await fetch('/api/announcements');
+                const data = await res.json();
+                if (data.announcements) {
+                    const lastViewedStr = localStorage.getItem('stayunikl_last_announcement_view') || '1970-01-01T00:00:00.000Z';
+                    const lastViewed = new Date(lastViewedStr);
+
+                    // Filter for unread and active announcements
+                    const unread = data.announcements.filter((a: any) => {
+                        const isExpired = a.expires_at && new Date(a.expires_at) < new Date();
+                        const isNew = new Date(a.created_at) > lastViewed;
+                        return !isExpired && isNew;
+                    });
+                    setUnreadAnnouncementsCount(unread.length);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        };
+
+        if (pathname === '/dashboard/announcements') {
+            localStorage.setItem('stayunikl_last_announcement_view', new Date().toISOString());
+            setUnreadAnnouncementsCount(0);
+        } else {
+            checkAnnouncements();
+        }
+    }, [pathname, user]);
 
     // Keep dropdown open when navigating to a child route
     useEffect(() => {
@@ -181,6 +214,13 @@ function NavContent({
                             {item.name === 'Notifications' && unreadNotificationsCount > 0 && !collapsed && (
                                 <span className="ml-auto text-xs font-black bg-orange-500 text-white px-1.5 py-0.5 rounded-full">
                                     {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                                </span>
+                            )}
+
+                            {/* Announcements badge */}
+                            {item.name === 'Announcements' && unreadAnnouncementsCount > 0 && !collapsed && (
+                                <span className="ml-auto text-xs font-black bg-emerald-500 text-white px-1.5 py-0.5 rounded-full animate-pulse">
+                                    {unreadAnnouncementsCount > 9 ? '9+' : unreadAnnouncementsCount}
                                 </span>
                             )}
                         </Link>
