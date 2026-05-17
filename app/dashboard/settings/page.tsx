@@ -38,11 +38,7 @@ export default function SettingsHub() {
         confirm: ''
     });
 
-    const [alertsForm, setAlertsForm] = useState({
-        alertBooking: user?.alertBooking !== false, // Default to true if undefined
-        alertMaintenance: user?.alertMaintenance !== false,
-        alertAnnouncement: user?.alertAnnouncement !== false,
-    });
+
 
     if (!user) return null;
 
@@ -127,37 +123,11 @@ export default function SettingsHub() {
         }
     };
 
-    const handleAlertsSubmit = async () => {
-        setIsSaving(true);
-        setMsg(null);
-        try {
-            const res = await fetch('/api/profile/alerts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(alertsForm)
-            });
-            const data = await res.json();
-            if (data.success) {
-                updateProfile({ 
-                    alertBooking: alertsForm.alertBooking,
-                    alertMaintenance: alertsForm.alertMaintenance,
-                    alertAnnouncement: alertsForm.alertAnnouncement
-                });
-                setMsg({ type: 'success', text: 'Communication preferences updated!' });
-            } else {
-                setMsg({ type: 'error', text: data.error || 'Failed to update preferences.' });
-            }
-        } catch (err) {
-            setMsg({ type: 'error', text: 'Error saving preferences.' });
-        } finally {
-            setIsSaving(false);
-        }
-    };
+
 
     const tabs = [
         { id: 'account', label: 'Edit Identity', icon: User, desc: 'Update your official records and contact information' },
         { id: 'security', label: 'Security & Access', icon: Lock, desc: 'Manage your password and active sessions' },
-        { id: 'alerts', label: 'Communication', icon: Bell, desc: 'Configure how you receive hostel updates' },
     ];
 
     const ActiveIcon = tabs.find(t => t.id === activeTab)?.icon || SettingsIcon;
@@ -481,48 +451,7 @@ export default function SettingsHub() {
                                 </form>
                             )}
 
-                            {/* Alerts Section (Notifications) */}
-                            {activeTab === 'alerts' && (
-                                <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-500">
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl group hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all">
-                                            <div>
-                                                <p className="font-black text-slate-800 dark:text-white text-sm mb-1 transition-colors">Booking Alerts</p>
-                                                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium transition-colors">Notify me when my court bookings are reviewed</p>
-                                            </div>
-                                            <label className="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" className="sr-only peer" checked={alertsForm.alertBooking} onChange={(e) => setAlertsForm({...alertsForm, alertBooking: e.target.checked})} />
-                                                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F26C22]"></div>
-                                            </label>
-                                        </div>
 
-                                        <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl group hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all">
-                                            <div>
-                                                <p className="font-black text-slate-800 dark:text-white text-sm mb-1 transition-colors">Maintenance Updates</p>
-                                                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium transition-colors">Alerts for my ongoing facility complaints</p>
-                                            </div>
-                                            <label className="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" className="sr-only peer" checked={alertsForm.alertMaintenance} onChange={(e) => setAlertsForm({...alertsForm, alertMaintenance: e.target.checked})} />
-                                                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F26C22]"></div>
-                                            </label>
-                                        </div>
-
-                                        <div className="flex items-center justify-between p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl group hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-100 dark:hover:border-slate-700 transition-all">
-                                            <div>
-                                                <p className="font-black text-slate-800 dark:text-white text-sm mb-1 transition-colors">General Announcements</p>
-                                                <p className="text-xs text-slate-400 dark:text-slate-500 font-medium transition-colors">Critical alerts from the management office</p>
-                                            </div>
-                                            <label className="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" className="sr-only peer" checked={alertsForm.alertAnnouncement} onChange={(e) => setAlertsForm({...alertsForm, alertAnnouncement: e.target.checked})} />
-                                                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F26C22]"></div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <button onClick={handleAlertsSubmit} disabled={isSaving} className="bg-[#F26C22] text-white px-8 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-orange-500/20 hover:bg-[#d65a16] transition-all disabled:opacity-50">
-                                        {isSaving ? 'Saving...' : 'Save Preferences'}
-                                    </button>
-                                </div>
-                            )}
 
 
                             {/* Status Message Footer */}
