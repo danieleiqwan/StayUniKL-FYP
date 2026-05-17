@@ -73,24 +73,24 @@ export async function POST(request: Request) {
             // -------------------------
 
             const appId = `app_${Date.now()}`;
-            // Set base price based on room type
-            let totalPrice = 120.00;
-            if (roomType.includes('Single')) totalPrice = 250.00;
-            if (roomType.includes('Double')) totalPrice = 180.00;
-            if (roomType.includes('Premium')) totalPrice += 50.00;
+            const semesterFee = 600.0;
+            const paymentMethod = 'Full Payment';
 
-            // 1. Create Application with status 'Approved'
             await connection.query(
-                'INSERT INTO applications (id, student_id, room_type, floor_id, room_id, bed_id, stay_duration, duration_type, total_price, status, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())',
-                [appId, studentId, roomType, floorId, roomId, bedId, 1, '1_semester', totalPrice, 'Approved']
+                `INSERT INTO applications (
+                    id, student_id, room_type, floor_id, room_id, bed_id,
+                    stay_duration, duration_type, total_price, payment_method, payment_status, status, date
+                ) VALUES (?, ?, ?, ?, ?, ?, 4, '1_semester', ?, ?, 'Pending', 'Payment Pending', NOW())`,
+                [appId, studentId, roomType, floorId, roomId, bedId, semesterFee, paymentMethod]
             );
 
-            // 2. Create Invoice
             const invoiceId = `INV-APP-${Date.now()}`;
             await connection.query(
-                `INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date)
-                 VALUES (?, ?, ?, 'Hostel Fee', ?, ?, 'Unpaid', DATE_ADD(NOW(), INTERVAL 7 DAY))`,
-                [invoiceId, studentId, appId, `Hostel Fee for ${roomType}`, totalPrice]
+                `INSERT INTO invoices (
+                    id, user_id, application_id, type, description, payment_plan,
+                    amount, status, due_date
+                ) VALUES (?, ?, ?, 'Hostel Fee', ?, 'Full', ?, 'Unpaid', DATE_ADD(CURDATE(), INTERVAL 10 DAY))`,
+                [invoiceId, studentId, appId, `Hostel Fee (Full Payment) – ${roomType}`, semesterFee]
             );
 
             // 3. Update Bed Status

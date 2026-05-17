@@ -2,29 +2,15 @@ import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { getAuthUser, isAdmin } from '@/lib/auth';
 import { createNotification } from '@/lib/notifications';
+import { markOverdueInvoicesWithGrace, notifyOverdueInstallments } from '@/lib/hostel-billing';
 
 export const dynamic = 'force-dynamic';
-
-// Auto-update overdue invoices on every fetch (server-side)
-async function markOverdueInvoices() {
-    try {
-        await pool.query(
-            `UPDATE invoices 
-             SET status = 'Overdue' 
-             WHERE status = 'Unpaid' 
-             AND due_date IS NOT NULL 
-             AND due_date < NOW()`
-        );
-    } catch (e) {
-        console.error('Failed to update overdue invoices:', e);
-    }
-}
 
 // GET: Fetch invoices
 export async function GET(request: Request) {
     try {
-        // Run overdue check on every fetch
-        await markOverdueInvoices();
+        await markOverdueInvoicesWithGrace();
+        await notifyOverdueInstallments();
 
         const { searchParams } = new URL(request.url);
         const userId = searchParams.get('userId');
@@ -148,7 +134,18 @@ export async function PATCH(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
 
-        await pool.query('UPDATE invoices SET status = ? WHERE id = ?', [newStatus, invoiceId]);
+        if (newStatus === 'Paid') {
+            await pool.query(
+                'UPDATE invoices SET status = ?, paid_at = COALESCE(paid_at, NOW()) WHERE id = ?',
+                [newStatus, invoiceId]
+            );
+            if (invoice.application_id) {
+                const { syncApplicationPaymentStatus } = await import('@/lib/hostel-billing');
+                await syncApplicationPaymentStatus(invoice.application_id);
+            }
+        } else {
+            await pool.query('UPDATE invoices SET status = ? WHERE id = ?', [newStatus, invoiceId]);
+        }
 
         return NextResponse.json({ success: true, invoiceId, newStatus });
     } catch (error: any) {

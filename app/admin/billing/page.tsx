@@ -21,6 +21,10 @@ interface Invoice {
     status: 'Paid' | 'Unpaid' | 'Overdue' | 'Cancelled';
     due_date?: string;
     created_at: string;
+    paid_at?: string;
+    payment_plan?: string;
+    installment_no?: number;
+    installment_total?: number;
 }
 
 interface Payment {
@@ -56,7 +60,11 @@ export default function AdminBillingPage() {
     const { user } = useAuth();
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [payments, setPayments] = useState<Payment[]>([]);
-    const [activeTab, setActiveTab] = useState<'invoices' | 'transactions'>('invoices');
+    const [activeTab, setActiveTab] = useState<'invoices' | 'installments' | 'transactions'>('invoices');
+    const [gracePeriodDays, setGracePeriodDays] = useState(10);
+    const [minGrace, setMinGrace] = useState(7);
+    const [maxGrace, setMaxGrace] = useState(14);
+    const [savingGrace, setSavingGrace] = useState(false);
     const [statusFilter, setStatusFilter] = useState<string>('All');
     const [loading, setLoading] = useState(true);
     const [runningBilling, setRunningBilling] = useState(false);
@@ -115,6 +123,14 @@ export default function AdminBillingPage() {
             const semData = await semRes.json();
             if (semData.semesters) setSemesterList(semData.semesters);
 
+            const settingsRes = await fetch('/api/admin/settings/hostel-billing');
+            const settingsData = await settingsRes.json();
+            if (settingsData.gracePeriodDays) {
+                setGracePeriodDays(settingsData.gracePeriodDays);
+                setMinGrace(settingsData.minGracePeriodDays ?? 7);
+                setMaxGrace(settingsData.maxGracePeriodDays ?? 14);
+            }
+
             setLastRefreshed(new Date());
         } catch (error) {
             console.error('Fetch error:', error);
@@ -139,8 +155,24 @@ export default function AdminBillingPage() {
         return <div className="p-10 text-center font-bold text-rose-500">Access Denied. Admins only.</div>;
     }
 
+    const handleSaveGracePeriod = async () => {
+        setSavingGrace(true);
+        try {
+            const res = await fetch('/api/admin/settings/hostel-billing', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gracePeriodDays }),
+            });
+            const data = await res.json();
+            if (data.success) setGracePeriodDays(data.gracePeriodDays);
+            else alert(data.error || 'Failed to save settings');
+        } finally {
+            setSavingGrace(false);
+        }
+    };
+
     const handleRunAutoBilling = async () => {
-        if (!confirm('This will scan all checked-in students and generate missing monthly invoices. Proceed?')) return;
+        if (!confirm('Run billing sync? This marks overdue invoices (after grace period) and sends payment reminders.')) return;
         setRunningBilling(true);
         setBillingLog(null);
         try {
@@ -225,6 +257,22 @@ export default function AdminBillingPage() {
     };
 
     const filtered = statusFilter === 'All' ? invoices : invoices.filter(i => i.status === statusFilter);
+
+    const installmentGroups = Object.values(
+        invoices
+            .filter(i => i.payment_plan === 'Installment' && i.application_id)
+            .reduce<Record<string, { appId: string; student: string; items: Invoice[] }>>((acc, inv) => {
+                const key = inv.application_id!;
+                if (!acc[key]) acc[key] = { appId: key, student: inv.student_name || inv.user_id, items: [] };
+                acc[key].items.push(inv);
+                return acc;
+            }, {})
+    ).map(g => ({
+        ...g,
+        items: g.items.sort((a, b) => (a.installment_no || 0) - (b.installment_no || 0)),
+        paid: g.items.filter(i => i.status === 'Paid').length,
+        overdue: g.items.some(i => i.status === 'Overdue'),
+    }));
 
     // Filtered stats by semester
     const currentSemesterData = semesterList.find(s => s.id === selectedSemester);
@@ -348,7 +396,7 @@ export default function AdminBillingPage() {
                                 className="h-12 px-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-white bg-slate-900 dark:bg-slate-800 hover:bg-[#F26C22] rounded-2xl shadow-lg transition-all disabled:opacity-60"
                             >
                                 <Zap className={cn("h-4 w-4", runningBilling && "animate-pulse")} />
-                                <span>Auto-Bill</span>
+                                <span>Billing Sync</span>
                             </button>
 
                             <button
@@ -359,6 +407,33 @@ export default function AdminBillingPage() {
                                 <span>Invoice</span>
                             </button>
                         </div>
+                    </div>
+                </div>
+
+                {/* Hostel billing policy */}
+                <div className="mb-6 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-widest mb-1">UniKL Hostel Policy</p>
+                        <p className="text-sm font-bold text-slate-800 dark:text-white">Fixed RM600/semester · Full pay or 4× RM150 installments</p>
+                        <p className="text-xs text-slate-500 mt-1">Grace period before invoices become overdue</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <input
+                            type="number"
+                            min={minGrace}
+                            max={maxGrace}
+                            value={gracePeriodDays}
+                            onChange={(e) => setGracePeriodDays(Number(e.target.value))}
+                            className="w-20 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-center font-black text-sm"
+                        />
+                        <span className="text-xs font-bold text-slate-500">days ({minGrace}–{maxGrace})</span>
+                        <button
+                            onClick={handleSaveGracePeriod}
+                            disabled={savingGrace}
+                            className="h-11 px-4 bg-[#F26C22] text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-[#d65a16] disabled:opacity-50"
+                        >
+                            {savingGrace ? 'Saving…' : 'Save'}
+                        </button>
                     </div>
                 </div>
 
@@ -390,7 +465,7 @@ export default function AdminBillingPage() {
                 {/* Tabs */}
                 <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
                     <div className="flex border-b border-slate-200 dark:border-slate-800">
-                        {(['invoices', 'transactions'] as const).map(tab => (
+                        {(['invoices', 'installments', 'transactions'] as const).map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
@@ -401,7 +476,7 @@ export default function AdminBillingPage() {
                                         : "text-slate-400 hover:text-[#F26C22] hover:bg-slate-50 dark:hover:bg-slate-800"
                                 )}
                             >
-                                {tab === 'invoices' ? 'Invoice Ledger' : 'Transaction History'}
+                                {tab === 'invoices' ? 'Invoice Ledger' : tab === 'installments' ? 'Installment Plans' : 'Transaction History'}
                             </button>
                         ))}
                     </div>
@@ -497,6 +572,45 @@ export default function AdminBillingPage() {
                                             </tbody>
                                         </table>
                                     </div>
+                                )}
+                            </div>
+                        )}
+
+                        {activeTab === 'installments' && (
+                            <div className="space-y-4">
+                                {installmentGroups.length === 0 ? (
+                                    <div className="py-16 text-center text-slate-400 text-sm">No active installment plans yet.</div>
+                                ) : (
+                                    installmentGroups.map(group => (
+                                        <div key={group.appId} className={cn(
+                                            "rounded-2xl border p-5",
+                                            group.overdue
+                                                ? "border-rose-200 dark:border-rose-800 bg-rose-50/30 dark:bg-rose-900/10"
+                                                : "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30"
+                                        )}>
+                                            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                                                <div>
+                                                    <p className="font-black text-slate-900 dark:text-white text-sm">{group.student}</p>
+                                                    <p className="text-[10px] font-mono text-slate-400">{group.appId}</p>
+                                                </div>
+                                                <span className="text-sm font-black text-[#F26C22]">{group.paid}/4 paid</span>
+                                            </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                {group.items.map(inv => (
+                                                    <div key={inv.id} className="rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-3 text-center">
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase">#{inv.installment_no}</p>
+                                                        <p className="font-black text-slate-900 dark:text-white my-1">RM 150</p>
+                                                        <StatusBadge status={inv.status} />
+                                                        {inv.paid_at && (
+                                                            <p className="text-[9px] text-slate-400 mt-1">
+                                                                {new Date(inv.paid_at).toLocaleDateString('en-GB')}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))
                                 )}
                             </div>
                         )}

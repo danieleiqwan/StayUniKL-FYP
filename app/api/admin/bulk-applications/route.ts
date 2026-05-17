@@ -3,6 +3,7 @@ import pool from '@/lib/db';
 import { logAction } from '@/lib/audit';
 import { isAdmin } from '@/lib/auth';
 import { createNotification } from '@/lib/notifications';
+import { generateHostelInvoices, syncApplicationPaymentStatus } from '@/lib/hostel-billing';
 import { z } from 'zod';
 
 const bulkUpdateSchema = z.object({
@@ -35,7 +36,7 @@ export async function PUT(request: Request) {
             for (const id of ids) {
                 // 1. Fetch application details
                 const [appRows]: any = await connection.query(
-                    'SELECT student_id, room_type, bed_id, total_price FROM applications WHERE id = ?',
+                    'SELECT student_id, room_type, bed_id, total_price, payment_method FROM applications WHERE id = ?',
                     [id]
                 );
 
@@ -81,28 +82,23 @@ export async function PUT(request: Request) {
                     message = `Great news! Your application for ${app.room_type} has been approved. Please proceed to payment to confirm your room.`;
                     type = 'success';
 
-                    // Create Invoice only if one doesn't already exist for this application
-                    const [existingInvoices]: any = await connection.query(
-                        'SELECT id FROM invoices WHERE application_id = ? AND type = "Hostel Fee" LIMIT 1',
-                        [id]
-                    );
-                    if (existingInvoices.length === 0) {
-                        const invoiceId = `INV-APP-${Date.now()}-${id.slice(-4)}`;
-                        await connection.query(
-                            `INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date)
-                         VALUES (?, ?, ?, 'Hostel Fee', ?, ?, 'Unpaid', DATE_ADD(NOW(), INTERVAL 7 DAY))`,
-                            [invoiceId, studentId, id, `Hostel Fee for ${app.room_type}`, app.total_price || 0]
-                        );
-                    }
+                    await generateHostelInvoices({
+                        connection,
+                        applicationId: id,
+                        studentId,
+                        roomType: app.room_type,
+                        paymentMethod: app.payment_method || 'Full Payment',
+                    });
                 } else if (status === 'Approved') {
                     title = 'Payment Confirmed';
                     message = `Your payment has been verified. Your stay in ${app.room_type} is now confirmed.`;
                     type = 'success';
-                    // Mark the related Hostel Fee invoice as Paid
                     await connection.query(
-                        `UPDATE invoices SET status = 'Paid' WHERE application_id = ? AND type = 'Hostel Fee' AND status != 'Paid'`,
+                        `UPDATE invoices SET status = 'Paid', paid_at = COALESCE(paid_at, NOW())
+                         WHERE application_id = ? AND type IN ('Hostel Fee', 'Hostel Fee - Installment') AND status != 'Paid'`,
                         [id]
                     );
+                    await syncApplicationPaymentStatus(id, connection);
                 } else if (status === 'Rejected' || status === 'Cancelled') {
                     title = 'Application Cancelled';
                     message = `Your application for ${app.room_type} has been ${status.toLowerCase()}.`;

@@ -13,9 +13,15 @@ export interface Application {
     status: 'Pending' | 'Payment Pending' | 'Approved' | 'Checked in' | 'Checked out' | 'Cancelled' | 'No show';
     previousStatus?: 'Pending' | 'Payment Pending' | 'Approved' | 'Checked in' | 'Checked out' | 'Cancelled' | 'No show';
     gender?: 'Male' | 'Female';
-    bedId?: string; floorId?: number; roomId?: string; stayDuration?: number; durationType?: '1_month' | '1_semester'; totalPrice?: number; date: string;
+    bedId?: string; floorId?: number; roomId?: string;
+    stayDuration?: number;
+    durationType?: '1_semester';
+    totalPrice?: number;
+    date: string;
     cancellationReason?: string;
     checkInDate?: string;
+    paymentMethod?: 'Full Payment' | 'Installment Plan';
+    paymentStatus?: 'Pending' | 'Partially Paid' | 'Fully Paid' | 'Overdue';
 }
 export interface Complaint {
     id: string; studentId: string; studentName: string;
@@ -37,7 +43,11 @@ export interface Payment {
     id: string; userId: string; referenceId: string; amount: number; method: string; status: 'Success' | 'Failed' | 'Pending'; createdAt: string;
 }
 export interface Invoice {
-    id: string; userId: string; applicationId?: string; type: string; description?: string; amount: number; status: 'Unpaid' | 'Paid' | 'Partially Paid' | 'Overdue' | 'Cancelled'; dueDate?: string; createdAt: string;
+    id: string; userId: string; application_id?: string; type: string; description?: string;
+    amount: number; status: 'Unpaid' | 'Paid' | 'Partially Paid' | 'Overdue' | 'Cancelled';
+    due_date?: string; created_at: string; paid_at?: string;
+    payment_plan?: 'Full' | 'Installment';
+    installment_no?: number; installment_total?: number;
 }
 export interface Document {
     id: string; user_id: string; type: string; name: string; file_url: string; status: 'Pending' | 'Verified' | 'Rejected'; rejection_reason?: string; created_at: string;
@@ -52,7 +62,13 @@ interface DataContextType {
     getRoomsByFloor: (floorId: number) => Room[];
     getAvailableFloors: (gender: 'Male' | 'Female') => number[];
     bookBed: (roomId: string, bedId: string) => void;
-    createApplication: (app: { roomType: Application['roomType'], bedId: string, floorId: number, roomId: string, stayDuration: number, durationType: '1_month' | '1_semester', totalPrice: number }) => void;
+    createApplication: (app: {
+        roomType: Application['roomType'];
+        bedId: string;
+        floorId: number;
+        roomId: string;
+        paymentMethod: 'Full Payment' | 'Installment Plan';
+    }) => Promise<{ success?: boolean; error?: string }>;
     reapplyApplication: (id: string) => void;
     updateApplicationStatus: (id: string, status: Application['status']) => void;
     updateBulkApplicationStatus: (ids: string[], status: Application['status']) => Promise<{ success?: boolean; error?: string }>;
@@ -225,7 +241,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }, [fetchData]);
 
     // --- Actions: Applications ---
-    const createApplication = async (data: { roomType: Application['roomType'], bedId: string, floorId: number, roomId: string, stayDuration: number, durationType: '1_month' | '1_semester', totalPrice: number }) => {
+    const createApplication = async (data: {
+        roomType: Application['roomType'];
+        bedId: string;
+        floorId: number;
+        roomId: string;
+        paymentMethod: 'Full Payment' | 'Installment Plan';
+    }) => {
         if (!user) return { error: 'User not logged in' };
         try {
             const res = await fetch('/api/applications', {
@@ -238,9 +260,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
                     floorId: data.floorId,
                     roomId: data.roomId,
                     bedId: data.bedId,
-                    stayDuration: data.stayDuration,
-                    durationType: data.durationType,
-                    totalPrice: data.totalPrice
+                    stayDuration: 4,
+                    durationType: '1_semester',
+                    totalPrice: 600,
+                    paymentMethod: data.paymentMethod,
                 })
             });
             

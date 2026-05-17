@@ -298,10 +298,13 @@ export default function StudentDetailModal({ studentId, onClose, onUpdate }: Stu
                                                             {app.status}
                                                         </span>
                                                     </div>
-                                                    <div className="grid grid-cols-4 gap-4">
+                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                                         <DetailItem label="Room ID" value={app.roomId || 'N/A'} />
                                                         <DetailItem label="Bed" value={app.bedId || 'N/A'} />
-                                                        <DetailItem label="Amount" value={`RM${app.totalPrice}`} />
+                                                        <DetailItem label="Fee" value={`RM${app.totalPrice || 600}`} />
+                                                        <DetailItem label="Payment" value={app.paymentMethod || 'Full Payment'} />
+                                                        <DetailItem label="Pay Status" value={app.paymentStatus || 'Pending'} />
+                                                        <DetailItem label="Duration" value="1 Semester" />
                                                         <DetailItem label="Date" value={new Date(app.date).toLocaleDateString()} />
                                                     </div>
                                                 </div>

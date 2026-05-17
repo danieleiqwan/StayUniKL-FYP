@@ -12,14 +12,14 @@ export async function GET(request: Request) {
     }
 
     try {
-        // 2. Find overdue invoices
-        // We look for 'Pending' invoices where the due_date is strictly in the past
+        const { markOverdueInvoicesWithGrace } = await import('@/lib/hostel-billing');
+        await markOverdueInvoicesWithGrace();
+
         const [invoices]: any = await pool.query(`
             SELECT i.id as invoice_id, i.amount, i.due_date, u.name, u.email, u.id as student_id
             FROM invoices i
             JOIN users u ON i.user_id = u.id
-            WHERE i.status = 'Pending' 
-            AND i.due_date < NOW()
+            WHERE i.status = 'Overdue'
         `);
 
         if (invoices.length === 0) {

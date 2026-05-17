@@ -1,125 +1,57 @@
 import { NextResponse } from 'next/server';
-import pool from '@/lib/db';
 import { isAdmin } from '@/lib/auth';
+import { markOverdueInvoicesWithGrace, notifyOverdueInstallments } from '@/lib/hostel-billing';
+import pool from '@/lib/db';
 import { createNotification } from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: Request) {
+/** Sync overdue statuses and send payment reminders (no legacy monthly rent generation). */
+export async function POST() {
     try {
         const admin = await isAdmin();
         if (!admin) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // 1. Get all active checked-in applications
-        const [applications]: any = await pool.query(
-            "SELECT * FROM applications WHERE status = 'Checked in'"
+        const log: string[] = [];
+        const markedOverdue = await markOverdueInvoicesWithGrace();
+        log.push(`Marked ${markedOverdue} invoice(s) as overdue (after grace period).`);
+
+        const notificationsSent = await notifyOverdueInstallments();
+        log.push(`Sent ${notificationsSent} overdue warning notification(s).`);
+
+        const [unpaid]: any = await pool.query(
+            `SELECT i.id, i.user_id, i.description, i.amount, i.installment_no
+             FROM invoices i
+             JOIN applications a ON a.id = i.application_id
+             WHERE i.status = 'Unpaid'
+               AND i.type IN ('Hostel Fee', 'Hostel Fee - Installment')
+               AND a.status IN ('Payment Pending', 'Checked in', 'Approved')`
         );
 
-        const log: string[] = [];
-        const results: any[] = [];
-        log.push(`Found ${applications.length} checked-in applications.`);
-
-        for (const app of applications) {
-            log.push(`Processing App ${app.id} (student: ${app.student_id})`);
-            
-            // Only auto-bill students who are paying on a monthly basis ('1_month')
-            // Students who paid for '1_semester' are fully paid up front.
-            if (app.duration_type !== '1_month') {
-                log.push(`Skipping: duration_type is ${app.duration_type}`);
-                continue;
-            }
-
-            const checkInDate = new Date(app.check_in_date || app.date);
-            const now = new Date();
-
-            // Calculate months elapsed since check-in
-            const monthsDiff = (now.getFullYear() - checkInDate.getFullYear()) * 12 + (now.getMonth() - checkInDate.getMonth());
-            log.push(`Months diff: ${monthsDiff} (Check-in: ${checkInDate.toISOString().split('T')[0]})`);
-
-            if (monthsDiff <= 0) {
-                log.push(`Skipping: Not yet time for next month.`);
-                continue;
-            }
-
-            // 2. Check how many hostel fee invoices already exist for this application
-            const [existingInvoices]: any = await pool.query(
-                "SELECT COUNT(*) as count FROM invoices WHERE application_id = ? AND type = 'Hostel Fee'",
-                [app.id]
-            );
-
-            const invoicesGenerated = existingInvoices[0].count;
-            log.push(`Existing invoices for this app: ${invoicesGenerated}`);
-
-            if (invoicesGenerated < monthsDiff) {
-                const missingInvoices = monthsDiff - invoicesGenerated;
-                log.push(`Generating ${missingInvoices} missing invoices.`);
-
-                for (let i = 0; i < missingInvoices; i++) {
-                    const invoiceId = `INV-AUTO-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-                    const dueDate = new Date();
-                    dueDate.setDate(dueDate.getDate() + 7); 
-
-                    const description = `Monthly Rent - ${now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`;
-
-                    await pool.query(
-                        'INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                        [
-                            invoiceId, 
-                            app.student_id, 
-                            app.id, 
-                            'Hostel Fee', 
-                            description,
-                            app.total_price || 120.00, 
-                            'Unpaid', 
-                            dueDate
-                        ]
-                    );
-
-                    await createNotification({
-                        userId: app.student_id,
-                        title: 'New Invoice Generated',
-                        message: `A new invoice for ${description} (RM ${app.total_price || 120.00}) has been generated.`,
-                        type: 'warning',
-                        relatedEntityId: invoiceId,
-                        relatedEntityType: 'Invoice'
-                    });
-
-                    results.push({ studentId: app.student_id, invoiceId });
-                }
-            } else {
-                log.push(`No missing invoices.`);
-                
-                // If they have any unpaid invoices, send a reminder
-                const [unpaidInvoices]: any = await pool.query(
-                    "SELECT id, description, amount FROM invoices WHERE user_id = ? AND status = 'Unpaid'",
-                    [app.student_id]
-                );
-                
-                if (unpaidInvoices.length > 0) {
-                    log.push(`Sending reminders for ${unpaidInvoices.length} unpaid invoices.`);
-                    for (const inv of unpaidInvoices) {
-                        await createNotification({
-                            userId: app.student_id,
-                            title: 'Unpaid Invoice Reminder',
-                            message: `You have an outstanding invoice: ${inv.description || 'Hostel Fee'} (RM ${inv.amount}). Please settle it soon.`,
-                            type: 'error',
-                            relatedEntityId: inv.id,
-                            relatedEntityType: 'Invoice'
-                        });
-                    }
-                }
-            }
+        let reminders = 0;
+        for (const inv of unpaid) {
+            const label = inv.installment_no
+                ? `Installment ${inv.installment_no}/4`
+                : 'Hostel fee';
+            await createNotification({
+                userId: inv.user_id,
+                title: 'Payment Reminder',
+                message: `Reminder: ${label} — RM ${Number(inv.amount).toFixed(2)} is due soon. Please pay via Financials.`,
+                type: 'warning',
+                relatedEntityId: inv.id,
+                relatedEntityType: 'Invoice',
+            });
+            reminders++;
         }
+        log.push(`Sent ${reminders} upcoming due reminder(s).`);
 
-        return NextResponse.json({ 
-            success: true, 
-            message: `Generated ${results.length} invoices.`,
+        return NextResponse.json({
+            success: true,
+            message: `Billing sync complete. ${markedOverdue} overdue, ${notificationsSent} overdue warnings, ${reminders} reminders.`,
             log,
-            details: results 
         });
-
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }

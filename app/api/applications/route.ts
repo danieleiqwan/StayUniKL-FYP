@@ -3,6 +3,7 @@ import pool from '@/lib/db';
 import { logAction } from '@/lib/audit';
 import { isAdmin, getAuthUser } from '@/lib/auth';
 import { createNotification } from '@/lib/notifications';
+import { generateHostelInvoices, syncApplicationPaymentStatus } from '@/lib/hostel-billing';
 import { z } from 'zod';
 
 // Validation Schemas
@@ -12,9 +13,10 @@ const applicationSchema = z.object({
     floorId: z.coerce.string(),
     roomId: z.coerce.string(),
     bedId: z.coerce.string(),
-    stayDuration: z.number().int().positive().optional().default(1),
-    durationType: z.string().optional(),
-    totalPrice: z.number().positive().optional()
+    stayDuration: z.number().int().positive().optional().default(4),
+    durationType: z.string().optional().default('1_semester'),
+    totalPrice: z.number().positive().optional().default(600),
+    paymentMethod: z.enum(['Full Payment', 'Installment Plan']).optional().default('Full Payment')
 });
 
 const updateStatusSchema = z.object({
@@ -69,6 +71,7 @@ export async function GET(request: Request) {
             stayDuration: row.stay_duration,
             durationType: row.duration_type,
             totalPrice: row.total_price,
+            paymentMethod: row.payment_method,
             status: row.status,
             previousStatus: row.previous_status,
             paymentStatus: row.payment_status,
@@ -98,7 +101,8 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid input', details: validation.error.format() }, { status: 400 });
         }
 
-        const { studentId, roomType, stayDuration, durationType, totalPrice, floorId, roomId, bedId } = validation.data;
+        const { studentId, roomType, stayDuration, durationType, totalPrice, floorId, roomId, bedId, paymentMethod } = validation.data;
+        const semesterFee = 600.00; // Fixed fee per policy
         
         // Fetch student name and gender from DB
         const [studentRows]: any = await pool.query('SELECT name, gender FROM users WHERE id = ?', [studentId]);
@@ -144,7 +148,6 @@ export async function POST(request: Request) {
         // -------------------------
 
         const id = `app_${Date.now()}`;
-        const resolvedDurationType = durationType || (stayDuration === 4 ? '1_semester' : '1_month');
 
         // --- TRANSACTION WITH ROW LOCKING ---
         const connection = await pool.getConnection();
@@ -170,10 +173,13 @@ export async function POST(request: Request) {
                 }, { status: 400 });
             }
 
-            // 2. Create Application
+            // 2. Create Application (always 1_semester, RM600)
             await connection.query(
-                'INSERT INTO applications (id, student_id, room_type, floor_id, room_id, bed_id, stay_duration, duration_type, total_price, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [id, studentId, roomType, floorId, roomId, bedId, stayDuration, resolvedDurationType, totalPrice || 120.00, 'Pending']
+                `INSERT INTO applications (
+                    id, student_id, room_type, floor_id, room_id, bed_id,
+                    stay_duration, duration_type, total_price, payment_method, payment_status, status
+                ) VALUES (?, ?, ?, ?, ?, ?, 4, '1_semester', ?, ?, 'Pending', 'Pending')`,
+                [id, studentId, roomType, floorId, roomId, bedId, semesterFee, paymentMethod || 'Full Payment']
             );
 
             // 3. Mark Bed as Occupied
@@ -188,7 +194,7 @@ export async function POST(request: Request) {
                 action: 'CREATED_APPLICATION',
                 entityType: 'Application',
                 entityId: id,
-                details: { roomId, bedId }
+                details: { roomId, bedId, paymentMethod: paymentMethod || 'Full Payment', semesterFee }
             });
 
             // 5. Send Notification
@@ -293,31 +299,32 @@ try {
 
                 if (status === 'Payment Pending') {
                     title = 'Application Approved';
-                    message = `Great news! Your application for ${app.room_type} has been approved. Please proceed to payment to confirm your room.`;
+                    message = `Great news! Your application for ${app.room_type} has been approved. Please proceed to your Financials tab to complete payment.`;
                     type = 'success';
 
-                    // Create Invoice only if one doesn't already exist for this application
-                    const [existingInvoices]: any = await connection.query(
-                        'SELECT id FROM invoices WHERE application_id = ? AND type = "Hostel Fee" LIMIT 1',
+                    const [appDetail]: any = await connection.query(
+                        'SELECT payment_method FROM applications WHERE id = ?',
                         [id]
                     );
-                    if (existingInvoices.length === 0) {
-                        const invoiceId = `INV-APP-${Date.now()}`;
-                        await connection.query(
-                            `INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date)
-                             VALUES (?, ?, ?, 'Hostel Fee', ?, ?, 'Unpaid', DATE_ADD(NOW(), INTERVAL 7 DAY))`,
-                            [invoiceId, studentId, id, `Hostel Fee for ${app.room_type}`, app.total_price || 0]
-                        );
-                    }
+                    const appPaymentMethod = appDetail[0]?.payment_method || 'Full Payment';
+
+                    await generateHostelInvoices({
+                        connection,
+                        applicationId: id,
+                        studentId,
+                        roomType: app.room_type,
+                        paymentMethod: appPaymentMethod,
+                    });
                 } else if (status === 'Approved') {
                     title = 'Payment Confirmed';
                     message = `Your payment has been verified. Your stay in ${app.room_type} is now confirmed.`;
                     type = 'success';
-                    // Mark the related Hostel Fee invoice as Paid
                     await connection.query(
-                        `UPDATE invoices SET status = 'Paid' WHERE application_id = ? AND type = 'Hostel Fee' AND status != 'Paid'`,
+                        `UPDATE invoices SET status = 'Paid', paid_at = COALESCE(paid_at, NOW())
+                         WHERE application_id = ? AND type IN ('Hostel Fee', 'Hostel Fee - Installment') AND status != 'Paid'`,
                         [id]
                     );
+                    await syncApplicationPaymentStatus(id, connection);
                 } else if (status === 'Rejected' || status === 'Cancelled') {
                     title = 'Application Cancelled';
                     message = `Your application for ${app.room_type} has been ${status.toLowerCase()}. ${cancellationReason ? `Reason: ${cancellationReason}` : ''}`;

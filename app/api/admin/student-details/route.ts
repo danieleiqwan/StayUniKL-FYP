@@ -104,7 +104,9 @@ export async function GET(request: Request) {
                     bedId: app.bed_id,
                     durationType: app.duration_type,
                     stayDuration: app.stay_duration,
-                    totalPrice: app.total_price
+                    totalPrice: app.total_price,
+                    paymentMethod: app.payment_method,
+                    paymentStatus: app.payment_status,
                 })),
                 payments: payRows,
                 complaints: parsedCompRows,

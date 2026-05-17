@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import pool from '@/lib/db';
 import { logAction } from '@/lib/audit';
 import { createNotification } from '@/lib/notifications';
+import { syncApplicationPaymentStatus } from '@/lib/hostel-billing';
 
 const stripe = process.env.STRIPE_SECRET_KEY 
     ? new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -49,16 +50,20 @@ export async function GET(request: NextRequest) {
         );
 
         if (invoiceId) {
-            await pool.query('UPDATE invoices SET status = "Paid" WHERE id = ?', [invoiceId]);
+            await pool.query(
+                'UPDATE invoices SET status = "Paid", paid_at = NOW() WHERE id = ?',
+                [invoiceId]
+            );
         }
 
         if (applicationId) {
-            await pool.query(
-                'UPDATE applications SET status = "Approved", payment_status = "Paid" WHERE id = ?',
-                [applicationId]
-            ).catch(async () => {
-                await pool.query('UPDATE applications SET status = "Approved" WHERE id = ?', [applicationId]);
-            });
+            const paymentStatus = await syncApplicationPaymentStatus(applicationId);
+            if (paymentStatus === 'Fully Paid') {
+                await pool.query(
+                    'UPDATE applications SET status = "Approved" WHERE id = ? AND status = "Payment Pending"',
+                    [applicationId]
+                );
+            }
         }
 
         // 4. Logging & Notifications
