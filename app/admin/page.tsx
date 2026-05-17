@@ -645,7 +645,7 @@ function AdminDashboard() {
                                                     app.status === 'Cancelled' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
                                                     app.status === 'No show' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
                                                     'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-                                                }`}>{app.status || 'Pending'}</span>
+                                                }`}>{app.status === 'Approved' ? 'Approved - Pending Check-In' : (app.status || 'Pending')}</span>
                                                 <div className="flex flex-wrap gap-2 justify-end">
                                                     {(app.status === 'Pending' || !app.status) && (<>
                                                         <button onClick={() => updateApplicationStatus(app.id, 'Payment Pending')} className="text-[10px] font-black uppercase tracking-widest bg-[#F26C22] text-white px-3 py-1.5 rounded-xl hover:bg-[#d65a16] transition-all">Accept</button>
