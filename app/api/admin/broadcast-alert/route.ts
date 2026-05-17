@@ -48,6 +48,40 @@ export async function POST(request: Request) {
             });
         }
 
+        if (type === 'unpaid_invoices') {
+            // Find all active students with outstanding monthly dues (unpaid or overdue)
+            const [debtors]: any = await pool.query(`
+                SELECT DISTINCT u.id, u.name 
+                FROM users u
+                JOIN invoices i ON i.user_id = u.id
+                WHERE u.role = 'student' 
+                AND i.status IN ('Unpaid', 'Overdue')
+            `);
+
+            if (debtors.length === 0) {
+                return NextResponse.json({ success: true, message: 'All student accounts are fully paid and up to date!' });
+            }
+
+            // Batch create notifications for outstanding payments
+            const notificationPromises = debtors.map((student: any) => 
+                createNotification({
+                    userId: student.id,
+                    title: '⚠️ URGENT: Outstanding Hostel Dues',
+                    message: `Hi ${student.name.split(' ')[0]}, you have unpaid or overdue monthly hostel invoices. Please settle your accounts immediately in your financials tab.`,
+                    type: 'error',
+                    link: '/dashboard/financials'
+                })
+            );
+
+            await Promise.all(notificationPromises);
+
+            return NextResponse.json({ 
+                success: true, 
+                count: debtors.length,
+                message: `Invoice reminder alerts blasted to ${debtors.length} students.` 
+            });
+        }
+
         return NextResponse.json({ error: 'Invalid alert type' }, { status: 400 });
     } catch (error: any) {
         console.error('Broadcast error:', error);

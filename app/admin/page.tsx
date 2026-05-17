@@ -464,7 +464,43 @@ function AdminDashboard() {
                                                         alert('Error processing broadcast.');
                                                     }
                                                 }}
-                                                className="px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-500/20 hover:bg-rose-700 transition-colors"
+                                                className="px-4 py-2 bg-rose-600 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-500/20 hover:bg-rose-700 transition-colors shrink-0"
+                                            >
+                                                Blast Alert 📣
+                                            </button>
+                                        </div>
+
+                                        {/* Fee Compliance Blast Alert */}
+                                        <div className="flex items-center justify-between p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30">
+                                            <div className="flex items-center gap-4">
+                                                <div className="h-10 w-10 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                                                    <DollarSign className="h-4 w-4" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-white">Fee Compliance Blast</p>
+                                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Notify all students with unpaid or overdue invoices</p>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={async () => {
+                                                    if (!confirm('Are you sure you want to send an URGENT invoice payment reminder to ALL students with outstanding dues?')) return;
+                                                    try {
+                                                        const res = await fetch('/api/admin/broadcast-alert', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({ type: 'unpaid_invoices' })
+                                                        });
+                                                        const data = await res.json();
+                                                        if (data.success) {
+                                                            alert(data.message);
+                                                        } else {
+                                                            alert('Broadcast failed: ' + data.error);
+                                                        }
+                                                    } catch (err) {
+                                                        alert('Error processing broadcast.');
+                                                    }
+                                                }}
+                                                className="px-4 py-2 bg-amber-600 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-500/20 hover:bg-amber-700 transition-colors shrink-0"
                                             >
                                                 Blast Alert 📣
                                             </button>
