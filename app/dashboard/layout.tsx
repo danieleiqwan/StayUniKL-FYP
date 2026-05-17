@@ -64,7 +64,7 @@ function NavContent({
         (pathname?.includes('/gym') || pathname?.includes('/dobby') || pathname?.includes('/handbook') || pathname?.includes('/contacts')) || false
     );
     const [isResourcesOpen, setIsResourcesOpen] = useState(
-        (pathname?.includes('/financials') || pathname?.includes('/announcements') || pathname?.includes('/documents')) || false
+        (pathname?.includes('/financials') || pathname?.includes('/documents')) || false
     );
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [unreadAnnouncementsCount, setUnreadAnnouncementsCount] = useState(0);
@@ -121,7 +121,7 @@ function NavContent({
         if (pathname?.includes('/gym') || pathname?.includes('/dobby') || pathname?.includes('/handbook') || pathname?.includes('/contacts')) {
             setIsMiscOpen(true);
         }
-        if (pathname?.includes('/financials') || pathname?.includes('/announcements') || pathname?.includes('/documents')) {
+        if (pathname?.includes('/financials') || pathname?.includes('/documents')) {
             setIsResourcesOpen(true);
         }
     }, [pathname]);
@@ -167,7 +167,6 @@ function NavContent({
     const resourcesActive =
         isResourcesOpen ||
         (pathname?.includes('/financials') ||
-        pathname?.includes('/announcements') ||
         pathname?.includes('/documents') || false);
 
     return (
