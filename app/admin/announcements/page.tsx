@@ -132,8 +132,13 @@ export default function AdminAnnouncementsPage() {
                 setPosterUrl('');
                 setShowForm(false);
                 fetchAnnouncements();
+            } else {
+                const errData = await res.json();
+                alert('Publish failed: ' + (errData.error || 'Unknown error. Make sure to click "Setup DB" first!'));
             }
-        } catch (e) { console.error(e); }
+        } catch (e: any) {
+            alert('Network error: ' + (e.message || e));
+        }
         finally { setSubmitting(false); }
     };
 
