@@ -119,19 +119,8 @@ function DashboardContent() {
         if (isInstallment) {
             const checkIn = myApplication.checkInDate ? new Date(myApplication.checkInDate) : null;
             const now = new Date();
-            let currentMonthIndex = 1;
-            
-            if (checkIn && now >= checkIn) {
-                const yearDiff = now.getFullYear() - checkIn.getFullYear();
-                const monthDiff = now.getMonth() - checkIn.getMonth();
-                const dayDiff = now.getDate() - checkIn.getDate();
-                
-                let monthsPassed = yearDiff * 12 + monthDiff;
-                if (dayDiff < 0) {
-                    monthsPassed--;
-                }
-                currentMonthIndex = Math.max(1, monthsPassed + 1);
-            }
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth(); // 0-indexed
 
             const unpaidInstallments = appInvoices.filter(i => 
                 (i.status === 'Unpaid' || i.status === 'Overdue') && 
@@ -143,9 +132,20 @@ function DashboardContent() {
                 i.type !== 'Hostel Fee - Installment'
             );
 
-            const activeUnpaidInstallments = unpaidInstallments.filter(i => 
-                i.installment_no !== undefined && i.installment_no !== null && Number(i.installment_no) <= currentMonthIndex
-            );
+            const activeUnpaidInstallments = unpaidInstallments.filter(i => {
+                if (i.installment_no === undefined || i.installment_no === null || !checkIn) return false;
+                
+                const instNo = Number(i.installment_no);
+                const checkInYear = checkIn.getFullYear();
+                const checkInMonth = checkIn.getMonth(); // 0-indexed
+                
+                // Convert to absolute months to easily handle years and monthly rollovers
+                const targetTotalMonths = checkInYear * 12 + checkInMonth + (instNo - 1);
+                const currentTotalMonths = currentYear * 12 + currentMonth;
+                
+                // Activate the alert if we have entered or passed the 1st of the target calendar month
+                return currentTotalMonths >= targetTotalMonths;
+            });
 
             if (activeUnpaidInstallments.length > 0 || otherUnpaid.length > 0) {
                 hasUnpaidCurrentOrPastInvoice = true;
