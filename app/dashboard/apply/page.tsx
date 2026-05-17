@@ -217,7 +217,7 @@ export default function ApplyPage() {
                                                 className={`relative flex h-32 flex-col items-center justify-center rounded-2xl border-2 p-2 transition-all ${
                                                     selectedRoom?.id === room.id
                                                     ? 'border-[#F26C22] bg-orange-50 dark:bg-orange-900/20 ring-4 ring-orange-50'
-                                                    : 'border-slate-100 dark:border-slate-800 hover:border-orange-200 hover:bg-slate-50'
+                                                    : 'border-slate-100 dark:border-slate-800 hover:border-orange-200 hover:bg-slate-50 dark:hover:bg-slate-800/50'
                                                 }`}>
                                                 <span className={`text-lg font-bold ${selectedRoom?.id === room.id ? 'text-[#F26C22]' : 'text-slate-700 dark:text-slate-300'}`}>{room.label}</span>
                                                 <span className={`mt-2 text-xs font-bold px-2 py-1 rounded-full ${availableBeds === 0 ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
@@ -244,7 +244,7 @@ export default function ApplyPage() {
                                                 className={`flex p-6 flex-col items-center justify-center rounded-2xl border-2 transition-all ${
                                                     bed.isOccupied ? 'bg-slate-200 dark:bg-slate-800 border-slate-200 cursor-not-allowed opacity-50' :
                                                     selectedBed?.id === bed.id ? 'border-[#F26C22] bg-orange-50 dark:bg-orange-900/20 text-[#F26C22] ring-4 ring-orange-50' :
-                                                    'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-emerald-400 hover:bg-emerald-50 text-slate-700'
+                                                    'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 text-slate-700'
                                                 }`}>
                                                 <BedDouble className={`h-8 w-8 mb-2 ${selectedBed?.id === bed.id ? 'text-[#F26C22]' : 'text-slate-400'}`} />
                                                 <span className="font-bold text-sm tracking-widest">{bed.label}</span>
@@ -270,7 +270,7 @@ export default function ApplyPage() {
                                         className={`flex-1 rounded-3xl border-2 p-8 text-center transition-all ${
                                             paymentMethod === 'Full Payment'
                                             ? 'border-[#F26C22] bg-orange-50 dark:bg-orange-900/20 ring-4 ring-orange-50 dark:ring-orange-900/10'
-                                            : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#F26C22]/30 hover:bg-slate-50'
+                                            : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#F26C22]/30 hover:bg-slate-50 dark:hover:bg-slate-800/50'
                                         }`}>
                                         <div className="bg-white dark:bg-slate-900 h-16 w-16 mx-auto rounded-full flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-800 mb-4">
                                             <CreditCard className={`h-8 w-8 ${paymentMethod === 'Full Payment' ? 'text-[#F26C22]' : 'text-slate-400'}`} />
@@ -286,7 +286,7 @@ export default function ApplyPage() {
                                         className={`flex-1 rounded-3xl border-2 p-8 text-center transition-all ${
                                             paymentMethod === 'Installment Plan'
                                             ? 'border-[#F26C22] bg-orange-50 dark:bg-orange-900/20 ring-4 ring-orange-50 dark:ring-orange-900/10'
-                                            : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#F26C22]/30 hover:bg-slate-50'
+                                            : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#F26C22]/30 hover:bg-slate-50 dark:hover:bg-slate-800/50'
                                         }`}>
                                         <div className="bg-white dark:bg-slate-900 h-16 w-16 mx-auto rounded-full flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-800 mb-4">
                                             <Banknote className={`h-8 w-8 ${paymentMethod === 'Installment Plan' ? 'text-[#F26C22]' : 'text-slate-400'}`} />
