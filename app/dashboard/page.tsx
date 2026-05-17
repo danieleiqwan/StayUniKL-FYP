@@ -109,6 +109,63 @@ function DashboardContent() {
 
     const pendingInvoices = invoices.filter(i => i.status === 'Unpaid' || i.status === 'Overdue');
     const totalPendingInvoicesAmount = pendingInvoices.reduce((s, i) => s + Number(i.amount), 0);
+
+    // Calculate current month of stay based on check-in date to display active unpaid warning
+    let hasUnpaidCurrentOrPastInvoice = false;
+    let unpaidBannerAmount = 0;
+
+    if (myApplication) {
+        const isInstallment = myApplication.payment_method === 'Installment Plan' || (myApplication as any).paymentMethod === 'Installment Plan';
+        if (isInstallment) {
+            const checkIn = myApplication.checkInDate ? new Date(myApplication.checkInDate) : null;
+            const now = new Date();
+            let currentMonthIndex = 1;
+            
+            if (checkIn && now >= checkIn) {
+                const yearDiff = now.getFullYear() - checkIn.getFullYear();
+                const monthDiff = now.getMonth() - checkIn.getMonth();
+                const dayDiff = now.getDate() - checkIn.getDate();
+                
+                let monthsPassed = yearDiff * 12 + monthDiff;
+                if (dayDiff < 0) {
+                    monthsPassed--;
+                }
+                currentMonthIndex = Math.max(1, monthsPassed + 1);
+            }
+
+            const unpaidInstallments = appInvoices.filter(i => 
+                (i.status === 'Unpaid' || i.status === 'Overdue') && 
+                i.type === 'Hostel Fee - Installment'
+            );
+
+            const otherUnpaid = appInvoices.filter(i => 
+                (i.status === 'Unpaid' || i.status === 'Overdue') && 
+                i.type !== 'Hostel Fee - Installment'
+            );
+
+            const activeUnpaidInstallments = unpaidInstallments.filter(i => 
+                i.installment_no !== undefined && i.installment_no !== null && Number(i.installment_no) <= currentMonthIndex
+            );
+
+            if (activeUnpaidInstallments.length > 0 || otherUnpaid.length > 0) {
+                hasUnpaidCurrentOrPastInvoice = true;
+                const totalActiveUnpaid = [...activeUnpaidInstallments, ...otherUnpaid];
+                unpaidBannerAmount = totalActiveUnpaid.reduce((s, i) => s + Number(i.amount), 0);
+            }
+        } else {
+            const unpaidApps = appInvoices.filter(i => i.status === 'Unpaid' || i.status === 'Overdue');
+            if (unpaidApps.length > 0) {
+                hasUnpaidCurrentOrPastInvoice = true;
+                unpaidBannerAmount = unpaidApps.reduce((s, i) => s + Number(i.amount), 0);
+            }
+        }
+    } else {
+        const unpaidGeneral = invoices.filter(i => i.status === 'Unpaid' || i.status === 'Overdue');
+        if (unpaidGeneral.length > 0) {
+            hasUnpaidCurrentOrPastInvoice = true;
+            unpaidBannerAmount = unpaidGeneral.reduce((s, i) => s + Number(i.amount), 0);
+        }
+    }
     const myAllBookings = courtBookings.filter(b => b.studentId === user.id);
     const activeBookingsCount = myAllBookings.filter(b => b.status === 'Approved' || b.status === 'Pending').length;
     const pendingComplaintsCount = myComplaints.filter(c => c.status === 'Pending' || c.status === 'In Progress').length;
@@ -266,7 +323,7 @@ function DashboardContent() {
             )}
 
             {/* Outstanding Invoices Banner */}
-            {totalPendingInvoicesAmount > 0 && !isPaymentPending && (
+            {hasUnpaidCurrentOrPastInvoice && !isPaymentPending && (
                 <div className="bg-gradient-to-r from-orange-600 to-rose-600 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-orange-100 animate-in fade-in slide-in-from-top-4 duration-700">
                     <div className="flex items-center gap-4">
                         <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-orange-600 shrink-0">
@@ -274,7 +331,7 @@ function DashboardContent() {
                         </div>
                         <div className="text-white">
                             <p className="font-black text-sm">Unpaid Invoices</p>
-                            <p className="text-xs opacity-90">You have <span className="font-bold underline">RM {totalPendingInvoicesAmount.toFixed(2)}</span> in outstanding hostel fees or fines.</p>
+                            <p className="text-xs opacity-90">You have <span className="font-bold underline">RM {unpaidBannerAmount.toFixed(2)}</span> in outstanding hostel fees or fines.</p>
                         </div>
                     </div>
                     <Link
