@@ -87,6 +87,13 @@ export async function syncApplicationPaymentStatus(
         applicationId,
     ]);
 
+    if (paymentStatus === 'Fully Paid' || paymentStatus === 'Partially Paid') {
+        await db.query(
+            `UPDATE applications SET status = 'Approved' WHERE id = ? AND status = 'Payment Pending'`,
+            [applicationId]
+        );
+    }
+
     return paymentStatus;
 }
 

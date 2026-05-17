@@ -55,12 +55,14 @@ export async function POST(request: NextRequest) {
 
                 // 3. Update Application Status if applicable
                 if (applicationId) {
-                    await pool.query(
-                        'UPDATE applications SET status = "Approved", payment_status = "Paid" WHERE id = ?',
-                        [applicationId]
-                    ).catch(async () => {
-                        await pool.query('UPDATE applications SET status = "Approved" WHERE id = ?', [applicationId]);
-                    });
+                    const { syncApplicationPaymentStatus } = await import('@/lib/hostel-billing');
+                    const paymentStatus = await syncApplicationPaymentStatus(applicationId);
+                    if (paymentStatus === 'Fully Paid' || paymentStatus === 'Partially Paid') {
+                        await pool.query(
+                            'UPDATE applications SET status = "Approved" WHERE id = ? AND status = "Payment Pending"',
+                            [applicationId]
+                        );
+                    }
                 }
 
                 // 4. Fetch user name for logging

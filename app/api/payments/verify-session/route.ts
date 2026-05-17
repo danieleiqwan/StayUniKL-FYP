@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 
         if (applicationId) {
             const paymentStatus = await syncApplicationPaymentStatus(applicationId);
-            if (paymentStatus === 'Fully Paid') {
+            if (paymentStatus === 'Fully Paid' || paymentStatus === 'Partially Paid') {
                 await pool.query(
                     'UPDATE applications SET status = "Approved" WHERE id = ? AND status = "Payment Pending"',
                     [applicationId]

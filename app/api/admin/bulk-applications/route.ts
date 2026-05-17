@@ -93,11 +93,20 @@ export async function PUT(request: Request) {
                     title = 'Payment Confirmed';
                     message = `Your payment has been verified. Your stay in ${app.room_type} is now confirmed.`;
                     type = 'success';
-                    await connection.query(
-                        `UPDATE invoices SET status = 'Paid', paid_at = COALESCE(paid_at, NOW())
-                         WHERE application_id = ? AND type IN ('Hostel Fee', 'Hostel Fee - Installment') AND status != 'Paid'`,
-                        [id]
-                    );
+
+                    if (app.payment_method === 'Installment Plan') {
+                        await connection.query(
+                            `UPDATE invoices SET status = 'Paid', paid_at = COALESCE(paid_at, NOW())
+                             WHERE application_id = ? AND type = 'Hostel Fee - Installment' AND installment_no = 1 AND status != 'Paid'`,
+                            [id]
+                        );
+                    } else {
+                        await connection.query(
+                            `UPDATE invoices SET status = 'Paid', paid_at = COALESCE(paid_at, NOW())
+                             WHERE application_id = ? AND type = 'Hostel Fee' AND status != 'Paid'`,
+                            [id]
+                        );
+                    }
                     await syncApplicationPaymentStatus(id, connection);
                 } else if (status === 'Rejected' || status === 'Cancelled') {
                     title = 'Application Cancelled';

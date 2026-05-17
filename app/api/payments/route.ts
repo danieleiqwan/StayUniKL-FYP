@@ -75,7 +75,7 @@ export async function POST(request: Request) {
             if (applicationId) {
                 const paymentStatus = await syncApplicationPaymentStatus(applicationId, connection);
 
-                if (paymentStatus === 'Fully Paid') {
+                if (paymentStatus === 'Fully Paid' || paymentStatus === 'Partially Paid') {
                     await connection.query(
                         'UPDATE applications SET status = "Approved" WHERE id = ? AND status = "Payment Pending"',
                         [applicationId]
