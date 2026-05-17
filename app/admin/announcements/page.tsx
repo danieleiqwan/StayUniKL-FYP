@@ -42,9 +42,12 @@ export default function AdminAnnouncementsPage() {
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    const [formType, setFormType] = useState<'text' | 'poster'>('text');
     const [submitting, setSubmitting] = useState(false);
     const [migrating, setMigrating] = useState(false);
     const [migrateMsg, setMigrateMsg] = useState('');
+    const [uploadingPoster, setUploadingPoster] = useState(false);
+    const [posterUrl, setPosterUrl] = useState('');
     const [form, setForm] = useState({
         title: '', message: '', category: 'general' as Category,
         priority: 'general' as Priority, expiresAt: '', sendNotification: true,
@@ -74,17 +77,59 @@ export default function AdminAnnouncementsPage() {
         finally { setMigrating(false); }
     };
 
+    const handlePosterUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploadingPoster(true);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('/api/admin/upload-poster', {
+                method: 'POST',
+                body: formData,
+            });
+            const data = await res.json();
+            if (data.success) {
+                setPosterUrl(data.url);
+            } else {
+                alert('Upload failed: ' + data.error);
+            }
+        } catch {
+            alert('Error uploading poster.');
+        } finally {
+            setUploadingPoster(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (formType === 'poster' && !posterUrl) {
+            alert('Please select and upload a poster image first.');
+            return;
+        }
         setSubmitting(true);
         try {
+            const payload = formType === 'poster' ? {
+                title: form.title,
+                isPoster: true,
+                imageUrl: posterUrl,
+                expiresAt: form.expiresAt || null,
+                sendNotification: form.sendNotification,
+            } : {
+                ...form,
+                expiresAt: form.expiresAt || null,
+            };
+
             const res = await fetch('/api/announcements', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...form, expiresAt: form.expiresAt || null }),
+                body: JSON.stringify(payload),
             });
             if (res.ok) {
                 setForm({ title: '', message: '', category: 'general', priority: 'general', expiresAt: '', sendNotification: true });
+                setPosterUrl('');
                 setShowForm(false);
                 fetchAnnouncements();
             }
@@ -137,11 +182,18 @@ export default function AdminAnnouncementsPage() {
                         </button>
                         {migrateMsg && <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{migrateMsg}</span>}
                         <button
-                            onClick={() => setShowForm(!showForm)}
-                            className="flex items-center gap-2 bg-[#F26C22] text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-orange-500/20 hover:bg-[#d65a16] transition-all text-sm"
+                            onClick={() => { setShowForm(true); setFormType('text'); }}
+                            className="flex items-center gap-2 bg-[#F26C22] text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20 hover:bg-[#d65a16] transition-all text-sm"
                         >
                             <Plus className="h-4 w-4" />
                             New Announcement
+                        </button>
+                        <button
+                            onClick={() => { setShowForm(true); setFormType('poster'); }}
+                            className="flex items-center gap-2 bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 hover:bg-emerald-700 transition-all text-sm"
+                        >
+                            <Plus className="h-4 w-4" />
+                            New Poster
                         </button>
                     </div>
                 </div>
@@ -164,47 +216,86 @@ export default function AdminAnnouncementsPage() {
                 {showForm && (
                     <div className="bg-white dark:bg-slate-900 border border-[#F26C22]/30 rounded-2xl shadow-lg p-8 mb-8 animate-in fade-in slide-in-from-top-4 duration-300">
                         <div className="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Compose Announcement</h2>
+                            <h2 className="text-lg font-bold text-slate-900 dark:text-white">{formType === 'poster' ? 'Compose Poster Announcement' : 'Compose Announcement'}</h2>
                             <button onClick={() => setShowForm(false)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-slate-50 dark:bg-slate-800 rounded-full transition-colors">
                                 <X className="h-4 w-4" />
                             </button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-5">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                {/* Category */}
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Category</label>
-                                    <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value as Category })} className={inputCls}>
-                                        <option value="general">General</option>
-                                        <option value="maintenance">Maintenance</option>
-                                        <option value="billing">Billing</option>
-                                        <option value="events">Events</option>
-                                        <option value="emergency">Emergency</option>
-                                    </select>
-                                </div>
-                                {/* Priority */}
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Priority</label>
-                                    <select value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value as Priority })} className={inputCls}>
-                                        <option value="general">General</option>
-                                        <option value="important">Important</option>
-                                        <option value="urgent">Urgent</option>
-                                    </select>
-                                </div>
-                            </div>
+                            {formType === 'text' ? (
+                                <>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        {/* Category */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Category</label>
+                                            <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value as Category })} className={inputCls}>
+                                                <option value="general">General</option>
+                                                <option value="maintenance">Maintenance</option>
+                                                <option value="billing">Billing</option>
+                                                <option value="events">Events</option>
+                                                <option value="emergency">Emergency</option>
+                                            </select>
+                                        </div>
+                                        {/* Priority */}
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Priority</label>
+                                            <select value={form.priority} onChange={e => setForm({ ...form, priority: e.target.value as Priority })} className={inputCls}>
+                                                <option value="general">General</option>
+                                                <option value="important">Important</option>
+                                                <option value="urgent">Urgent</option>
+                                            </select>
+                                        </div>
+                                    </div>
 
-                            {/* Title */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Title</label>
-                                <input required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Water Supply Interruption on 6 May" className={inputCls} />
-                            </div>
+                                    {/* Title */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Title</label>
+                                        <input required={formType === 'text'} value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Water Supply Interruption on 6 May" className={inputCls} />
+                                    </div>
 
-                            {/* Message */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Message</label>
-                                <textarea required rows={4} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} placeholder="Provide full details of the announcement..." className={`${inputCls} resize-none`} />
-                            </div>
+                                    {/* Message */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Message</label>
+                                        <textarea required={formType === 'text'} rows={4} value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} placeholder="Provide full details of the announcement..." className={`${inputCls} resize-none`} />
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    {/* Poster Title */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Poster Title</label>
+                                        <input required={formType === 'poster'} value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Annual Sports Fest Poster" className={inputCls} />
+                                    </div>
+
+                                    {/* Poster Upload picker */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Poster Image (Image Only)</label>
+                                        <div className="flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl p-6 bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors relative min-h-[160px]">
+                                            {uploadingPoster ? (
+                                                <div className="flex flex-col items-center gap-2 py-4">
+                                                    <Loader2 className="h-8 w-8 animate-spin text-[#F26C22]" />
+                                                    <span className="text-xs font-bold text-slate-500">Uploading poster to Cloudinary...</span>
+                                                </div>
+                                            ) : posterUrl ? (
+                                                <div className="w-full flex flex-col items-center gap-3">
+                                                    <div className="max-w-[240px] rounded-xl overflow-hidden shadow border border-slate-200 dark:border-slate-700">
+                                                        <img src={posterUrl} alt="Uploaded Poster" className="w-full h-auto object-cover" />
+                                                    </div>
+                                                    <button type="button" onClick={() => setPosterUrl('')} className="text-xs font-bold text-rose-500 hover:underline">Remove & upload another</button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center cursor-pointer text-center">
+                                                    <Plus className="h-8 w-8 text-slate-400 mb-2" />
+                                                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Click to select poster image</span>
+                                                    <span className="text-[10px] text-slate-400 mt-1">Supports JPG, PNG, WEBP up to 5MB</span>
+                                                    <input type="file" accept="image/*" onChange={handlePosterUpload} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
 
                             {/* Expiry */}
                             <div>
@@ -290,13 +381,25 @@ function AnnouncementCard({ a, onToggle, onDelete }: { a: Announcement; onToggle
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${pCfg.badge}`}>
                             {pCfg.icon}{pCfg.label}
                         </span>
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${cCfg.color}`}>
-                            <Tag className="h-3 w-3" />{cCfg.label}
-                        </span>
+                        {a.is_poster ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                🖼️ Poster
+                            </span>
+                        ) : (
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider ${cCfg.color}`}>
+                                <Tag className="h-3 w-3" />{cCfg.label}
+                            </span>
+                        )}
                         {isExpired && <span className="text-[11px] font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-full">Expired</span>}
                     </div>
                     <h3 className="font-bold text-slate-900 dark:text-white text-base mb-1">{a.title}</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">{a.message}</p>
+                    {a.is_poster && a.image_url ? (
+                        <div className="mt-3 mb-2 max-w-sm rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm">
+                            <img src={a.image_url} alt={a.title} className="w-full h-auto max-h-[220px] object-cover hover:scale-105 transition-transform duration-300" />
+                        </div>
+                    ) : (
+                        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">{a.message}</p>
+                    )}
                     <div className="flex items-center gap-4 mt-3">
                         <span className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1">
                             <Clock className="h-3 w-3" />

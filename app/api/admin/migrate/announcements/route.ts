@@ -17,10 +17,20 @@ export async function POST() {
                 is_active TINYINT(1) NOT NULL DEFAULT 1,
                 expires_at DATETIME NULL,
                 created_by VARCHAR(64) NULL,
+                is_poster TINYINT(1) NOT NULL DEFAULT 0,
+                image_url VARCHAR(512) NULL,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
             )
         `);
+
+        // Also add the columns dynamically in case table already exists!
+        try {
+            await pool.query('ALTER TABLE announcements ADD COLUMN is_poster TINYINT(1) NOT NULL DEFAULT 0');
+        } catch (e) {}
+        try {
+            await pool.query('ALTER TABLE announcements ADD COLUMN image_url VARCHAR(512) NULL');
+        } catch (e) {}
 
         return NextResponse.json({ success: true, message: 'announcements table created or already exists.' });
     } catch (error: any) {

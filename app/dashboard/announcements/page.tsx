@@ -14,6 +14,8 @@ interface Announcement {
     priority: Priority;
     expires_at: string | null;
     created_at: string;
+    is_poster?: number;
+    image_url?: string | null;
 }
 
 const PRIORITY_CONFIG: Record<Priority, { label: string; badge: string; icon: React.ReactNode; border: string }> = {
@@ -115,18 +117,35 @@ export default function AnnouncementsPage() {
                                                 <span className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${pCfg.badge}`}>
                                                     {pCfg.icon} {pCfg.label}
                                                 </span>
-                                                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border border-slate-100 dark:border-slate-700/50">
-                                                    <Tag className="h-3 w-3" /> {CATEGORY_LABELS[a.category]}
-                                                </span>
+                                                {a.is_poster ? (
+                                                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30">
+                                                        🖼️ Poster
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border border-slate-100 dark:border-slate-700/50">
+                                                        <Tag className="h-3 w-3" /> {CATEGORY_LABELS[a.category]}
+                                                    </span>
+                                                )}
                                             </div>
                                             
                                             <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 uppercase tracking-tight leading-tight group-hover:text-[#F26C22] transition-colors">
                                                 {a.title}
                                             </h3>
                                             
-                                            <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium mb-6">
-                                                {a.message}
-                                            </p>
+                                            {a.is_poster && a.image_url ? (
+                                                <div className="mb-6 rounded-[1.5rem] overflow-hidden border border-slate-100 dark:border-slate-800 shadow-md max-w-2xl bg-slate-50 dark:bg-slate-800">
+                                                    <a href={a.image_url} target="_blank" rel="noopener noreferrer" className="cursor-zoom-in block relative group/img">
+                                                        <img src={a.image_url} alt={a.title} className="w-full h-auto object-cover max-h-[500px] hover:scale-[1.02] transition-transform duration-500" />
+                                                        <div className="absolute inset-0 bg-black/10 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                                                            <span className="bg-white/90 dark:bg-slate-900/90 px-4 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-white shadow-lg">Click to open full image 🔍</span>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            ) : (
+                                                <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium mb-6">
+                                                    {a.message}
+                                                </p>
+                                            )}
                                             
                                             <div className="flex flex-wrap items-center gap-6">
                                                 <div className="flex items-center gap-2.5 text-slate-400 dark:text-slate-500">

@@ -39,18 +39,34 @@ export async function POST(request: Request) {
         if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
         const body = await request.json();
-        const { title, message, category, priority, expiresAt, sendNotification } = body;
+        const { title, message, category, priority, expiresAt, sendNotification, isPoster, imageUrl } = body;
 
-        if (!title || !message || !category) {
-            return NextResponse.json({ error: 'Title, message, and category are required.' }, { status: 400 });
+        if (isPoster) {
+            if (!title || !imageUrl) {
+                return NextResponse.json({ error: 'Title and Poster Image are required.' }, { status: 400 });
+            }
+        } else {
+            if (!title || !message || !category) {
+                return NextResponse.json({ error: 'Title, message, and category are required.' }, { status: 400 });
+            }
         }
 
         const id = `ann_${Date.now()}`;
 
         await pool.query(
-            `INSERT INTO announcements (id, title, message, category, priority, expires_at, is_active, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, 1, ?)`,
-            [id, title, message, category, priority || 'general', expiresAt || null, admin.id]
+            `INSERT INTO announcements (id, title, message, category, priority, expires_at, is_active, created_by, is_poster, image_url)
+             VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
+            [
+                id,
+                title,
+                isPoster ? '(Poster Announcement)' : message,
+                isPoster ? 'events' : category,
+                priority || 'general',
+                expiresAt || null,
+                admin.id,
+                isPoster ? 1 : 0,
+                imageUrl || null
+            ]
         );
 
         // Fan out to all students as in-app notification if requested

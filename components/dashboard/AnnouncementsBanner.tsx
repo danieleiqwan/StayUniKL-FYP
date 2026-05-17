@@ -15,6 +15,7 @@ interface Announcement {
     priority: Priority;
     expires_at: string | null;
     created_at: string;
+    is_poster?: number;
 }
 
 const PRIORITY_STYLE: Record<Priority, { bg: string; icon: React.ReactNode; text: string; btn: string; circle: string }> = {
@@ -66,7 +67,7 @@ export default function AnnouncementsBanner() {
         });
     };
 
-    const visible = announcements.filter(a => !dismissed.has(a.id));
+    const visible = announcements.filter(a => !dismissed.has(a.id) && !a.is_poster);
 
     if (visible.length === 0) return null;
 
