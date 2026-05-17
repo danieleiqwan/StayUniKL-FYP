@@ -88,11 +88,11 @@ function NavContent({
         { name: 'Complaints', path: '/dashboard/complaints',  icon: Wrench },
         { name: 'Room Change',path: '/dashboard/room-change', icon: ArrowRightLeft },
         { name: 'Notifications', path: '/dashboard/notifications', icon: Bell },
+        { name: 'Announcements', path: '/dashboard/announcements', icon: Megaphone },
     ];
 
     const resourceItems = [
         { label: 'Financials', path: '/dashboard/financials',  icon: CreditCard },
-        { label: 'Announcements', path: '/dashboard/announcements', icon: Megaphone },
         { label: 'Documents',  path: '/dashboard/documents',   icon: FileText },
     ];
 
