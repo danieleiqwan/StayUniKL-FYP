@@ -153,11 +153,13 @@ export default function StaffManagementPage() {
             
             if (!matchesSearch) return false;
 
+            const currentStatus = (s as any).status || (s.is_active ? 'Active' : 'Suspended');
+
             if (statusFilter === 'ACTIVE') {
-                return s.is_active === 1;
+                return currentStatus === 'Active' || currentStatus === 'Pending Password Change';
             }
             if (statusFilter === 'SUSPENDED') {
-                return s.is_active === 0;
+                return currentStatus === 'Suspended' || currentStatus === 'Inactive';
             }
             return true;
         });
@@ -171,16 +173,34 @@ export default function StaffManagementPage() {
                 </span>
             );
         }
-        if (member.is_active) {
+
+        // Use backend status column if available
+        const currentStatus = (member as any).status || (member.is_active ? 'Active' : 'Suspended');
+
+        if (currentStatus === 'Active') {
             return (
                 <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                     <CheckCircle2 className="h-3 w-3" /> Active
                 </span>
             );
         }
+        if (currentStatus === 'Pending Password Change') {
+            return (
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                    <Clock className="h-3 w-3" /> Pending PW Setup
+                </span>
+            );
+        }
+        if (currentStatus === 'Inactive') {
+            return (
+                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-zinc-500/15 text-zinc-500 dark:text-zinc-400 border border-zinc-500/20">
+                    <XCircle className="h-3 w-3" /> Inactive
+                </span>
+            );
+        }
         return (
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                <XCircle className="h-3 w-3" /> Suspended
+                <ShieldOff className="h-3 w-3" /> Suspended
             </span>
         );
     };
@@ -260,16 +280,23 @@ export default function StaffManagementPage() {
                             <span className="xl:hidden text-[10px] font-bold uppercase">Key</span>
                         </button>
                         {member?.is_active ? (
-                            <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'suspend', staffId: member?.id }); }}
-                                className="flex-1 xl:flex-none flex items-center justify-center gap-2 p-2.5 xl:p-2 rounded-xl text-zinc-500 hover:text-rose-500 hover:bg-rose-500/10 transition-all border border-zinc-100 dark:border-zinc-800 xl:border-0" title="Suspend Account">
-                                <ShieldOff className="h-4 w-4" />
-                                <span className="xl:hidden text-[10px] font-bold uppercase">Lock</span>
-                            </button>
+                            <>
+                                <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'suspend', staffId: member?.id }); }}
+                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 p-2.5 xl:p-2 rounded-xl text-zinc-500 hover:text-rose-500 hover:bg-rose-500/10 transition-all border border-zinc-100 dark:border-zinc-800 xl:border-0" title="Suspend Account">
+                                    <ShieldOff className="h-4 w-4" />
+                                    <span className="xl:hidden text-[10px] font-bold uppercase">Suspend</span>
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'deactivate', staffId: member?.id }); }}
+                                    className="flex-1 xl:flex-none flex items-center justify-center gap-2 p-2.5 xl:p-2 rounded-xl text-zinc-500 hover:text-rose-600 hover:bg-rose-600/10 transition-all border border-zinc-100 dark:border-zinc-800 xl:border-0" title="Deactivate Account">
+                                    <XCircle className="h-4 w-4" />
+                                    <span className="xl:hidden text-[10px] font-bold uppercase">Deactivate</span>
+                                </button>
+                            </>
                         ) : (
                             <button onClick={(e) => { e.stopPropagation(); setModal({ type: 'activate', staffId: member?.id }); }}
                                 className="flex-1 xl:flex-none flex items-center justify-center gap-2 p-2.5 xl:p-2 rounded-xl text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all border border-zinc-100 dark:border-zinc-800 xl:border-0" title="Activate Account">
                                 <ShieldCheck className="h-4 w-4" />
-                                <span className="xl:hidden text-[10px] font-bold uppercase">Open</span>
+                                <span className="xl:hidden text-[10px] font-bold uppercase">Restore Access</span>
                             </button>
                         )}
                     </>

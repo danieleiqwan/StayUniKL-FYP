@@ -19,9 +19,12 @@ export async function GET() {
         try {
             await pool.query("ALTER TABLE users ADD COLUMN created_by VARCHAR(50) DEFAULT NULL");
         } catch {}
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN status VARCHAR(30) DEFAULT 'Active'");
+        } catch {}
 
         const [rows]: any = await pool.query(
-            `SELECT id, name, email, role, is_active, last_login, created_at, phone_number, must_change_password, created_by
+            `SELECT id, name, email, role, is_active, last_login, created_at, phone_number, must_change_password, created_by, status
              FROM users
              WHERE role IN ('admin', 'superadmin')
              ORDER BY role DESC, created_at DESC`
@@ -47,6 +50,9 @@ export async function POST(request: Request) {
         try {
             await pool.query("ALTER TABLE users ADD COLUMN created_by VARCHAR(50) DEFAULT NULL");
         } catch {}
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN status VARCHAR(30) DEFAULT 'Active'");
+        } catch {}
 
         const { name, email, password, customId, phone_number, created_at } = await request.json();
 
@@ -67,8 +73,8 @@ export async function POST(request: Request) {
         const activationDate = (created_at && created_at.trim() !== '') ? new Date(created_at) : new Date();
 
         await pool.query(
-            `INSERT INTO users (id, name, email, password, role, is_active, created_at, phone_number, must_change_password, created_by)
-             VALUES (?, ?, ?, ?, 'admin', 1, ?, ?, 1, ?)`,
+            `INSERT INTO users (id, name, email, password, role, is_active, created_at, phone_number, must_change_password, created_by, status)
+             VALUES (?, ?, ?, ?, 'admin', 1, ?, ?, 1, ?, 'Pending Password Change')`,
             [id, name, email, hashedPassword, activationDate, phone_number || null, superadmin.id]
         );
 
@@ -118,15 +124,18 @@ export async function PATCH(request: Request) {
 
         switch (action) {
             case 'SUSPEND':
-                await pool.query('UPDATE users SET is_active = 0 WHERE id = ?', [id]);
+                await pool.query("UPDATE users SET status = 'Suspended', is_active = 0 WHERE id = ?", [id]);
                 auditAction = 'ADMIN_ACCOUNT_SUSPENDED';
                 break;
             case 'ACTIVATE':
-                await pool.query('UPDATE users SET is_active = 1 WHERE id = ?', [id]);
+                const [actRows]: any = await pool.query('SELECT must_change_password FROM users WHERE id = ?', [id]);
+                const nextStatus = (actRows.length > 0 && actRows[0].must_change_password) ? 'Pending Password Change' : 'Active';
+                await pool.query("UPDATE users SET status = ?, is_active = 1 WHERE id = ?", [nextStatus, id]);
                 auditAction = 'ADMIN_ACCOUNT_ACTIVATED';
                 break;
+            case 'DEACTIVATED':
             case 'DEACTIVATE':
-                await pool.query('UPDATE users SET is_active = 0 WHERE id = ?', [id]);
+                await pool.query("UPDATE users SET status = 'Inactive', is_active = 0 WHERE id = ?", [id]);
                 auditAction = 'ADMIN_ACCOUNT_DEACTIVATED';
                 break;
             case 'RESET_PASSWORD':
@@ -134,7 +143,11 @@ export async function PATCH(request: Request) {
                     return NextResponse.json({ error: 'New password must be at least 8 characters.' }, { status: 400 });
                 }
                 const hashed = await bcrypt.hash(newPassword, 12);
-                await pool.query('UPDATE users SET password = ?, login_attempts = 0, locked_until = NULL WHERE id = ?', [hashed, id]);
+                // Resetting password puts the account back to Pending Password Change
+                await pool.query(
+                    "UPDATE users SET password = ?, must_change_password = 1, status = 'Pending Password Change', login_attempts = 0, locked_until = NULL WHERE id = ?", 
+                    [hashed, id]
+                );
                 auditAction = 'ADMIN_PASSWORD_RESET';
                 break;
             case 'UPDATE_DETAILS':
