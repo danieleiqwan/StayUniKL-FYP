@@ -14,7 +14,7 @@ export default function CreateInvoicePage() {
     const [studentData, setStudentData] = useState<any>(null);
     
     // Form State
-    const [invoiceType, setInvoiceType] = useState('Hostel Damage Fine');
+    const [invoiceType, setInvoiceType] = useState('Hostel Fee');
     const [amount, setAmount] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [description, setDescription] = useState('');
@@ -273,14 +273,16 @@ export default function CreateInvoicePage() {
                                 >
                                     <optgroup label="Financial">
                                         <option value="Hostel Fee">Hostel Fee</option>
-                                        <option value="Installment Payment">Installment Payment</option>
-                                        <option value="Late Payment">Late Payment Penalty</option>
+                                        <option value="Deposit">Deposit</option>
                                     </optgroup>
-                                    <optgroup label="Disciplinary">
-                                        <option value="Hostel Damage Fine">Hostel Damage Fine</option>
-                                        <option value="Facility Misuse">Facility Misuse Fine</option>
-                                        <option value="Cleaning Penalty">Cleaning Penalty</option>
-                                        <option value="Other Administrative Charges">Other Administrative Charges</option>
+                                    <optgroup label="Fines & Penalties">
+                                        <option value="Fine">Hostel Damage Fine</option>
+                                        <option value="Fine">Late Payment Penalty</option>
+                                        <option value="Fine">Facility Misuse Fine</option>
+                                        <option value="Fine">Cleaning Penalty</option>
+                                    </optgroup>
+                                    <optgroup label="Other">
+                                        <option value="Other">Other Administrative Charges</option>
                                     </optgroup>
                                 </select>
                             </div>
