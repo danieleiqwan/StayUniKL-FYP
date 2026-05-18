@@ -12,8 +12,16 @@ export async function GET() {
     }
 
     try {
+        // Safe backward-compatible schema expansion
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN must_change_password TINYINT DEFAULT 0");
+        } catch {}
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN created_by VARCHAR(50) DEFAULT NULL");
+        } catch {}
+
         const [rows]: any = await pool.query(
-            `SELECT id, name, email, role, is_active, last_login, created_at, phone_number
+            `SELECT id, name, email, role, is_active, last_login, created_at, phone_number, must_change_password, created_by
              FROM users
              WHERE role IN ('admin', 'superadmin')
              ORDER BY role DESC, created_at DESC`
@@ -32,6 +40,14 @@ export async function POST(request: Request) {
     }
 
     try {
+        // Safe backward-compatible schema expansion
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN must_change_password TINYINT DEFAULT 0");
+        } catch {}
+        try {
+            await pool.query("ALTER TABLE users ADD COLUMN created_by VARCHAR(50) DEFAULT NULL");
+        } catch {}
+
         const { name, email, password, customId, phone_number, created_at } = await request.json();
 
         if (!name || !email || !password) {
@@ -51,9 +67,9 @@ export async function POST(request: Request) {
         const activationDate = (created_at && created_at.trim() !== '') ? new Date(created_at) : new Date();
 
         await pool.query(
-            `INSERT INTO users (id, name, email, password, role, is_active, created_at, phone_number)
-             VALUES (?, ?, ?, ?, 'admin', 1, ?, ?)`,
-            [id, name, email, hashedPassword, activationDate, phone_number || null]
+            `INSERT INTO users (id, name, email, password, role, is_active, created_at, phone_number, must_change_password, created_by)
+             VALUES (?, ?, ?, ?, 'admin', 1, ?, ?, 1, ?)`,
+            [id, name, email, hashedPassword, activationDate, phone_number || null, superadmin.id]
         );
 
         await logAction({

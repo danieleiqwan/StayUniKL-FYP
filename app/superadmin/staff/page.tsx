@@ -468,7 +468,7 @@ export default function StaffManagementPage() {
                                 </div>
                                 {modal.type === 'create' && (
                                     <div>
-                                        <label className="text-[10px] font-black text-zinc-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Password (min. 8 chars)</label>
+                                        <label className="text-[10px] font-black text-zinc-400 dark:text-slate-500 uppercase tracking-widest block mb-2">Temporary Password (min. 8 chars)</label>
                                         <div className="relative">
                                             <input type={showPassword ? 'text' : 'password'} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                                                 placeholder="••••••••••••"
