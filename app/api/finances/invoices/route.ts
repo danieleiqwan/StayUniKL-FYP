@@ -99,10 +99,14 @@ export async function POST(request: Request) {
             
             // Hack for UI: Also update invoice directly if we are using evidence_url column in frontend
             try {
-                await connection.query(`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS evidence_url VARCHAR(255) NULL`);
+                await connection.query(`ALTER TABLE invoices ADD COLUMN evidence_url VARCHAR(255) NULL`);
+            } catch (e: any) {
+                // Ignore if it fails (e.g. Duplicate column name)
+            }
+            try {
                 await connection.query(`UPDATE invoices SET evidence_url = ? WHERE id = ?`, [evidenceUrl, invoiceIdStr]);
-            } catch (e) {
-                // Ignore if it fails, our Phase 3 UI relies on evidence_url so it's good to have it
+            } catch (e: any) {
+                console.warn('[Update evidence_url failed]', e);
             }
         }
 
