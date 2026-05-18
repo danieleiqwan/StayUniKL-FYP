@@ -95,6 +95,7 @@ function AdminDashboard() {
     };
 
     const [courtSubTab, setCourtSubTab] = useState<'bookings' | 'settings' | 'schedule' | 'sports'>('bookings');
+    const [facilityTab, setFacilityTab] = useState<'court' | 'gym' | 'laundry'>('court');
     const [selectedScheduleDate, setSelectedScheduleDate] = useState<string>(new Date().toISOString().split('T')[0]);
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
     const [liveUserCount, setLiveUserCount] = useState<number | null>(null);
@@ -798,8 +799,8 @@ function AdminDashboard() {
                                     </div>
                                     <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-6 shadow-sm">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">Court Status</p>
-                                        <p className={`text-3xl font-black ${facilitySettings?.court.isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                            {facilitySettings?.court.isOpen ? 'Open' : 'Closed'}
+                                        <p className={`text-3xl font-black ${facilitySettings?.court?.isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                            {facilitySettings?.court?.isOpen ? 'Open' : 'Closed'}
                                         </p>
                                     </div>
                                 </div>
