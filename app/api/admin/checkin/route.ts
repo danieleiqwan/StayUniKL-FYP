@@ -89,7 +89,7 @@ export async function PUT(request: Request) {
             // Handle Virtual ID Card (JSON)
             try {
                 const data = JSON.parse(token);
-                const studentId = data.id;
+                const studentId = data.studentId || data.id;
 
                 // Find the latest 'Approved' application for this student
                 const [appRows]: any = await pool.query(
