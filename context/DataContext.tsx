@@ -501,7 +501,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     // --- Helpers (Local Mock for Rooms) ---
     const getRoomsByFloor = (floorId: number) => rooms.filter(r => r.floorId === floorId);
-    const getAvailableFloors = (gender: 'Male' | 'Female') => gender === 'Male' ? [1, 2, 3] : [4, 5, 6, 7];
+    const getAvailableFloors = (gender: 'Male' | 'Female') => {
+        // Derive floors dynamically from live room inventory based on student's gender
+        const matchingRooms = rooms.filter(r => r.gender === gender || r.gender === 'Co-Ed');
+        const uniqueFloors = Array.from(new Set(matchingRooms.map(r => r.floorId))).sort((a: number, b: number) => a - b);
+        // Fallback to legacy hardcoded floors if DB has no rooms yet
+        if (uniqueFloors.length > 0) return uniqueFloors;
+        return gender === 'Male' ? [1, 2, 3] : [4, 5, 6, 7];
+    };
     const bookBed = async (roomId: string, bedId: string) => {
         fetchData();
     };

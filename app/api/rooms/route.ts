@@ -11,13 +11,6 @@ export async function GET() {
         // 2. Fetch Beds
         const [beds]: any = await pool.query('SELECT * FROM beds ORDER BY id');
 
-        // 3. Fetch Occupied Beds (Active Applications)
-        // We consider a bed occupied if there is an application that is NOT Cancelled/Rejected/Checked out/No show
-        // Actually, "Checked out" frees the bed. "No show" frees the bed. "Cancelled" frees the bed.
-        // So occupied = Pending? No, Pending doesn't reserve usually (unless we want strict holding).
-        // Let's stick to design: Payment Pending, Approved, Checked in.
-        // Also Pending if we want to show it as "Requested".
-        // For inventory V1, let's look for explicitly assigned beds.
         // 3. Fetch Occupied Beds (Active Applications) with Student Details
         const [activeApps]: any = await pool.query(`
             SELECT 
@@ -54,7 +47,7 @@ export async function GET() {
                     return {
                         id: bed.id,
                         label: bed.label,
-                        status: bed.status, // Maintenance etc
+                        status: bed.status,
                         isOccupied: !!student,
                         occupantName: student?.name || null,
                         occupantId: student?.id || null,
@@ -66,7 +59,7 @@ export async function GET() {
 
             return {
                 id: room.id,
-                floorId: room.floor_id, // snake_case from DB
+                floorId: room.floor_id,
                 label: `Room ${room.id}`,
                 gender: room.gender,
                 roomType: room.room_type,
@@ -79,6 +72,85 @@ export async function GET() {
         return NextResponse.json({ rooms: roomsWithBeds });
 
     } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+
+export async function POST(request: Request) {
+    const conn = await pool.getConnection();
+    try {
+        const admin = await isAdmin();
+        if (!admin) {
+            conn.release();
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await request.json();
+        const { roomId, floorId, gender, capacity, roomType, status } = body;
+
+        if (!roomId || !floorId || !gender || !capacity || !roomType) {
+            conn.release();
+            return NextResponse.json({ error: 'Missing required fields: roomId, floorId, gender, capacity, roomType' }, { status: 400 });
+        }
+
+        // Validate values
+        if (!['Male', 'Female', 'Co-Ed'].includes(gender)) {
+            conn.release();
+            return NextResponse.json({ error: 'Invalid gender. Must be Male, Female, or Co-Ed.' }, { status: 400 });
+        }
+        if (!['Single', 'Double', 'Triple', 'Quad'].includes(roomType)) {
+            conn.release();
+            return NextResponse.json({ error: 'Invalid roomType. Must be Single, Double, Triple, or Quad.' }, { status: 400 });
+        }
+
+        // Check room doesn't already exist
+        const [existing]: any = await conn.query('SELECT id FROM rooms WHERE id = ?', [String(roomId)]);
+        if (existing.length > 0) {
+            conn.release();
+            return NextResponse.json({ error: `Room ${roomId} already exists.` }, { status: 409 });
+        }
+
+        await conn.beginTransaction();
+
+        // 1. Insert the room
+        await conn.query(
+            'INSERT INTO rooms (id, floor_id, gender, capacity, room_type, status) VALUES (?, ?, ?, ?, ?, ?)',
+            [String(roomId), Number(floorId), gender, Number(capacity), roomType, status || 'Available']
+        );
+
+        // 2. Auto-generate beds based on capacity
+        const bedLabels = ['A', 'B', 'C', 'D'].slice(0, Number(capacity));
+        for (const label of bedLabels) {
+            const bedId = `${roomId}-${label}`;
+            await conn.query(
+                'INSERT INTO beds (id, room_id, label, status) VALUES (?, ?, ?, ?)',
+                [bedId, String(roomId), label, 'Available']
+            );
+        }
+
+        await conn.commit();
+        conn.release();
+
+        // Audit log
+        await logAction({
+            actorId: admin.id,
+            actorName: admin.name,
+            action: 'CREATE_ROOM',
+            entityType: 'Room',
+            entityId: String(roomId),
+            details: { floorId, gender, capacity, roomType, bedsGenerated: bedLabels }
+        });
+
+        return NextResponse.json({
+            success: true,
+            message: `Room ${roomId} created with ${capacity} bed(s) on Floor ${floorId}.`,
+            bedsGenerated: bedLabels.map(l => `${roomId}-${l}`)
+        });
+
+    } catch (error: any) {
+        await conn.rollback();
+        conn.release();
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
@@ -114,3 +186,4 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+

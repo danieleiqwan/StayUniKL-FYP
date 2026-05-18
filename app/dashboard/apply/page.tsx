@@ -59,7 +59,9 @@ export default function ApplyPage() {
     }, [user]);
 
     const allowedFloors = user ? getAvailableFloors(user.gender) : [];
-    const roomsOnFloor = selectedFloor ? getRoomsByFloor(selectedFloor) : [];;
+    const roomsOnFloor = selectedFloor 
+        ? getRoomsByFloor(selectedFloor).filter((r: any) => r.gender === user?.gender || r.gender === 'Co-Ed')
+        : [];
 
     if (!user) return null;
 
