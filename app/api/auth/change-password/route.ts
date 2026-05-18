@@ -1,72 +1,90 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { getAuthUser } from '@/lib/auth';
-import { z } from 'zod';
+import { getAuthUser, createToken, setTokenCookie } from '@/lib/auth';
+import { logAction } from '@/lib/audit';
 import bcrypt from 'bcryptjs';
-import { cookies } from 'next/headers';
-
-const passwordSchema = z.object({
-    current: z.string().min(1),
-    new: z.string()
-        .min(8, { message: 'Password must be at least 8 characters long' })
-        .regex(/[A-Z]/, { message: 'Password must contain at least one uppercase letter' })
-        .regex(/[a-z]/, { message: 'Password must contain at least one lowercase letter' })
-        .regex(/[0-9]/, { message: 'Password must contain at least one number' })
-        .regex(/[^A-Za-z0-9]/, { message: 'Password must contain at least one special character' }),
-});
 
 export async function POST(request: Request) {
     try {
-        const user = await getAuthUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        // Enforce basic auth check (but bypassing the middleware's strict mustChangePassword redirect redirect)
+        const authUser = await getAuthUser();
+        if (!authUser) {
+            return NextResponse.json({ error: 'Unauthorized: Session missing' }, { status: 401 });
         }
 
-        const body = await request.json();
-        const validation = passwordSchema.safeParse(body);
+        const { currentPassword, newPassword, confirmPassword } = await request.json();
 
-        if (!validation.success) {
-            const errorMessage = validation.error.issues[0]?.message || 'Invalid password format';
-            return NextResponse.json({ error: errorMessage }, { status: 400 });
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
         }
 
-        const { current, new: newPassword } = validation.data;
+        // 1. Password validation rules
+        if (newPassword.length < 8) {
+            return NextResponse.json({ error: 'New password must be at least 8 characters long.' }, { status: 400 });
+        }
+        if (!/[A-Z]/.test(newPassword)) {
+            return NextResponse.json({ error: 'New password must contain at least 1 uppercase letter.' }, { status: 400 });
+        }
+        if (!/[0-9]/.test(newPassword)) {
+            return NextResponse.json({ error: 'New password must contain at least 1 number.' }, { status: 400 });
+        }
+        if (!/[^A-Za-z0-9]/.test(newPassword)) {
+            return NextResponse.json({ error: 'New password must contain at least 1 special character.' }, { status: 400 });
+        }
 
-        // Verify current password (assuming plain text for now as per previous DB patterns, 
-        // but normally we use bcrypt.compare here)
-        const [rows]: any = await pool.query(
-            'SELECT password FROM users WHERE id = ?',
-            [user.id]
-        );
+        // 2. New password matches confirm password
+        if (newPassword !== confirmPassword) {
+            return NextResponse.json({ error: 'New passwords do not match.' }, { status: 400 });
+        }
 
+        // 3. New password is not the same as old password
+        if (currentPassword === newPassword) {
+            return NextResponse.json({ error: 'New password cannot be the same as your old password.' }, { status: 400 });
+        }
+
+        // 4. Verify current password matches DB
+        const [rows]: any = await pool.query('SELECT password FROM users WHERE id = ?', [authUser.id]);
         if (rows.length === 0) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            return NextResponse.json({ error: 'User not found.' }, { status: 404 });
         }
 
-        const userRecord = rows[0];
-
-        const isMatch = await bcrypt.compare(current, userRecord.password);
-        const isPlainMatch = current === userRecord.password;
-
+        const userPassword = rows[0].password;
+        const isMatch = await bcrypt.compare(currentPassword, userPassword);
+        const isPlainMatch = currentPassword === userPassword;
         if (!isMatch && !isPlainMatch) {
-            return NextResponse.json({ error: 'Current password is incorrect' }, { status: 401 });
+            return NextResponse.json({ error: 'Current password is incorrect.' }, { status: 400 });
         }
 
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        // Update password
+        // 5. Update password and must_change_password
+        const hashedNewPassword = await bcrypt.hash(newPassword, 12);
         await pool.query(
-            'UPDATE users SET password = ? WHERE id = ?',
-            [hashedPassword, user.id]
+            'UPDATE users SET password = ?, must_change_password = 0 WHERE id = ?',
+            [hashedNewPassword, authUser.id]
         );
 
-        // Invalidate token
-        const cookieStore = await cookies();
-        cookieStore.delete('token');
+        // 6. Log the action in security logs
+        await logAction({
+            actorId: authUser.id,
+            actorName: authUser.email,
+            action: 'ADMIN_PASSWORD_CHANGED_FIRST_LOGIN',
+            entityType: 'User',
+            entityId: authUser.id,
+            details: { email: authUser.email }
+        });
 
-        return NextResponse.json({ success: true });
+        // 7. Re-issue new session JWT token with mustChangePassword = false so they are instantly authorized
+        const newToken = await createToken({
+            id: authUser.id,
+            role: authUser.role,
+            email: authUser.email,
+            mustChangePassword: false
+        }, false);
+        await setTokenCookie(newToken, false);
 
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ success: true, message: 'Password updated successfully!' });
+
+    } catch (e: any) {
+        console.error('[ChangePassword API Error]', e);
+        return NextResponse.json({ error: e.message || 'Internal Server Error' }, { status: 500 });
     }
 }

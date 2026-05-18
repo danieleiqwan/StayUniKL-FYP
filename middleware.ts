@@ -99,6 +99,19 @@ export async function middleware(request: NextRequest) {
         try {
             const { payload }: any = await jwtVerify(token, SECRET_KEY);
 
+            // Enforce password change before any admin dashboard or system access
+            if (payload.mustChangePassword) {
+                const isAllowedPath = pathname === '/admin/change-password' || 
+                                      pathname === '/api/auth/change-password' || 
+                                      pathname === '/api/auth/logout';
+                if (!isAllowedPath) {
+                    if (pathname.startsWith('/api/')) {
+                        return NextResponse.json({ error: 'Password change required before accessing system modules' }, { status: 403 });
+                    }
+                    return NextResponse.redirect(new URL('/admin/change-password', request.url));
+                }
+            }
+
             // Track live students
             if (payload.role === 'student' && payload.id) {
                 liveUsersMap.set(payload.id, Date.now());

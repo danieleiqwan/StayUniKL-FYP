@@ -94,16 +94,23 @@ export async function POST(request: Request) {
         const token = await createToken({
             id: user.id,
             role: user.role,
-            email: user.email
+            email: user.email,
+            mustChangePassword: !!user.must_change_password
         }, rememberMe);
 
         // 2. Set the token in an HttpOnly cookie
         await setTokenCookie(token, rememberMe);
 
+        // Determine destination based on first-login change password constraint
+        let destination = user.role === 'superadmin' ? '/superadmin' : (user.role === 'admin' ? '/admin' : '/dashboard');
+        if (user.must_change_password) {
+            destination = '/admin/change-password';
+        }
+
         // Return user data (excluding sensitive fields)
         return NextResponse.json({
             success: true,
-            redirectTo: user.role === 'superadmin' ? '/superadmin' : (user.role === 'admin' ? '/admin' : '/dashboard'),
+            redirectTo: destination,
             user: {
                 id: user.id,
                 name: user.name,
@@ -126,7 +133,8 @@ export async function POST(request: Request) {
                 profileImage: user.profile_image,
                 alertBooking: user.alert_booking !== undefined ? !!user.alert_booking : true,
                 alertMaintenance: user.alert_maintenance !== undefined ? !!user.alert_maintenance : true,
-                alertAnnouncement: user.alert_announcement !== undefined ? !!user.alert_announcement : true
+                alertAnnouncement: user.alert_announcement !== undefined ? !!user.alert_announcement : true,
+                mustChangePassword: !!user.must_change_password
             }
         });
 

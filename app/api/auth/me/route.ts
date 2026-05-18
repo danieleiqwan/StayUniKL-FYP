@@ -19,7 +19,7 @@ export async function GET() {
             address, city, state, postcode,
             emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone,
             emergency_contact2_name, emergency_contact2_relation, emergency_contact2_phone,
-            two_factor_enabled, notifications_enabled
+            two_factor_enabled, notifications_enabled, must_change_password
         `;
 
         try {
@@ -28,7 +28,7 @@ export async function GET() {
             // If some columns are missing (e.g. migration hasn't run), try to get as much as possible
             try {
                 [rows] = await pool.query(
-                    'SELECT id, name, email, role, gender, student_id, nric, profile_image, phone_number, created_at, address, city, state, postcode, emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone, emergency_contact2_name, emergency_contact2_relation, emergency_contact2_phone FROM users WHERE id = ?',
+                    'SELECT id, name, email, role, gender, student_id, nric, profile_image, phone_number, created_at, address, city, state, postcode, emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone, emergency_contact2_name, emergency_contact2_relation, emergency_contact2_phone, must_change_password FROM users WHERE id = ?',
                     [authUser.id]
                 );
             } catch (e2) {
@@ -72,6 +72,7 @@ export async function GET() {
                 alertAnnouncement: user.alert_announcement !== undefined ? !!user.alert_announcement : true,
                 twoFactorEnabled: !!user.two_factor_enabled,
                 notificationsEnabled: !!user.notifications_enabled,
+                mustChangePassword: user.must_change_password !== undefined ? !!user.must_change_password : false,
                 createdAt: user.created_at
             }
         });
