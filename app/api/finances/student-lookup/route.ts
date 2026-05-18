@@ -22,15 +22,16 @@ export async function POST(request: Request) {
 
         // Query active application for hostel/room info
         const [apps]: any = await pool.query(
-            `SELECT room_id, bed_id, status FROM applications WHERE student_id = ? AND status IN ('Checked in', 'Approved', 'Payment Pending') ORDER BY created_at DESC LIMIT 1`,
+            `SELECT room_id, bed_id, status FROM applications WHERE student_id = ? AND status IN ('Checked in', 'Approved', 'Payment Pending') ORDER BY date DESC LIMIT 1`,
             [user.id]
         );
 
         let roomInfo = 'No Active Residency';
         if (apps.length > 0) {
             const app = apps[0];
-            // Assuming hostel info is tied to room or global, for StayUniKL it's usually "UniKL Residence" or similar, or based on room prefixes
-            roomInfo = `UniKL Hostel - Room ${app.room_id} (Bed ${app.bed_id})`;
+            const roomText = app.room_id ? `Room ${app.room_id}` : 'Pending Room';
+            const bedText = app.bed_id ? `(Bed ${app.bed_id})` : '';
+            roomInfo = `UniKL Hostel - ${roomText} ${bedText}`.trim();
         }
 
         return NextResponse.json({
