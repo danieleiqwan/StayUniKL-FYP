@@ -18,6 +18,7 @@ interface AuditLog {
     details: string | null;
     ip_address: string | null;
     created_at: string;
+    actor_is_active?: number | null;
 }
 
 const ACTION_COLORS: Record<string, string> = {
@@ -259,7 +260,14 @@ export default function AuditLogsPage() {
                                     </div>
 
                                     <div className="xl:col-span-2 w-full">
-                                        <p className="text-sm font-black text-zinc-900 dark:text-white truncate">{log.actor_name}</p>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <p className="text-sm font-black text-zinc-900 dark:text-white truncate">{log.actor_name}</p>
+                                            {log.actor_is_active === 0 && (
+                                                <span className="shrink-0 px-1.5 py-0.5 rounded bg-rose-500/15 border border-rose-500/25 text-rose-600 dark:text-rose-400 text-[8px] font-black uppercase tracking-widest leading-none">
+                                                    Suspended
+                                                </span>
+                                            )}
+                                        </div>
                                         <p className="text-[10px] text-zinc-400 dark:text-zinc-600 font-mono truncate uppercase tracking-tighter">{log.actor_id}</p>
                                     </div>
 

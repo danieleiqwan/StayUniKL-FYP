@@ -37,24 +37,24 @@ export async function GET(request: Request) {
         const params: any[] = [];
 
         if (actor) {
-            conditions.push('(actor_name LIKE ? OR actor_id LIKE ?)');
+            conditions.push('(a.actor_name LIKE ? OR a.actor_id LIKE ?)');
             params.push(`%${actor}%`, `%${actor}%`);
         }
         if (action) {
-            conditions.push('action LIKE ?');
+            conditions.push('a.action LIKE ?');
             params.push(`%${action}%`);
         }
         if (entityType) {
-            conditions.push('entity_type = ?');
+            conditions.push('a.entity_type = ?');
             params.push(entityType);
         }
         if (from) {
-            conditions.push('created_at >= ?');
+            conditions.push('a.created_at >= ?');
             params.push(from);
         }
         if (to) {
             // Add 1 day to include the full "to" date
-            conditions.push('created_at < DATE_ADD(?, INTERVAL 1 DAY)');
+            conditions.push('a.created_at < DATE_ADD(?, INTERVAL 1 DAY)');
             params.push(to);
         }
 
@@ -62,17 +62,19 @@ export async function GET(request: Request) {
 
         // Get total count for pagination
         const [countResult]: any = await pool.query(
-            `SELECT COUNT(*) as total FROM audit_logs ${whereClause}`,
+            `SELECT COUNT(*) as total FROM audit_logs a ${whereClause}`,
             params
         );
         const total = countResult[0].total;
 
         // Get paginated results
         const [rows]: any = await pool.query(
-            `SELECT id, actor_id, actor_name, action, entity_type, entity_id, details, ip_address, created_at
-             FROM audit_logs
+            `SELECT a.id, a.actor_id, a.actor_name, a.action, a.entity_type, a.entity_id, a.details, a.ip_address, a.created_at,
+                    u.is_active as actor_is_active
+             FROM audit_logs a
+             LEFT JOIN users u ON a.actor_id = u.id
              ${whereClause}
-             ORDER BY created_at DESC
+             ORDER BY a.created_at DESC
              LIMIT ? OFFSET ?`,
             [...params, limit, offset]
         );
