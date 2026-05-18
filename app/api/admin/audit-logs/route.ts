@@ -41,6 +41,13 @@ export async function GET(request: Request) {
             params.push(role);
         }
 
+        if (admin.role === 'admin') {
+            // Exclude superadmin logs and sensitive administrative events from regular admins
+            whereClauses.push("(u.role IS NULL OR u.role <> 'superadmin')");
+            whereClauses.push("al.action NOT LIKE 'ADMIN_%'");
+            whereClauses.push("al.action NOT LIKE 'UPDATE_COURT_SETTINGS'");
+        }
+
         if (whereClauses.length > 0) {
             query += ' WHERE ' + whereClauses.join(' AND ');
         }
