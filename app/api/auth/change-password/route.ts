@@ -81,7 +81,17 @@ export async function POST(request: Request) {
         }, false);
         await setTokenCookie(newToken, false);
 
-        return NextResponse.json({ success: true, message: 'Password updated successfully!' });
+        return NextResponse.json({ 
+            success: true, 
+            message: 'Password updated successfully!',
+            user: {
+                id: authUser.id,
+                name: authUser.name,
+                email: authUser.email,
+                role: authUser.role,
+                mustChangePassword: false
+            }
+        });
 
     } catch (e: any) {
         console.error('[ChangePassword API Error]', e);

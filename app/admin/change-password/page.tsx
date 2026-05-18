@@ -72,31 +72,17 @@ export default function ChangePasswordPage() {
                 setIsLoading(false);
             } else {
                 setStatusMessage({ type: 'success', text: 'Password secured successfully! Redirecting...' });
+                setIsLoading(false); // Stop loading cover to reveal the success message and card
                 
-                // Clear state
-                localStorage.removeItem('stayunikl_user');
+                // Instantly sync the new authenticated user details in local storage
+                if (data.user) {
+                    localStorage.setItem('stayunikl_user', JSON.stringify(data.user));
+                }
                 
-                // Fetch fresh user profile details and redirect
-                fetch('/api/auth/me')
-                    .then(res => res.json())
-                    .then(syncData => {
-                        if (syncData.success && syncData.user) {
-                            localStorage.setItem('stayunikl_user', JSON.stringify(syncData.user));
-                            setTimeout(() => {
-                                router.push('/admin');
-                            }, 1500);
-                        } else {
-                            // Fallback
-                            setTimeout(() => {
-                                window.location.href = '/admin';
-                            }, 1500);
-                        }
-                    })
-                    .catch(() => {
-                        setTimeout(() => {
-                            window.location.href = '/admin';
-                        }, 1500);
-                    });
+                // Bulletproof reload-based redirect to prevent any client-side router transition issues
+                setTimeout(() => {
+                    window.location.href = '/admin';
+                }, 1500);
             }
         } catch (error) {
             console.error(error);
