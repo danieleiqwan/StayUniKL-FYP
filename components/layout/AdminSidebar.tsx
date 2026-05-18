@@ -63,7 +63,7 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
         { id: 'rooms', label: 'Room Management', icon: Building2, path: '/admin/rooms' },
         { id: 'docs', label: 'Document Verify', icon: ShieldCheck, path: '/admin/documents' },
         { id: 'academic', label: 'Academic Settings', icon: GraduationCap, path: '/admin/academic' },
-        { id: 'audit', label: 'Audit Security Log', icon: History, path: '/admin/audit' },
+        { id: 'audit', label: 'System Log History', icon: History, path: '/admin/audit' },
     ];
 
     return (
