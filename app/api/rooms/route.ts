@@ -205,16 +205,25 @@ export async function PATCH(request: Request) {
             return NextResponse.json({ error: 'Invalid gender. Must be Male, Female, or Co-Ed.' }, { status: 400 });
         }
 
-        // Check for occupied rooms on this floor — warn if any are assigned to the opposite gender
+        // HARD BLOCK: Check for any active residents on this floor.
+        // Floor gender reassignment is ONLY allowed when the floor is completely vacated.
         const [occupiedRows]: any = await pool.query(`
             SELECT COUNT(*) as cnt FROM applications a
             JOIN beds b ON a.bed_id = b.id
             JOIN rooms r ON b.room_id = r.id
             WHERE r.floor_id = ? AND a.status IN ('Payment Pending', 'Approved', 'Checked in')
         `, [Number(floorId)]);
-        const occupiedCount = occupiedRows[0]?.cnt || 0;
+        const occupiedCount = Number(occupiedRows[0]?.cnt || 0);
 
-        // Bulk update all rooms on this floor
+        if (occupiedCount > 0) {
+            return NextResponse.json({
+                error: `Cannot reassign Floor ${floorId} — ${occupiedCount} active resident(s) are still checked in. All students must fully check out before the floor gender designation can be changed.`,
+                blocked: true,
+                occupiedCount
+            }, { status: 409 });
+        }
+
+        // Floor is fully vacated — safe to update
         const [result]: any = await pool.query(
             'UPDATE rooms SET gender = ? WHERE floor_id = ?',
             [gender, Number(floorId)]
@@ -231,10 +240,7 @@ export async function PATCH(request: Request) {
 
         return NextResponse.json({
             success: true,
-            message: `Floor ${floorId} updated to ${gender}. ${result.affectedRows} room(s) affected.`,
-            occupiedWarning: occupiedCount > 0
-                ? `Warning: ${occupiedCount} active resident(s) remain on this floor. Please review their assignments.`
-                : null
+            message: `Floor ${floorId} successfully reassigned to ${gender}. ${result.affectedRows} room(s) updated.`
         });
 
     } catch (error: any) {

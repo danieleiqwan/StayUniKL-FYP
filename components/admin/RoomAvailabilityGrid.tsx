@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, BedDouble, Users, Wrench, Pencil, Check, X, AlertTriangle, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, BedDouble, Users, Wrench, Pencil, Check, X, Lock, Loader2 } from 'lucide-react';
 import RoomDetailModal from './RoomDetailModal';
 
 interface Bed {
@@ -138,7 +138,7 @@ function FloorAccordion({ floor, rooms, defaultOpen, onRoomClick, onRefresh }: {
     const [editingGender, setEditingGender] = useState(false);
     const [selectedGender, setSelectedGender] = useState<Gender>(rooms[0]?.gender as Gender || 'Male');
     const [saving, setSaving] = useState(false);
-    const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'warn' | 'error'; text: string } | null>(null);
+    const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     const totalBeds = rooms.reduce((a, r) => a + r.capacity, 0);
     const occupiedBeds = rooms.reduce((a, r) => a + r.beds.filter(b => b.isOccupied).length, 0);
@@ -155,18 +155,23 @@ function FloorAccordion({ floor, rooms, defaultOpen, onRoomClick, onRefresh }: {
             });
             const data = await res.json();
             if (data.success) {
-                setSaveMsg({ type: data.occupiedWarning ? 'warn' : 'success', text: data.occupiedWarning || data.message });
+                // Success — close editor after brief confirmation
+                setSaveMsg({ type: 'success', text: data.message });
                 onRefresh?.();
                 setTimeout(() => { setEditingGender(false); setSaveMsg(null); }, 2500);
+            } else if (data.blocked) {
+                // HARD BLOCK — floor has active residents, editor stays open
+                setSaveMsg({ type: 'error', text: data.error });
             } else {
                 setSaveMsg({ type: 'error', text: data.error || 'Failed to update.' });
             }
         } catch {
-            setSaveMsg({ type: 'error', text: 'Network error.' });
+            setSaveMsg({ type: 'error', text: 'Network error. Please try again.' });
         } finally {
             setSaving(false);
         }
     };
+
 
     return (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
@@ -224,13 +229,14 @@ function FloorAccordion({ floor, rooms, defaultOpen, onRoomClick, onRefresh }: {
                             )}
                         </div>
                         {saveMsg && (
-                            <p className={`text-[9px] font-bold mt-1 flex items-center gap-1 ${
-                                saveMsg.type === 'success' ? 'text-emerald-600' :
-                                saveMsg.type === 'warn' ? 'text-amber-600' : 'text-rose-600'
+                            <div className={`mt-1.5 flex items-start gap-1.5 p-2 rounded-lg text-[9px] font-bold leading-snug ${
+                                saveMsg.type === 'success'
+                                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
+                                    : 'bg-rose-50 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
                             }`}>
-                                {saveMsg.type === 'warn' && <AlertTriangle className="h-2.5 w-2.5 shrink-0" />}
-                                {saveMsg.text}
-                            </p>
+                                {saveMsg.type === 'error' && <Lock className="h-2.5 w-2.5 shrink-0 mt-0.5" />}
+                                <span>{saveMsg.text}</span>
+                            </div>
                         )}
                     </div>
                     {/* Summary pills */}
