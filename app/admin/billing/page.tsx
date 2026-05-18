@@ -67,6 +67,7 @@ export default function AdminBillingPage() {
     const [maxGrace, setMaxGrace] = useState(14);
     const [savingGrace, setSavingGrace] = useState(false);
     const [statusFilter, setStatusFilter] = useState<string>('All');
+    const [searchQuery, setSearchQuery] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [runningBilling, setRunningBilling] = useState(false);
     const [billingLog, setBillingLog] = useState<string[] | null>(null);
@@ -257,7 +258,16 @@ export default function AdminBillingPage() {
         await fetchData();
     };
 
-    const filtered = statusFilter === 'All' ? invoices : invoices.filter(i => i.status === statusFilter);
+    const filtered = invoices.filter(i => {
+        const matchesStatus = statusFilter === 'All' || i.status === statusFilter;
+        const matchesSearch = !searchQuery || 
+            i.student_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+            i.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            i.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            i.student_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (i.description && i.description.toLowerCase().includes(searchQuery.toLowerCase()));
+        return matchesStatus && matchesSearch;
+    });
 
     const installmentGroups = Object.values(
         invoices
@@ -273,7 +283,19 @@ export default function AdminBillingPage() {
         items: g.items.sort((a, b) => (a.installment_no || 0) - (b.installment_no || 0)),
         paid: g.items.filter(i => i.status === 'Paid').length,
         overdue: g.items.some(i => i.status === 'Overdue'),
-    }));
+    })).filter(g => {
+        return !searchQuery || 
+            g.student?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+            g.appId?.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+
+    const filteredPayments = payments.filter(p => {
+        return !searchQuery || 
+            p.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+            p.reference_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.method?.toLowerCase().includes(searchQuery.toLowerCase());
+    });
 
     // Filtered stats by semester
     const currentSemesterData = semesterList.find(s => s.id === selectedSemester);
@@ -483,6 +505,28 @@ export default function AdminBillingPage() {
                     </div>
 
                     <div className="p-6">
+                        {/* Search Filter Bar */}
+                        <div className="relative mb-6">
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                <Search className="h-4 w-4 text-slate-400" />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search by student name, student ID, invoice ID, reference ID or plan details..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                className="w-full pl-12 pr-10 py-3 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-[#F26C22] focus:border-[#F26C22] outline-none transition-all text-xs font-bold text-slate-800 dark:text-white"
+                            />
+                            {searchQuery && (
+                                <button 
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            )}
+                        </div>
+
                         {/* ─── Invoice Ledger ─── */}
                         {activeTab === 'invoices' && (
                             <div>
@@ -624,7 +668,7 @@ export default function AdminBillingPage() {
                                         <RefreshCw className="h-6 w-6 animate-spin text-[#F26C22] mx-auto mb-3" />
                                         <p className="text-sm text-slate-400">Loading transactions...</p>
                                     </div>
-                                ) : payments.length === 0 ? (
+                                ) : filteredPayments.length === 0 ? (
                                     <div className="py-16 text-center">
                                         <div className="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                             <CreditCard className="h-8 w-8 text-slate-400" />
@@ -645,7 +689,7 @@ export default function AdminBillingPage() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                                                {payments.map(pay => (
+                                                {filteredPayments.map(pay => (
                                                     <tr key={pay.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40">
                                                         <td className="px-5 py-4 font-mono text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[120px]">{pay.id}</td>
                                                         <td className="px-5 py-4 text-xs font-bold text-slate-800 dark:text-white">{pay.user_id}</td>
