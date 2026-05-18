@@ -227,30 +227,42 @@ export default function StaffManagementPage() {
                 </div>
                 <div className="min-w-0">
                     <p className="text-sm font-black text-zinc-900 dark:text-white truncate">{member?.name || 'Unknown'}</p>
-                    <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">{member?.role || 'admin'}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">{member?.role || 'admin'}</span>
+                        <span className="text-[10px] font-mono bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-200/50 dark:border-white/5">
+                            ID: {member?.id || 'N/A'}
+                        </span>
+                    </div>
                 </div>
                 <div className="ml-auto xl:hidden">
                     {member ? getStatusBadge(member) : null}
                 </div>
             </div>
             
-            <div className="xl:col-span-3 text-sm text-zinc-500 dark:text-zinc-400 truncate w-full xl:w-auto">
-                <span className="xl:hidden text-[10px] font-black uppercase text-zinc-400 block mb-1">Email</span>
-                {member?.email || 'No email'}
+            <div className="xl:col-span-3 text-sm text-zinc-500 dark:text-zinc-400 w-full xl:w-auto space-y-1">
+                <span className="xl:hidden text-[10px] font-black uppercase text-zinc-400 block mb-1">Contact Details</span>
+                <p className="font-semibold truncate text-zinc-800 dark:text-zinc-200">{member?.email || 'No email'}</p>
+                <p className="text-xs text-zinc-400 dark:text-zinc-505 flex items-center gap-1">
+                    <span>📞 {member?.phone_number || 'No Phone Number'}</span>
+                </p>
             </div>
             
             <div className="hidden xl:block xl:col-span-2">{member ? getStatusBadge(member) : null}</div>
             
             <div className="xl:col-span-2 w-full">
-                <span className="xl:hidden text-[10px] font-black uppercase text-zinc-400 block mb-2">Activity History</span>
+                <span className="xl:hidden text-[10px] font-black uppercase text-zinc-400 block mb-2">Milestones & Activity</span>
                 <div className="flex flex-col gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
                     <div className="flex items-center gap-2">
-                        <Clock className="h-3 w-3 shrink-0 text-zinc-400" />
-                        <span className="font-medium">Login: {formatDate(member?.last_login)}</span>
+                        <Clock className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+                        <span className="font-medium text-[11px]">
+                            Last Login: <span className="text-zinc-700 dark:text-zinc-300 font-bold">{formatDate((member as any).last_login_at || member?.last_login)}</span>
+                        </span>
                     </div>
-                    <div className="flex items-center gap-2 opacity-70">
-                        <CheckCircle2 className="h-3 w-3 shrink-0 text-zinc-400" />
-                        <span className="font-medium">Joined: {member?.created_at ? new Date(member.created_at).toLocaleDateString() : 'Unknown'}</span>
+                    <div className="flex items-center gap-2 opacity-75">
+                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+                        <span className="font-medium text-[11px]">
+                            Activation: <span className="text-zinc-700 dark:text-zinc-300 font-bold">{member?.created_at ? new Date(member.created_at).toLocaleDateString('en-GB') : 'Unknown'}</span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -400,11 +412,11 @@ export default function StaffManagementPage() {
             <div className="rounded-[2.5rem] border overflow-hidden bg-white dark:bg-slate-900/40 border-zinc-200 dark:border-zinc-800 shadow-xl shadow-black/[0.02]">
                 {/* Table Header */}
                 <div className="hidden xl:grid grid-cols-12 gap-4 px-6 py-5 border-b bg-zinc-50/50 dark:bg-transparent text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] border-zinc-200 dark:border-zinc-800">
-                    <div className="col-span-3">Name & Role</div>
-                    <div className="col-span-3">Email</div>
-                    <div className="col-span-2">Status</div>
-                    <div className="col-span-2">Last Activity</div>
-                    <div className="col-span-2 text-right">Actions</div>
+                    <div className="col-span-3">Administrator & ID</div>
+                    <div className="col-span-3">Contact Details</div>
+                    <div className="col-span-2">Account Status</div>
+                    <div className="col-span-2">Milestones & Activity</div>
+                    <div className="col-span-2 text-right">Access Controls</div>
                 </div>
 
                 {loading ? (

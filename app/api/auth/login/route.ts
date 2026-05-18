@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
 import { createToken, setTokenCookie } from '@/lib/auth';
+import { logAction } from '@/lib/audit';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 
@@ -49,7 +50,21 @@ export async function POST(request: Request) {
             }, { status: 403 });
         }
 
-        // 3. Check if account is deactivated by admin
+        // 3. Check if account is suspended, inactive, or deactivated by admin
+        const currentStatus = user.status || (user.is_active ? 'Active' : 'Suspended');
+
+        if (currentStatus === 'Suspended') {
+            return NextResponse.json({ 
+                error: 'Your account is temporarily suspended. Please contact support.' 
+            }, { status: 403 });
+        }
+
+        if (currentStatus === 'Inactive') {
+            return NextResponse.json({ 
+                error: 'Your account is inactive. Login is permanently disabled.' 
+            }, { status: 403 });
+        }
+
         if (user.is_active === 0) {
             return NextResponse.json({ 
                 error: 'Your account has been deactivated by the administration. Please contact support at support@stayunikl.edu.my for assistance.' 
@@ -68,12 +83,37 @@ export async function POST(request: Request) {
             if (newAttempts >= 5) {
                 // Lock account for 15 minutes
                 updateQuery = 'UPDATE users SET login_attempts = ?, locked_until = DATE_ADD(NOW(), INTERVAL 15 MINUTE) WHERE id = ?';
+                await pool.query(updateQuery, params);
+
+                try {
+                    await logAction({
+                        actorId: user.id,
+                        actorName: user.email,
+                        action: 'ACCOUNT_LOCKED',
+                        entityType: 'User',
+                        entityId: user.id,
+                        details: { email, reason: '5 failed login attempts' }
+                    });
+                } catch (err) {}
+
                 return NextResponse.json({ 
                     error: 'Invalid credentials. Account locked for 15 minutes due to 5 failed attempts.' 
                 }, { status: 401 });
             }
 
             await pool.query(updateQuery, params);
+
+            try {
+                await logAction({
+                    actorId: user.id,
+                    actorName: user.email,
+                    action: 'FAILED_LOGIN_ATTEMPT',
+                    entityType: 'User',
+                    entityId: user.id,
+                    details: { email, attempts: newAttempts }
+                });
+            } catch (err) {}
+
             return NextResponse.json({ 
                 error: `Invalid credentials. ${5 - newAttempts} attempts remaining.` 
             }, { status: 401 });
@@ -87,8 +127,8 @@ export async function POST(request: Request) {
             await pool.query('UPDATE users SET login_attempts = 0, locked_until = NULL WHERE id = ?', [user.id]);
         }
 
-        // Log last login timestamp for session activity tracking
-        await pool.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]).catch(() => {});
+        // Log last login timestamp for security monitoring, audit visibility, and activity tracking
+        await pool.query('UPDATE users SET last_login = NOW(), last_login_at = NOW() WHERE id = ?', [user.id]).catch(() => {});
 
         // 1. Create a secure JWT token
         const token = await createToken({
