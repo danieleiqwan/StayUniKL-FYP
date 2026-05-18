@@ -451,7 +451,14 @@ function ScannerComponent({ onResult }: { onResult: (text: string) => void }) {
             try {
                 await html5QrCode.start(
                     { facingMode: "environment" }, 
-                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    { 
+                        fps: 10, 
+                        qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+                            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                            const qrboxSize = Math.floor(minEdge * 0.85); // 85% of viewport
+                            return { width: qrboxSize, height: qrboxSize };
+                        }
+                    },
                     (decodedText: string) => {
                         if (isProcessingRef.current) return;
                         isProcessingRef.current = true;
