@@ -8,6 +8,7 @@ import {
     ChevronDown, Receipt, Zap, Plus, Search, UserCheck, Calendar
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 interface Invoice {
     id: string;
@@ -399,13 +400,13 @@ export default function AdminBillingPage() {
                                 <span>Billing Sync</span>
                             </button>
 
-                            <button
-                                onClick={() => setShowCreate(true)}
+                            <Link
+                                href="/admin/finances/create-invoice"
                                 className="h-12 px-5 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-white bg-[#F26C22] hover:bg-[#d65a16] rounded-2xl shadow-lg shadow-orange-500/20 transition-all active:scale-95"
                             >
                                 <Plus className="h-4 w-4" />
                                 <span>Invoice</span>
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
