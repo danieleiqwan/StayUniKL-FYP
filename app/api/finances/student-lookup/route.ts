@@ -12,8 +12,8 @@ export async function POST(request: Request) {
 
         // Query user details
         const [users]: any = await pool.query(
-            `SELECT id, name, student_id, phone, email, course, campus FROM users WHERE id = ? OR student_id = ? LIMIT 1`,
-            [studentId, studentId]
+            `SELECT id, name, phone_number, email FROM users WHERE id = ? LIMIT 1`,
+            [studentId]
         );
         
         if (!users.length) return NextResponse.json({ error: 'Student not found' }, { status: 404 });
@@ -37,10 +37,10 @@ export async function POST(request: Request) {
             success: true,
             student: {
                 id: user.id,
-                studentId: user.student_id || user.id,
+                studentId: user.id,
                 name: user.name,
-                course: user.course || 'N/A',
-                campus: user.campus || 'UniKL MIIT',
+                course: 'Computer Science (Placeholder)', // No course column in DB
+                campus: 'UniKL MIIT', // No campus column in DB
                 residency: roomInfo
             }
         });
