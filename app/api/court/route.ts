@@ -4,6 +4,7 @@ import { getAuthUser, isAdmin } from '@/lib/auth';
 import { createNotification } from '@/lib/notifications';
 import { z } from 'zod';
 import { getKLDate } from '@/lib/utils';
+import { logAction } from '@/lib/audit';
 
 const bookingSchema = z.object({
     studentId: z.string().min(1),
@@ -131,6 +132,16 @@ export async function POST(request: Request) {
                 'INSERT INTO court_settings (setting_key, setting_value) VALUES ("main", ?) ON DUPLICATE KEY UPDATE setting_value = ?',
                 [JSON.stringify(settings), JSON.stringify(settings)]
             );
+
+            await logAction({
+                actorId: user.id,
+                actorName: user.name || user.email,
+                action: 'UPDATE_COURT_SETTINGS',
+                entityType: 'COURT_SETTINGS',
+                entityId: 'main',
+                details: { settings }
+            });
+
             return NextResponse.json({ success: true });
         }
 
@@ -169,6 +180,21 @@ export async function POST(request: Request) {
                     type,
                     relatedEntityId: id,
                     relatedEntityType: 'CourtBooking'
+                });
+
+                // 4. Log Action in Audit Trail
+                await logAction({
+                    actorId: user.id,
+                    actorName: user.name || user.email,
+                    action: status === 'Approved' ? 'APPROVE_COURT_BOOKING' : 'REJECT_COURT_BOOKING',
+                    entityType: 'COURT_BOOKING',
+                    entityId: id,
+                    details: {
+                        sport: booking.sport,
+                        date: booking.date,
+                        timeSlot: booking.time_slot,
+                        studentId: booking.student_id
+                    }
                 });
             }
 
