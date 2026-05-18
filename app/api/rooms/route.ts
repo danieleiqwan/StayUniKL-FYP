@@ -187,3 +187,58 @@ export async function PUT(request: Request) {
     }
 }
 
+// Bulk-update the gender designation of all rooms on a floor
+export async function PATCH(request: Request) {
+    try {
+        const admin = await isAdmin();
+        if (!admin) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await request.json();
+        const { floorId, gender } = body;
+
+        if (!floorId || !gender) {
+            return NextResponse.json({ error: 'Missing floorId or gender' }, { status: 400 });
+        }
+        if (!['Male', 'Female', 'Co-Ed'].includes(gender)) {
+            return NextResponse.json({ error: 'Invalid gender. Must be Male, Female, or Co-Ed.' }, { status: 400 });
+        }
+
+        // Check for occupied rooms on this floor — warn if any are assigned to the opposite gender
+        const [occupiedRows]: any = await pool.query(`
+            SELECT COUNT(*) as cnt FROM applications a
+            JOIN beds b ON a.bed_id = b.id
+            JOIN rooms r ON b.room_id = r.id
+            WHERE r.floor_id = ? AND a.status IN ('Payment Pending', 'Approved', 'Checked in')
+        `, [Number(floorId)]);
+        const occupiedCount = occupiedRows[0]?.cnt || 0;
+
+        // Bulk update all rooms on this floor
+        const [result]: any = await pool.query(
+            'UPDATE rooms SET gender = ? WHERE floor_id = ?',
+            [gender, Number(floorId)]
+        );
+
+        await logAction({
+            actorId: admin.id,
+            actorName: admin.name,
+            action: 'UPDATE_FLOOR_GENDER',
+            entityType: 'Floor',
+            entityId: String(floorId),
+            details: { floorId, newGender: gender, roomsUpdated: result.affectedRows }
+        });
+
+        return NextResponse.json({
+            success: true,
+            message: `Floor ${floorId} updated to ${gender}. ${result.affectedRows} room(s) affected.`,
+            occupiedWarning: occupiedCount > 0
+                ? `Warning: ${occupiedCount} active resident(s) remain on this floor. Please review their assignments.`
+                : null
+        });
+
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+

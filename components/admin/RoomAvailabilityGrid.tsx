@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, BedDouble, Users, Wrench } from 'lucide-react';
+import { ChevronDown, ChevronUp, BedDouble, Users, Wrench, Pencil, Check, X, AlertTriangle, Loader2 } from 'lucide-react';
 import RoomDetailModal from './RoomDetailModal';
 
 interface Bed {
@@ -29,6 +29,8 @@ interface RoomAvailabilityGridProps {
     selectedFloor: number | 'All';
     onRefresh?: () => void;
 }
+
+type Gender = 'Male' | 'Female' | 'Co-Ed';
 
 // Derive card colour based on occupancy
 function getRoomColor(room: Room) {
@@ -131,11 +133,40 @@ function RoomCard({ room, onClick }: { room: Room, onClick: () => void }) {
     );
 }
 
-function FloorAccordion({ floor, rooms, defaultOpen, onRoomClick }: { floor: number; rooms: Room[]; defaultOpen: boolean; onRoomClick: (room: Room) => void }) {
+function FloorAccordion({ floor, rooms, defaultOpen, onRoomClick, onRefresh }: { floor: number; rooms: Room[]; defaultOpen: boolean; onRoomClick: (room: Room) => void; onRefresh?: () => void }) {
     const [open, setOpen] = useState(defaultOpen);
+    const [editingGender, setEditingGender] = useState(false);
+    const [selectedGender, setSelectedGender] = useState<Gender>(rooms[0]?.gender as Gender || 'Male');
+    const [saving, setSaving] = useState(false);
+    const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'warn' | 'error'; text: string } | null>(null);
+
     const totalBeds = rooms.reduce((a, r) => a + r.capacity, 0);
     const occupiedBeds = rooms.reduce((a, r) => a + r.beds.filter(b => b.isOccupied).length, 0);
     const availableRooms = rooms.filter(r => r.beds.some(b => !b.isOccupied && b.status !== 'Maintenance')).length;
+
+    const handleSaveGender = async () => {
+        setSaving(true);
+        setSaveMsg(null);
+        try {
+            const res = await fetch('/api/rooms', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ floorId: floor, gender: selectedGender })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setSaveMsg({ type: data.occupiedWarning ? 'warn' : 'success', text: data.occupiedWarning || data.message });
+                onRefresh?.();
+                setTimeout(() => { setEditingGender(false); setSaveMsg(null); }, 2500);
+            } else {
+                setSaveMsg({ type: 'error', text: data.error || 'Failed to update.' });
+            }
+        } catch {
+            setSaveMsg({ type: 'error', text: 'Network error.' });
+        } finally {
+            setSaving(false);
+        }
+    };
 
     return (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
@@ -145,12 +176,62 @@ function FloorAccordion({ floor, rooms, defaultOpen, onRoomClick }: { floor: num
                 className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group"
             >
                 <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-[#F26C22]/10 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl bg-[#F26C22]/10 flex items-center justify-center shrink-0">
                         <span className="text-[#F26C22] font-black text-sm">{floor}</span>
                     </div>
                     <div className="text-left">
                         <p className="font-black text-slate-900 dark:text-white">Floor {floor}</p>
-                        <p className="text-xs text-slate-500">{rooms[0]?.gender} Wing · {rooms.length} rooms</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                            {!editingGender ? (
+                                <>
+                                    <p className="text-xs text-slate-500">{rooms[0]?.gender} Wing · {rooms.length} rooms</p>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setSelectedGender(rooms[0]?.gender as Gender || 'Male'); setEditingGender(true); setSaveMsg(null); }}
+                                        className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all text-[9px] font-black uppercase tracking-wider"
+                                        title="Edit floor gender designation"
+                                    >
+                                        <Pencil className="h-2.5 w-2.5" /> Edit
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                                    {(['Male', 'Female', 'Co-Ed'] as Gender[]).map(g => (
+                                        <button
+                                            key={g}
+                                            onClick={() => setSelectedGender(g)}
+                                            className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${
+                                                selectedGender === g
+                                                    ? 'bg-[#F26C22] text-white'
+                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
+                                            }`}
+                                        >{g}</button>
+                                    ))}
+                                    <button
+                                        onClick={handleSaveGender}
+                                        disabled={saving}
+                                        className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-500 text-white text-[9px] font-black uppercase tracking-wider hover:bg-emerald-600 transition-all disabled:opacity-60"
+                                    >
+                                        {saving ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Check className="h-2.5 w-2.5" />}
+                                        {saving ? '' : 'Save'}
+                                    </button>
+                                    <button
+                                        onClick={() => { setEditingGender(false); setSaveMsg(null); }}
+                                        className="p-0.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
+                                    >
+                                        <X className="h-3 w-3" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                        {saveMsg && (
+                            <p className={`text-[9px] font-bold mt-1 flex items-center gap-1 ${
+                                saveMsg.type === 'success' ? 'text-emerald-600' :
+                                saveMsg.type === 'warn' ? 'text-amber-600' : 'text-rose-600'
+                            }`}>
+                                {saveMsg.type === 'warn' && <AlertTriangle className="h-2.5 w-2.5 shrink-0" />}
+                                {saveMsg.text}
+                            </p>
+                        )}
                     </div>
                     {/* Summary pills */}
                     <div className="hidden sm:flex items-center gap-2 ml-4">
@@ -206,6 +287,7 @@ export default function RoomAvailabilityGrid({ rooms, selectedFloor, onRefresh }
                     rooms={filteredRooms.filter(r => r.floorId === floor)}
                     defaultOpen={idx === 0}
                     onRoomClick={(room) => setSelectedRoom(room)}
+                    onRefresh={onRefresh}
                 />
             ))}
 
