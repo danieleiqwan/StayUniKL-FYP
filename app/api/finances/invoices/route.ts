@@ -87,11 +87,15 @@ export async function POST(request: Request) {
 
         // 3. Insert Evidence (if any)
         if (evidenceUrl) {
-            await connection.query(
-                `INSERT INTO invoice_evidence (invoice_id, file_url, file_type, uploaded_by)
-                 VALUES (?, ?, ?, ?)`,
-                [invoiceIdStr, evidenceUrl, fileType, adminUser.id]
-            );
+            try {
+                await connection.query(
+                    `INSERT INTO invoice_evidence (invoice_id, file_url, file_type, uploaded_by)
+                     VALUES (?, ?, ?, ?)`,
+                    [invoiceIdStr, evidenceUrl, fileType, adminUser.id]
+                );
+            } catch (evidenceErr) {
+                console.warn('[Evidence table skipped - may not exist]', evidenceErr);
+            }
             
             // Hack for UI: Also update invoice directly if we are using evidence_url column in frontend
             try {
