@@ -1259,7 +1259,7 @@ function AdminDashboard() {
                                             placeholder="e.g. September 2025 Intake"
                                             className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F26C22]/50" />
                                     </div>
-                                    <div>
+                                    <div className="sm:col-span-2">
                                         <label className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-1.5">Semester Type *</label>
                                         <select value={sessionForm.semesterType} onChange={e => setSessionForm(p => ({...p, semesterType: e.target.value}))}
                                             className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F26C22]/50">
