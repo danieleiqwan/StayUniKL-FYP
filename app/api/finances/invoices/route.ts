@@ -47,19 +47,15 @@ export async function POST(request: Request) {
             const bytes = await evidenceFile.arrayBuffer();
             const buffer = Buffer.from(bytes);
             
-            const ext = evidenceFile.type === 'application/pdf' ? '.pdf' : evidenceFile.type === 'image/png' ? '.png' : '.jpg';
-            const filename = `evidence_${Date.now()}_${Math.random().toString(36).substring(7)}${ext}`;
-            const filepath = path.join(process.cwd(), 'public', 'uploads', filename);
-            
-            // Ensure dir exists in a real app; for now we write assuming public/uploads exists or we catch error
             try {
-                await writeFile(filepath, buffer);
-                evidenceUrl = `/uploads/${filename}`;
+                // Upload to Cloudinary
+                const { uploadImage } = await import('@/lib/cloudinary');
+                const base64Str = `data:${evidenceFile.type};base64,${buffer.toString('base64')}`;
+                evidenceUrl = await uploadImage(base64Str, 'invoices');
                 fileType = evidenceFile.type;
-            } catch (fsErr) {
-                console.warn('Could not save to public/uploads, falling back to mock URL');
-                evidenceUrl = `https://mock-evidence-url.com/${filename}`;
-                fileType = evidenceFile.type;
+            } catch (cloudErr) {
+                console.error('[Cloudinary Upload Error]', cloudErr);
+                return NextResponse.json({ error: 'Failed to upload evidence file.' }, { status: 500 });
             }
         }
 
