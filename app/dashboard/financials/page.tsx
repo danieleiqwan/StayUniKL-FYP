@@ -233,6 +233,7 @@ function FinancialsContent() {
                                     <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</th>
                                     <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount</th>
                                     <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Due Date</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Evidence</th>
                                     <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
                                     <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Action</th>
                                 </tr>
@@ -243,6 +244,7 @@ function FinancialsContent() {
                                     const dueDate = inv.due_date ? new Date(inv.due_date) : null;
                                     const isOverdueSoon = dueDate && inv.status === 'Unpaid' && (dueDate.getTime() - Date.now()) < 3 * 24 * 60 * 60 * 1000;
                                     const isInstallmentInv = (inv as any).payment_plan === 'Installment';
+                                    const hasEvidence = !!(inv as any).evidence_url;
 
                                     return (
                                         <tr key={inv.id} className={cn("transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50", inv.status === 'Overdue' && "bg-rose-50/40 dark:bg-rose-900/10")}>
@@ -283,6 +285,18 @@ function FinancialsContent() {
                                                         {inv.status === 'Overdue' && <p className="text-[10px] font-black text-rose-500 uppercase">Past Due</p>}
                                                         {isOverdueSoon && inv.status !== 'Overdue' && <p className="text-[10px] font-black text-amber-500 uppercase">Due Soon</p>}
                                                     </div>
+                                                ) : <span className="text-slate-400 text-xs">—</span>}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {hasEvidence ? (
+                                                    <a 
+                                                        href={(inv as any).evidence_url} 
+                                                        target="_blank" 
+                                                        rel="noreferrer"
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors"
+                                                    >
+                                                        <FileText className="h-3 w-3" /> View
+                                                    </a>
                                                 ) : <span className="text-slate-400 text-xs">—</span>}
                                             </td>
                                             <td className="px-6 py-4"><StatusBadge status={inv.status} /></td>

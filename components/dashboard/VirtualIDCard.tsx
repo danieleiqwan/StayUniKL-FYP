@@ -15,10 +15,9 @@ export default function VirtualIDCard() {
     if (!user) return null;
 
     const qrData = JSON.stringify({
-        id: user.id,
-        name: user.name,
-        role: user.role,
-        room: myApplication?.roomId || 'N/A',
+        token: `qr_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)}`,
+        studentId: user.studentId || user.id,
+        residencyId: myApplication?.roomId ? `${myApplication.roomId}-${myApplication.bedId || ''}` : 'NO_ACTIVE_STAY',
         timestamp: new Date().toISOString()
     });
 
