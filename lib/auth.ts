@@ -47,7 +47,22 @@ export async function getAuthUser() {
 
     if (!token) return null;
 
-    return await verifyToken(token);
+    const payload = await verifyToken(token);
+    if (!payload) return null;
+
+    // DB-level active check to instantly block suspended/deactivated admins
+    try {
+        const pool = (await import('./db')).default;
+        const [rows]: any = await pool.query('SELECT is_active FROM users WHERE id = ?', [payload.id]);
+        if (rows.length === 0 || !rows[0].is_active) {
+            return null;
+        }
+    } catch (err) {
+        console.error('[Auth Active Status Check Failed]', err);
+        return null; // Fail-secure: block if DB check errors
+    }
+
+    return payload;
 }
 
 export async function setTokenCookie(token: string, rememberMe: boolean = false) {
