@@ -30,6 +30,7 @@ interface ModalState {
 export default function StaffManagementPage() {
     const [staff, setStaff] = useState<StaffMember[]>([]);
     const [loading, setLoading] = useState(true);
+    const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'SUSPENDED'>('ALL');
     const [search, setSearch] = useState('');
     const [modal, setModal] = useState<ModalState>({ type: null });
     const [actionLoading, setActionLoading] = useState(false);
@@ -148,9 +149,19 @@ export default function StaffManagementPage() {
             const name = (s.name || '').toLowerCase();
             const email = (s.email || '').toLowerCase();
             const query = (search || '').toLowerCase();
-            return name.includes(query) || email.includes(query);
+            const matchesSearch = name.includes(query) || email.includes(query);
+            
+            if (!matchesSearch) return false;
+
+            if (statusFilter === 'ACTIVE') {
+                return s.is_active === 1;
+            }
+            if (statusFilter === 'SUSPENDED') {
+                return s.is_active === 0;
+            }
+            return true;
         });
-    }, [staff, search]);
+    }, [staff, search, statusFilter]);
 
     const getStatusBadge = (member: StaffMember) => {
         if (member.role === 'superadmin') {
@@ -321,17 +332,41 @@ export default function StaffManagementPage() {
                 ))}
             </div>
 
-            {/* Search */}
-            <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-                <input
-                    type="text"
-                    placeholder="Search by name or email..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    autoComplete="off"
-                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm bg-zinc-50 dark:bg-slate-900/40 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-colors shadow-sm dark:shadow-none"
-                />
+            {/* Search & Filters */}
+            <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
+                <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                    <input
+                        type="text"
+                        placeholder="Search by name or email..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        autoComplete="off"
+                        className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-sm bg-zinc-50 dark:bg-slate-900/40 border border-zinc-200 dark:border-white/5 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-slate-600 focus:outline-none focus:border-amber-500/50 transition-colors shadow-sm dark:shadow-none"
+                    />
+                </div>
+
+                {/* Status Filters */}
+                <div className="flex items-center gap-1.5 bg-zinc-50 dark:bg-slate-900/40 p-1.5 rounded-2xl border border-zinc-200 dark:border-white/5 shrink-0 self-start lg:self-auto">
+                    {[
+                        { id: 'ALL', label: 'All Staff' },
+                        { id: 'ACTIVE', label: 'Active' },
+                        { id: 'SUSPENDED', label: 'Suspended' }
+                    ].map(btn => (
+                        <button
+                            key={btn.id}
+                            onClick={() => setStatusFilter(btn.id as any)}
+                            className={cn(
+                                "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+                                statusFilter === btn.id
+                                    ? "bg-amber-500 text-black shadow-lg shadow-amber-500/10"
+                                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5"
+                            )}
+                        >
+                            {btn.label}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Staff Table */}
