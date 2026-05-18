@@ -152,7 +152,10 @@ export default function CreateInvoicePage() {
                 setDescription('');
                 removeFile();
             } else {
-                setMsg({ type: 'error', text: data.error || 'Failed to generate invoice.' });
+                const errMsg = data.sqlMessage 
+                    ? `DB Error: ${data.sqlMessage}` 
+                    : (data.detail || data.error || 'Failed to generate invoice.');
+                setMsg({ type: 'error', text: errMsg });
             }
         } catch (err) {
             setMsg({ type: 'error', text: 'Failed to generate invoice.' });
