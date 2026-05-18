@@ -25,25 +25,20 @@ export default function CreateInvoicePage() {
     const [submitting, setSubmitting] = useState(false);
     const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-    const handleScan = async (result: any, error: any) => {
-        if (result && result.text) {
-            setIsScanning(false);
-            setScanError(null);
-            try {
-                const data = JSON.parse(result.text);
-                if (data.studentId) {
-                    fetchStudentDetails(data.studentId);
-                } else {
-                    setScanError("Invalid QR Code: Missing student identification.");
-                }
-            } catch (e) {
-                setScanError("Invalid QR format. Please scan a valid StayUniKL Virtual ID.");
+    const handleScan = async (decodedText: string) => {
+        if (!decodedText) return;
+        
+        try {
+            const data = JSON.parse(decodedText);
+            if (data.studentId) {
+                setIsScanning(false);
+                setScanError(null);
+                fetchStudentDetails(data.studentId);
+            } else {
+                setScanError("Invalid QR Code: Missing student identification.");
             }
-        }
-        if (error && !result) {
-            if (error?.message && !error.message.includes("No MultiFormat Readers")) {
-                console.warn(error);
-            }
+        } catch (e) {
+            setScanError("Invalid QR format. Please scan a valid StayUniKL Virtual ID.");
         }
     };
 
@@ -463,6 +458,7 @@ function ScannerComponent({ onResult }: { onResult: (text: string) => void }) {
                         if (isProcessingRef.current) return;
                         isProcessingRef.current = true;
                         onResult(decodedText);
+                        setTimeout(() => { isProcessingRef.current = false; }, 2000);
                     },
                     () => {} // ignore warnings
                 );
