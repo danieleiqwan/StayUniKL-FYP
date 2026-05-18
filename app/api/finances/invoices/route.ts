@@ -80,9 +80,9 @@ export async function POST(request: Request) {
         // 2. Insert Invoice
         // We ensure we match the `invoices` table structure which requires application_id and user_id
         await connection.query(
-            `INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, 'Unpaid', ?, ?)`,
-            [invoiceIdStr, studentId, appId, type, description, numAmount, dueDate, adminUser.id]
+            `INSERT INTO invoices (id, user_id, application_id, type, description, amount, status, due_date)
+             VALUES (?, ?, ?, ?, ?, ?, 'Unpaid', ?)`,
+            [invoiceIdStr, studentId, appId, type, description, numAmount, dueDate]
         );
 
         // 3. Insert Evidence (if any)
@@ -102,12 +102,16 @@ export async function POST(request: Request) {
             }
         }
 
-        // 4. Audit Log
-        await connection.query(
-            `INSERT INTO invoice_audit_logs (invoice_id, action, performed_by, details)
-             VALUES (?, 'CREATE_INVOICE', ?, ?)`,
-            [invoiceIdStr, adminUser.id, `Created ${type} invoice for RM${numAmount}`]
-        );
+        // 4. Audit Log (optional - may not exist if qr_invoice_system migration wasn't run)
+        try {
+            await connection.query(
+                `INSERT INTO invoice_audit_logs (invoice_id, action, performed_by, details)
+                 VALUES (?, 'CREATE_INVOICE', ?, ?)`,
+                [invoiceIdStr, adminUser.id, `Created ${type} invoice for RM${numAmount}`]
+            );
+        } catch (auditErr) {
+            console.warn('[Audit Log skipped - table may not exist]', auditErr);
+        }
 
         await connection.commit();
 
