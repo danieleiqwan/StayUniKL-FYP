@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '@/lib/db';
-import { isAdmin, getUser } from '@/lib/auth';
+import { isAdmin, getAuthUser } from '@/lib/auth';
 import { v4 as uuidv4 } from 'uuid';
 import { writeFile } from 'fs/promises';
 import path from 'path';
@@ -8,7 +8,7 @@ import path from 'path';
 export async function POST(request: Request) {
     let connection;
     try {
-        const adminUser = await getUser();
+        const adminUser = await getAuthUser();
         if (!adminUser || (adminUser.role !== 'admin' && adminUser.role !== 'superadmin')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

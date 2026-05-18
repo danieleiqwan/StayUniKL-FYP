@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { QrReader } from 'react-qr-reader';
 import { 
     QrCode, FileText, Camera, UploadCloud, X, CheckCircle2, 
     AlertCircle, Loader2, Save, User as UserIcon, Building, MapPin, 

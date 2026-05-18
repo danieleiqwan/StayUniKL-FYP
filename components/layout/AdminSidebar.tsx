@@ -59,6 +59,7 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
 
     const utilityItems = [
         { id: 'checkin', label: 'QR Check-in Hub', icon: ScanLine, path: '/admin/checkin' },
+        { id: 'finance', label: 'Finance Hub', icon: FileText, path: '/admin/finances/create-invoice' },
         { id: 'rooms', label: 'Room Management', icon: Building2, path: '/admin/rooms' },
         { id: 'docs', label: 'Document Verify', icon: ShieldCheck, path: '/admin/documents' },
         { id: 'academic', label: 'Academic Settings', icon: GraduationCap, path: '/admin/academic' },
