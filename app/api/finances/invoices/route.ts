@@ -72,7 +72,7 @@ export async function POST(request: Request) {
         // We also need the application_id if the schema strictly requires it.
         // Let's find the active application for this student
         const [apps]: any = await connection.query(
-            `SELECT id FROM applications WHERE student_id = ? ORDER BY created_at DESC LIMIT 1`,
+            `SELECT id FROM applications WHERE student_id = ? ORDER BY date DESC LIMIT 1`,
             [studentId]
         );
         const appId = apps.length > 0 ? apps[0].id : null;
