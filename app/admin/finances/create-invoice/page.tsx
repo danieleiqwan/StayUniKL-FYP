@@ -306,6 +306,7 @@ export default function CreateInvoicePage() {
                                     <input 
                                         type="date" 
                                         required 
+                                        min={new Date().toISOString().split('T')[0]}
                                         value={dueDate}
                                         onChange={e => setDueDate(e.target.value)}
                                         disabled={!studentData || submitting}
