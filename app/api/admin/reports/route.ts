@@ -148,10 +148,18 @@ export async function GET(request: Request) {
         let demographics = { gender: [], nationality: [] };
         try {
             const [genderRows]: any = await pool.query(`
-                SELECT gender as label, COUNT(*) as value FROM users WHERE role = 'student' GROUP BY gender
+                SELECT u.gender as label, COALESCE(a.floor_id, 'unassigned') as floor, COUNT(DISTINCT u.id) as value 
+                FROM users u
+                LEFT JOIN applications a ON u.id = a.student_id AND a.status IN ('Payment Pending', 'Approved', 'Checked in')
+                WHERE u.role = 'student' 
+                GROUP BY u.gender, a.floor_id
             `);
             const [natRows]: any = await pool.query(`
-                SELECT nationality as label, COUNT(*) as value FROM users WHERE role = 'student' GROUP BY nationality
+                SELECT u.nationality as label, COALESCE(a.floor_id, 'unassigned') as floor, COUNT(DISTINCT u.id) as value 
+                FROM users u
+                LEFT JOIN applications a ON u.id = a.student_id AND a.status IN ('Payment Pending', 'Approved', 'Checked in')
+                WHERE u.role = 'student' 
+                GROUP BY u.nationality, a.floor_id
             `);
             demographics = { gender: genderRows, nationality: natRows };
         } catch (e: any) {

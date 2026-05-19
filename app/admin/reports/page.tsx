@@ -23,6 +23,7 @@ export default function AdminReportsPage() {
         checkinMethods: []
     });
     const [loading, setLoading] = useState(true);
+    const [demographicFloorFilter, setDemographicFloorFilter] = useState('all');
 
     useEffect(() => {
         const fetchReportData = async () => {
@@ -208,54 +209,94 @@ export default function AdminReportsPage() {
                 <div className="grid gap-6 lg:grid-cols-2 mt-8">
                     {/* Demographics Analysis */}
                     <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm dark:bg-slate-900 dark:border-slate-800">
-                        <div className="flex items-center gap-3 mb-8">
-                            <div className="p-2.5 bg-rose-50 dark:bg-rose-900/20 rounded-xl text-rose-500">
-                                <Users className="h-5 w-5" />
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-rose-50 dark:bg-rose-900/20 rounded-xl text-rose-500">
+                                    <Users className="h-5 w-5" />
+                                </div>
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Student Demographics</h3>
                             </div>
-                            <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Student Demographics</h3>
+                            
+                            {/* Filter Dropdown */}
+                            <select
+                                value={demographicFloorFilter}
+                                onChange={(e) => setDemographicFloorFilter(e.target.value)}
+                                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-rose-500/30 transition-all cursor-pointer"
+                            >
+                                <option value="all">All Floors</option>
+                                <option value="unassigned">Unassigned</option>
+                                {[1,2,3,4,5,6,7].map(f => (
+                                    <option key={f} value={String(f)}>Floor {f}</option>
+                                ))}
+                            </select>
                         </div>
 
-                        <div className="space-y-8">
-                            {/* Gender Distribution */}
-                            <div>
-                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Gender Balance</p>
-                                <div className="flex items-center gap-2 h-4 w-full rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
-                                    {reportData.demographics.gender.map((g: any, i: number) => {
-                                        const total = reportData.demographics.gender.reduce((acc: number, curr: any) => acc + curr.value, 0);
-                                        const pct = total > 0 ? (g.value / total) * 100 : 0;
-                                        return (
-                                            <div 
-                                                key={g.label} 
-                                                className={`h-full transition-all duration-1000 ${g.label === 'Male' ? 'bg-blue-500' : 'bg-rose-500'}`} 
-                                                style={{ width: `${pct}%` }}
-                                            />
-                                        );
-                                    })}
-                                </div>
-                                <div className="flex gap-6 mt-4">
-                                    {reportData.demographics.gender.map((g: any) => (
-                                        <div key={g.label} className="flex items-center gap-2">
-                                            <div className={`h-2.5 w-2.5 rounded-full ${g.label === 'Male' ? 'bg-blue-500' : 'bg-rose-500'}`} />
-                                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{g.label}</span>
-                                            <span className="text-sm font-black text-slate-400">{g.value}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                        {(() => {
+                            const filterDemographics = (dataArray: any[]) => {
+                                const filtered = dataArray.filter(d => demographicFloorFilter === 'all' || String(d.floor) === demographicFloorFilter);
+                                const aggregated: Record<string, number> = {};
+                                filtered.forEach(d => {
+                                    aggregated[d.label] = (aggregated[d.label] || 0) + d.value;
+                                });
+                                return Object.keys(aggregated).map(label => ({
+                                    label,
+                                    value: aggregated[label]
+                                }));
+                            };
 
-                            {/* Nationality Distribution */}
-                            <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
-                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Nationality Mix</p>
-                                <div className="grid grid-cols-2 gap-4">
-                                    {reportData.demographics.nationality.map((n: any) => (
-                                        <div key={n.label} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{n.label || 'Unknown'}</p>
-                                            <p className="text-xl font-black text-slate-900 dark:text-white mt-1">{n.value}</p>
+                            const displayGender = filterDemographics(reportData.demographics.gender);
+                            const displayNat = filterDemographics(reportData.demographics.nationality);
+                            const totalGender = displayGender.reduce((acc: number, curr: any) => acc + curr.value, 0);
+
+                            return (
+                                <div className="space-y-8">
+                                    {/* Gender Distribution */}
+                                    <div>
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Gender Balance</p>
+                                        <div className="flex items-center gap-2 h-4 w-full rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
+                                            {displayGender.map((g: any, i: number) => {
+                                                const pct = totalGender > 0 ? (g.value / totalGender) * 100 : 0;
+                                                return (
+                                                    <div 
+                                                        key={g.label} 
+                                                        className={`h-full transition-all duration-1000 ${g.label === 'Male' ? 'bg-blue-500' : 'bg-rose-500'}`} 
+                                                        style={{ width: `${pct}%` }}
+                                                    />
+                                                );
+                                            })}
                                         </div>
-                                    ))}
+                                        <div className="flex gap-6 mt-4">
+                                            {displayGender.map((g: any) => (
+                                                <div key={g.label} className="flex items-center gap-2">
+                                                    <div className={`h-2.5 w-2.5 rounded-full ${g.label === 'Male' ? 'bg-blue-500' : 'bg-rose-500'}`} />
+                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{g.label}</span>
+                                                    <span className="text-sm font-black text-slate-400">{g.value}</span>
+                                                </div>
+                                            ))}
+                                            {totalGender === 0 && (
+                                                <span className="text-sm font-bold text-slate-400 italic">No data</span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Nationality Distribution */}
+                                    <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Nationality Mix</p>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {displayNat.map((n: any) => (
+                                                <div key={n.label} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{n.label || 'Unknown'}</p>
+                                                    <p className="text-xl font-black text-slate-900 dark:text-white mt-1">{n.value}</p>
+                                                </div>
+                                            ))}
+                                            {displayNat.length === 0 && (
+                                                <div className="col-span-2 text-sm text-slate-400 italic">No data</div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+                            );
+                        })()}
                     </div>
 
                     {/* Financial Pipeline */}
