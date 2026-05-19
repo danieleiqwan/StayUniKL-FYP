@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import AssetFormPanel from '@/components/admin/AssetFormPanel';
-import { Search, Package, Wrench, AlertTriangle, DollarSign, Eye, Pencil, MoreHorizontal, ChevronLeft, ChevronRight, Filter, FileText, Clock, Loader2, Trash2 } from 'lucide-react';
+import { Search, Package, Wrench, AlertTriangle, DollarSign, Eye, Pencil, MoreHorizontal, ChevronLeft, ChevronRight, Filter, FileText, Clock, Loader2, Trash2, Settings } from 'lucide-react';
 
 const condBadge = (c: string) => {
     if (c === 'Good') return 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20';
@@ -124,6 +124,23 @@ export default function AssetManagementPage() {
         refreshData();
     };
 
+    const handleMarkMaintenance = async (id: string) => {
+        if(!confirm('Send this asset for Maintenance?')) return;
+        await fetch('/api/assets', { 
+            method:'POST', 
+            headers:{'Content-Type':'application/json'}, 
+            body: JSON.stringify({ 
+                action:'update_status', 
+                id, 
+                status:'Maintenance',
+                actorId: user?.id,
+                actorName: user?.name
+            }) 
+        });
+        fetchAssets();
+        refreshData();
+    };
+
     if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <div className="p-10 text-center text-slate-500">Access Denied.</div>;
 
     const kpis = [
@@ -226,6 +243,7 @@ export default function AssetManagementPage() {
                                                         <td className="px-5 py-3.5 text-right">
                                                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
 
+                                                                {a.status==='Good' && <button title="Mark for Maintenance" onClick={()=>handleMarkMaintenance(a.id)} className="p-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 text-slate-400 hover:text-amber-600 transition-colors"><Settings className="h-3.5 w-3.5"/></button>}
                                                                 {a.status==='Good' && <button title="Report Issue" onClick={()=>handleReportIssue(a.id)} className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-400 hover:text-rose-600 transition-colors"><Pencil className="h-3.5 w-3.5"/></button>}
                                                                 {(a.status==='Damaged'||a.status==='Maintenance') && <button title="Log Repair" onClick={()=>handleRepair(a.id)} className="p-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-slate-400 hover:text-emerald-600 transition-colors"><Wrench className="h-3.5 w-3.5"/></button>}
                                                                 <button title="Delete Asset" onClick={() => handleDeleteAsset(a.id)} className="p-1.5 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/40 text-slate-400 hover:text-rose-600 transition-colors"><Trash2 className="h-3.5 w-3.5"/></button>
@@ -278,9 +296,14 @@ export default function AssetManagementPage() {
                                                     </span>
                                                     <div className="flex items-center gap-2">
                                                         {a.status==='Good' && (
-                                                            <button onClick={()=>handleReportIssue(a.id)} className="h-8 w-8 flex items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-600 border border-rose-100 dark:border-rose-500/20">
-                                                                <AlertTriangle className="h-4 w-4"/>
-                                                            </button>
+                                                            <>
+                                                                <button onClick={()=>handleMarkMaintenance(a.id)} className="h-8 w-8 flex items-center justify-center rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 border border-amber-100 dark:border-amber-500/20">
+                                                                    <Settings className="h-4 w-4"/>
+                                                                </button>
+                                                                <button onClick={()=>handleReportIssue(a.id)} className="h-8 w-8 flex items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-600 border border-rose-100 dark:border-rose-500/20">
+                                                                    <AlertTriangle className="h-4 w-4"/>
+                                                                </button>
+                                                            </>
                                                         )}
                                                         {(a.status==='Damaged'||a.status==='Maintenance') && (
                                                             <button onClick={()=>handleRepair(a.id)} className="h-8 w-8 flex items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 border border-emerald-100 dark:border-emerald-500/20">
