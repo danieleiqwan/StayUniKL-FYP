@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { 
     X, User, Calendar, Bed, Building, 
     Users, Wrench, AlertCircle, Plus, 
-    ShieldCheck, Clock, MapPin, ExternalLink
+    ShieldCheck, Clock, MapPin, ExternalLink,
+    Trash2, Loader2
 } from 'lucide-react';
 
 import AssignStudentToBedModal from './AssignStudentToBedModal';
@@ -58,6 +59,45 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
     const [isMaintenance, setIsMaintenance] = useState(room?.status === 'Maintenance');
     const [assigningBed, setAssigningBed] = useState<{ id: string, label: string } | null>(null);
     const [complaints, setComplaints] = useState<any[]>([]);
+
+    // Deletion states
+    const [deleting, setDeleting] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState(false);
+    const [deleteMsg, setDeleteMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+
+    const handleDeleteRoom = async () => {
+        if (!confirmDelete) {
+            setConfirmDelete(true);
+            setTimeout(() => setConfirmDelete(false), 3000);
+            return;
+        }
+
+        setDeleting(true);
+        setDeleteMsg(null);
+        try {
+            const res = await fetch('/api/rooms', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ roomId: room?.id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setDeleteMsg({ type: 'success', text: data.message });
+                onUpdate?.();
+                setTimeout(() => {
+                    onClose();
+                }, 1500);
+            } else {
+                setDeleteMsg({ type: 'error', text: data.error || 'Failed to delete room.' });
+                setConfirmDelete(false);
+            }
+        } catch {
+            setDeleteMsg({ type: 'error', text: 'Network error. Please try again.' });
+            setConfirmDelete(false);
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     React.useEffect(() => {
         if (room?.id) {
@@ -290,46 +330,75 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
                     </button>
                 </div>
 
-                {/* Footer - Maintenance Control */}
-                <div className="p-8 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${isMaintenance ? 'bg-orange-100 text-orange-600 animate-pulse' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
-                            <Wrench className="h-5 w-5" />
+                {/* Footer - Maintenance Control & Deletion */}
+                <div className="p-8 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-4">
+                    {deleteMsg && (
+                        <div className={`p-3.5 rounded-xl text-xs font-bold flex items-start gap-2 ${
+                            deleteMsg.type === 'success'
+                                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800'
+                                : 'bg-rose-50 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400 border border-rose-100 dark:border-rose-800'
+                        }`}>
+                            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                            <p>{deleteMsg.text}</p>
                         </div>
-                        <div>
-                            <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider leading-none mb-1">Facility Maintenance</p>
-                            <p className="text-[10px] font-bold text-slate-400">{isMaintenance ? 'Currently marked for inspection' : 'Room is in operational state'}</p>
+                    )}
+                    
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${isMaintenance ? 'bg-orange-100 text-orange-600 animate-pulse' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
+                                <Wrench className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider leading-none mb-1">Facility Maintenance</p>
+                                <p className="text-[10px] font-bold text-slate-400">{isMaintenance ? 'Currently marked for inspection' : 'Room is in operational state'}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleDeleteRoom}
+                                disabled={deleting}
+                                className={`px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-1.5 ${
+                                    confirmDelete
+                                        ? 'bg-rose-600 hover:bg-rose-700 text-white border-rose-700 shadow-md shadow-rose-500/20'
+                                        : 'bg-rose-50 hover:bg-rose-100 text-rose-600 border-rose-200'
+                                }`}
+                                title="Delete this room permanently"
+                            >
+                                {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                                {confirmDelete ? 'Confirm Delete?' : 'Delete Room'}
+                            </button>
+
+                            <button 
+                                onClick={async () => {
+                                    const newStatus = isMaintenance ? 'Active' : 'Maintenance';
+                                    try {
+                                        const res = await fetch('/api/rooms', {
+                                            method: 'PUT',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ roomId: room.id, status: newStatus })
+                                        });
+                                        if (res.ok) {
+                                            setIsMaintenance(!isMaintenance);
+                                            onUpdate?.(); // Refreshes the grid behind it
+                                        } else {
+                                            const errData = await res.json();
+                                            alert(`Failed to update room status: ${errData.error || res.statusText}`);
+                                        }
+                                    } catch (err: any) {
+                                        alert(`Error updating room status: ${err.message}`);
+                                    }
+                                }}
+                                className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                    isMaintenance 
+                                    ? 'bg-slate-900 text-white hover:bg-slate-800' 
+                                    : 'bg-white border border-orange-200 text-[#F26C22] hover:bg-orange-50 shadow-sm'
+                                }`}
+                            >
+                                {isMaintenance ? 'Mark as Operational' : 'Mark for Maintenance'}
+                            </button>
                         </div>
                     </div>
-
-                    <button 
-                        onClick={async () => {
-                            const newStatus = isMaintenance ? 'Active' : 'Maintenance';
-                            try {
-                                const res = await fetch('/api/rooms', {
-                                    method: 'PUT',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ roomId: room.id, status: newStatus })
-                                });
-                                if (res.ok) {
-                                    setIsMaintenance(!isMaintenance);
-                                    onUpdate?.(); // Refreshes the grid behind it
-                                } else {
-                                    const errData = await res.json();
-                                    alert(`Failed to update room status: ${errData.error || res.statusText}`);
-                                }
-                            } catch (err: any) {
-                                alert(`Error updating room status: ${err.message}`);
-                            }
-                        }}
-                        className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                            isMaintenance 
-                            ? 'bg-slate-900 text-white hover:bg-slate-800' 
-                            : 'bg-white border border-orange-200 text-[#F26C22] hover:bg-orange-50 shadow-sm'
-                        }`}
-                    >
-                        {isMaintenance ? 'Mark as Operational' : 'Mark for Maintenance'}
-                    </button>
                 </div>
             </div>
             

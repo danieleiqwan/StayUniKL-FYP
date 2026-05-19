@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, BedDouble, Users, Wrench, Pencil, Check, X, Lock, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, BedDouble, Users, Wrench, Pencil, Check, X, Lock, Loader2, Trash2 } from 'lucide-react';
 import RoomDetailModal from './RoomDetailModal';
 
 interface Bed {
@@ -140,6 +140,42 @@ function FloorAccordion({ floor, rooms, defaultOpen, onRoomClick, onRefresh }: {
     const [saving, setSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+    // Deletion states for Floor
+    const [deletingFloor, setDeletingFloor] = useState(false);
+    const [confirmDeleteFloor, setConfirmDeleteFloor] = useState(false);
+
+    const handleDeleteFloor = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!confirmDeleteFloor) {
+            setConfirmDeleteFloor(true);
+            setTimeout(() => setConfirmDeleteFloor(false), 3000);
+            return;
+        }
+
+        setDeletingFloor(true);
+        setSaveMsg(null);
+        try {
+            const res = await fetch('/api/rooms', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ floorId: floor })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setSaveMsg({ type: 'success', text: data.message });
+                onRefresh?.();
+            } else {
+                setSaveMsg({ type: 'error', text: data.error || 'Failed to delete floor.' });
+                setConfirmDeleteFloor(false);
+            }
+        } catch {
+            setSaveMsg({ type: 'error', text: 'Network error. Please try again.' });
+            setConfirmDeleteFloor(false);
+        } finally {
+            setDeletingFloor(false);
+        }
+    };
+
     const totalBeds = rooms.reduce((a, r) => a + r.capacity, 0);
     const occupiedBeds = rooms.reduce((a, r) => a + r.beds.filter(b => b.isOccupied).length, 0);
     const availableRooms = rooms.filter(r => r.beds.some(b => !b.isOccupied && b.status !== 'Maintenance')).length;
@@ -190,13 +226,28 @@ function FloorAccordion({ floor, rooms, defaultOpen, onRoomClick, onRefresh }: {
                             {!editingGender ? (
                                 <>
                                     <p className="text-xs text-slate-500">{rooms[0]?.gender} Wing · {rooms.length} rooms</p>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); setSelectedGender(rooms[0]?.gender as Gender || 'Male'); setEditingGender(true); setSaveMsg(null); }}
-                                        className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all text-[9px] font-black uppercase tracking-wider"
-                                        title="Edit floor gender designation"
-                                    >
-                                        <Pencil className="h-2.5 w-2.5" /> Edit
-                                    </button>
+                                    <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setSelectedGender(rooms[0]?.gender as Gender || 'Male'); setEditingGender(true); setSaveMsg(null); }}
+                                            className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-[#F26C22] hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all text-[9px] font-black uppercase tracking-wider"
+                                            title="Edit floor gender designation"
+                                        >
+                                            <Pencil className="h-2.5 w-2.5" /> Edit
+                                        </button>
+                                        <button
+                                            onClick={handleDeleteFloor}
+                                            disabled={deletingFloor}
+                                            className={`flex items-center gap-1 px-2 py-0.5 rounded-lg transition-all text-[9px] font-black uppercase tracking-wider ${
+                                                confirmDeleteFloor
+                                                    ? 'bg-rose-600 text-white hover:bg-rose-700'
+                                                    : 'bg-rose-50 dark:bg-rose-950/20 text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/30'
+                                            }`}
+                                            title="Delete this entire floor"
+                                        >
+                                            {deletingFloor ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <Trash2 className="h-2.5 w-2.5" />}
+                                            {confirmDeleteFloor ? 'Confirm?' : 'Delete'}
+                                        </button>
+                                    </div>
                                 </>
                             ) : (
                                 <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>

@@ -249,3 +249,97 @@ export async function PATCH(request: Request) {
     }
 }
 
+// Delete a single room or an entire floor
+export async function DELETE(request: Request) {
+    try {
+        const admin = await isAdmin();
+        if (!admin) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await request.json();
+        const { roomId, floorId } = body;
+
+        if (!roomId && !floorId) {
+            return NextResponse.json({ error: 'Missing roomId or floorId' }, { status: 400 });
+        }
+
+        if (roomId) {
+            // Check for active residents in this room
+            const [occupiedRows]: any = await pool.query(`
+                SELECT COUNT(*) as cnt FROM applications a
+                JOIN beds b ON a.bed_id = b.id
+                WHERE b.room_id = ? AND a.status IN ('Payment Pending', 'Approved', 'Checked in')
+            `, [String(roomId)]);
+            const occupiedCount = Number(occupiedRows[0]?.cnt || 0);
+
+            if (occupiedCount > 0) {
+                return NextResponse.json({
+                    error: `Cannot delete Room ${roomId} — ${occupiedCount} active resident(s) are currently assigned to it. All students must check out before the room can be deleted.`,
+                    blocked: true
+                }, { status: 409 });
+            }
+
+            // Safe to delete room (beds will cascade delete)
+            await pool.query('DELETE FROM rooms WHERE id = ?', [String(roomId)]);
+
+            await logAction({
+                actorId: admin.id,
+                actorName: admin.name,
+                action: 'DELETE_ROOM',
+                entityType: 'Room',
+                entityId: String(roomId),
+                details: { roomId }
+            });
+
+            return NextResponse.json({
+                success: true,
+                message: `Room ${roomId} has been successfully deleted.`
+            });
+        }
+
+        if (floorId) {
+            // Check for active residents on this floor
+            const [occupiedRows]: any = await pool.query(`
+                SELECT COUNT(*) as cnt FROM applications a
+                JOIN beds b ON a.bed_id = b.id
+                JOIN rooms r ON b.room_id = r.id
+                WHERE r.floor_id = ? AND a.status IN ('Payment Pending', 'Approved', 'Checked in')
+            `, [Number(floorId)]);
+            const occupiedCount = Number(occupiedRows[0]?.cnt || 0);
+
+            if (occupiedCount > 0) {
+                return NextResponse.json({
+                    error: `Cannot delete Floor ${floorId} — ${occupiedCount} active resident(s) are still checked in on this floor. All students must check out before the floor can be deleted.`,
+                    blocked: true
+                }, { status: 409 });
+            }
+
+            // Get room IDs that will be deleted for audit logging
+            const [roomsOnFloor]: any = await pool.query('SELECT id FROM rooms WHERE floor_id = ?', [Number(floorId)]);
+            const roomIds = roomsOnFloor.map((r: any) => r.id);
+
+            // Safe to delete all rooms on this floor
+            await pool.query('DELETE FROM rooms WHERE floor_id = ?', [Number(floorId)]);
+
+            await logAction({
+                actorId: admin.id,
+                actorName: admin.name,
+                action: 'DELETE_FLOOR',
+                entityType: 'Floor',
+                entityId: String(floorId),
+                details: { floorId, deletedRooms: roomIds }
+            });
+
+            return NextResponse.json({
+                success: true,
+                message: `Floor ${floorId} and all its ${roomIds.length} room(s) have been successfully deleted.`
+            });
+        }
+
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
+
