@@ -220,7 +220,7 @@ export default function AdminRoomsPage() {
             {/* ── Add Room Modal ── */}
             {showAddRoom && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 duration-200">
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
                             <div className="flex items-center gap-3">
@@ -254,7 +254,7 @@ export default function AdminRoomsPage() {
                                     placeholder="e.g. 801 or G-02"
                                     value={form.roomId}
                                     onChange={e => setForm(f => ({ ...f, roomId: e.target.value }))}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-[#F26C22] transition-all"
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-[#F26C22] transition-all"
                                 />
                             </div>
 
@@ -268,7 +268,7 @@ export default function AdminRoomsPage() {
                                     placeholder="e.g. 8"
                                     value={form.floorId}
                                     onChange={e => setForm(f => ({ ...f, floorId: e.target.value }))}
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-[#F26C22] transition-all"
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-[#F26C22] transition-all"
                                 />
                             </div>
 
@@ -280,7 +280,7 @@ export default function AdminRoomsPage() {
                                         <button
                                             key={g}
                                             onClick={() => setForm(f => ({ ...f, gender: g }))}
-                                            className={`py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${form.gender === g ? 'bg-[#F26C22] text-white shadow-lg shadow-orange-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                                            className={`py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${form.gender === g ? 'bg-[#F26C22] text-white shadow-lg shadow-orange-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
                                         >{g}</button>
                                     ))}
                                 </div>
@@ -299,7 +299,7 @@ export default function AdminRoomsPage() {
                                         <button
                                             key={opt.val}
                                             onClick={() => handleCapacityChange(opt.val)}
-                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex flex-col items-center gap-0.5 ${form.capacity === opt.val ? 'bg-[#F26C22] text-white shadow-lg shadow-orange-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex flex-col items-center gap-0.5 ${form.capacity === opt.val ? 'bg-[#F26C22] text-white shadow-lg shadow-orange-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
                                         >
                                             <span>{opt.top}</span>
                                             <span className="opacity-70">{opt.bot}</span>
@@ -319,7 +319,7 @@ export default function AdminRoomsPage() {
                                         <button
                                             key={s.val}
                                             onClick={() => setForm(f => ({ ...f, status: s.val as any }))}
-                                            className={`py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${form.status === s.val ? (s.val === 'Active' ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white') : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                                            className={`py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${form.status === s.val ? (s.val === 'Active' ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white') : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
                                         >{s.label}</button>
                                     ))}
                                 </div>
