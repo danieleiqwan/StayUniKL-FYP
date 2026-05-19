@@ -7,13 +7,13 @@ const labelCls = "block text-[11px] font-bold text-slate-500 dark:text-slate-400
 
 export default function AssetFormPanel({ onSubmit }: { onSubmit: (data: any) => Promise<void> }) {
     const [submitting, setSubmitting] = useState(false);
-    const [form, setForm] = useState({ name: '', type: 'Furniture', locationId: '', purchaseDate: '', value: '', quantity: '1', condition: 'Good', assignedTo: '', notes: '' });
+    const [form, setForm] = useState({ name: '', type: 'Furniture', locationId: '', value: '', quantity: '1' });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
         await onSubmit(form);
-        setForm({ name: '', type: 'Furniture', locationId: '', purchaseDate: '', value: '', quantity: '1', condition: 'Good', assignedTo: '', notes: '' });
+        setForm({ name: '', type: 'Furniture', locationId: '', value: '', quantity: '1' });
         setSubmitting(false);
     };
 
@@ -41,10 +41,6 @@ export default function AssetFormPanel({ onSubmit }: { onSubmit: (data: any) => 
                     <label className={labelCls}>Location (Room / Block / Area) *</label>
                     <input required value={form.locationId} onChange={e => setForm({...form, locationId: e.target.value})} className={inputCls} placeholder="e.g., Block A - Room 101" />
                 </div>
-                <div>
-                    <label className={labelCls}>Purchase Date</label>
-                    <input type="date" value={form.purchaseDate} onChange={e => setForm({...form, purchaseDate: e.target.value})} className={inputCls} />
-                </div>
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className={labelCls}>Value (RM)</label>
@@ -54,24 +50,6 @@ export default function AssetFormPanel({ onSubmit }: { onSubmit: (data: any) => 
                         <label className={labelCls}>Quantity</label>
                         <input type="number" min="1" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} className={inputCls} placeholder="e.g. 1" />
                     </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <label className={labelCls}>Condition</label>
-                        <select value={form.condition} onChange={e => setForm({...form, condition: e.target.value})} className={inputCls}>
-                            <option>Good</option>
-                            <option>Maintenance</option>
-                            <option>Damaged</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className={labelCls}>Assigned To <span className="text-slate-300 font-normal">(Optional)</span></label>
-                        <input value={form.assignedTo} onChange={e => setForm({...form, assignedTo: e.target.value})} className={inputCls} placeholder="Select room / area" />
-                    </div>
-                </div>
-                <div>
-                    <label className={labelCls}>Notes <span className="text-slate-300 font-normal">(Optional)</span></label>
-                    <textarea rows={2} value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} className={`${inputCls} resize-none`} placeholder="Additional notes about this asset..." />
                 </div>
                 <button type="submit" disabled={submitting} className="w-full flex items-center justify-center gap-2 bg-[#F26C22] hover:bg-[#F26C22]/90 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50">
                     {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
