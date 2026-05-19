@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
     X, User, Calendar, Bed, Building, 
     Users, Wrench, AlertCircle, Plus, 
@@ -56,6 +57,7 @@ function AssetItem({ label, count, status }: { label: string, count: number, sta
 }
 
 export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailModalProps & { onUpdate?: () => void }) {
+    const router = useRouter();
     const [isMaintenance, setIsMaintenance] = useState(room?.status === 'Maintenance');
     const [assigningBed, setAssigningBed] = useState<{ id: string, label: string } | null>(null);
     const [complaints, setComplaints] = useState<any[]>([]);
@@ -333,7 +335,10 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
                         </div>
                     </div>
 
-                    <button className="mt-6 flex items-center gap-2 text-[10px] font-black text-[#F26C22] hover:text-[#d65a16] uppercase tracking-widest transition-colors group">
+                    <button 
+                        onClick={() => router.push('/admin/assets?loc=' + room.id)}
+                        className="mt-6 flex items-center gap-2 text-[10px] font-black text-[#F26C22] hover:text-[#d65a16] uppercase tracking-widest transition-colors group"
+                    >
                         <ShieldCheck className="h-4 w-4" /> View Full Asset History 
                         <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all translate-x-[-4px] group-hover:translate-x-0" />
                     </button>

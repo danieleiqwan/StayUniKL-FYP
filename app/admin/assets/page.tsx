@@ -30,7 +30,14 @@ export default function AssetManagementPage() {
     const perPage = 8;
 
     const fetchAssets = async () => { setLoading(true); try { const r = await fetch('/api/assets'); const d = await r.json(); if (d.assets) setAssets(d.assets); } catch(e){console.error(e);} finally{setLoading(false);} };
-    useEffect(() => { fetchAssets(); }, []);
+    useEffect(() => { 
+        fetchAssets(); 
+        const params = new URLSearchParams(window.location.search);
+        const loc = params.get('loc');
+        if (loc) {
+            setLocF(loc);
+        }
+    }, []);
 
     const filtered = useMemo(() => assets.filter(a => {
         const ms = !search || a.name?.toLowerCase().includes(search.toLowerCase()) || a.id?.toLowerCase().includes(search.toLowerCase()) || a.location_id?.toString().toLowerCase().includes(search.toLowerCase());
