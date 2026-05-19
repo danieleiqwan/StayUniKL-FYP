@@ -93,7 +93,7 @@ export default function RegisterPage() {
         if (!formData.studentId || formData.studentId.length < 8) {
             errors.push('studentId');
             shake.push('studentId');
-            setStudentIdError('student id is invalid');
+            setStudentIdError('Student ID must be between 8 and 11 digits');
         }
 
         if (formData.nationality === 'Local') {
