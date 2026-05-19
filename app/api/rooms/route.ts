@@ -104,6 +104,19 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid roomType. Must be Single, Double, Triple, or Quad.' }, { status: 400 });
         }
 
+        // Sequential Floor Restriction: Floor N cannot be created unless Floor N-1 exists (has at least one room)
+        const targetFloor = Number(floorId);
+        if (targetFloor > 1) {
+            const [prevFloorRooms]: any = await conn.query('SELECT COUNT(*) as cnt FROM rooms WHERE floor_id = ?', [targetFloor - 1]);
+            const prevFloorCount = Number(prevFloorRooms[0]?.cnt || 0);
+            if (prevFloorCount === 0) {
+                conn.release();
+                return NextResponse.json({
+                    error: `Cannot create a room on Floor ${targetFloor} because Floor ${targetFloor - 1} does not have any rooms yet. Floors must be created sequentially (you must add at least one room to Floor ${targetFloor - 1} first).`
+                }, { status: 400 });
+            }
+        }
+
         // Check room doesn't already exist
         const [existing]: any = await conn.query('SELECT id FROM rooms WHERE id = ?', [String(roomId)]);
         if (existing.length > 0) {
