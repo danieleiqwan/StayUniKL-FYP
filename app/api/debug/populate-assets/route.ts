@@ -13,31 +13,32 @@ export async function GET(request: Request) {
         const [tables]: any = await db.query('SHOW TABLES');
         console.log('Tables found:', tables);
         
-        const [rooms]: any = await db.query('SELECT id FROM rooms');
+        const [rooms]: any = await db.query('SELECT id, capacity FROM rooms');
         
         const assetValues: any[] = [];
         rooms.forEach((room: any) => {
             const roomId = room.id;
-            // 4 Study Desks
-            for (let i = 1; i <= 4; i++) {
-                assetValues.push([`AST-${roomId}-DSK-${i}`, 'Study Desk', 'Furniture', 'Good', roomId, 150.00]);
-            }
-            // 4 Study Chairs
-            for (let i = 1; i <= 4; i++) {
-                assetValues.push([`AST-${roomId}-CHR-${i}`, 'Study Chair', 'Furniture', 'Good', roomId, 80.00]);
-            }
-            // 4 Mattresses
-            for (let i = 1; i <= 4; i++) {
-                assetValues.push([`AST-${roomId}-MAT-${i}`, 'Mattress', 'Furniture', 'Good', roomId, 120.00]);
-            }
-            // 4 Wardrobes
-            for (let i = 1; i <= 4; i++) {
-                assetValues.push([`AST-${roomId}-WRD-${i}`, 'Wardrobe', 'Furniture', 'Good', roomId, 250.00]);
-            }
-            // 1 Ceiling Fan
-            assetValues.push([`AST-${roomId}-FAN`, 'Ceiling Fan', 'Fixture', 'Good', roomId, 200.00]);
+            const cap = room.capacity || 2;
+            
             // 1 Air Conditioner
-            assetValues.push([`AST-${roomId}-AC`, 'Air Conditioner', 'Appliance', 'Good', roomId, 1200.00]);
+            assetValues.push([`AST-${roomId}-AC-1`, 'Aircond', 'Appliance', 'Good', roomId, 1200.00]);
+            
+            // Chairs
+            for (let i = 1; i <= cap; i++) {
+                assetValues.push([`AST-${roomId}-CHR-${i}`, 'Chair', 'Furniture', 'Good', roomId, 80.00]);
+            }
+            // Beds
+            for (let i = 1; i <= cap; i++) {
+                assetValues.push([`AST-${roomId}-BED-${i}`, 'Bed', 'Furniture', 'Good', roomId, 150.00]);
+            }
+            // Tables
+            for (let i = 1; i <= cap; i++) {
+                assetValues.push([`AST-${roomId}-TB-${i}`, 'Table', 'Furniture', 'Good', roomId, 120.00]);
+            }
+            // Lockers
+            for (let i = 1; i <= cap; i++) {
+                assetValues.push([`AST-${roomId}-LKR-${i}`, 'Locker', 'Furniture', 'Good', roomId, 250.00]);
+            }
         });
 
         console.log(`Starting population for ${rooms.length} rooms...`);
