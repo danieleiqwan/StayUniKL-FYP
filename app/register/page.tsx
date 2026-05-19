@@ -25,6 +25,7 @@ export default function RegisterPage() {
     const [passwordError, setPasswordError] = useState('');
     const [emailError, setEmailError] = useState('');
     const [nricError, setNricError] = useState('');
+    const [studentIdError, setStudentIdError] = useState('');
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
     const [shakingFields, setShakingFields] = useState<string[]>([]);
     const [showPassword, setShowPassword] = useState(false);
@@ -84,6 +85,7 @@ export default function RegisterPage() {
         setPasswordError('');
         setEmailError('');
         setNricError('');
+        setStudentIdError('');
 
         const errors: string[] = [];
         const shake: string[] = [];
@@ -91,6 +93,7 @@ export default function RegisterPage() {
         if (!formData.studentId || formData.studentId.length < 8) {
             errors.push('studentId');
             shake.push('studentId');
+            setStudentIdError('student id is invalid');
         }
 
         if (formData.nationality === 'Local') {
@@ -294,6 +297,7 @@ export default function RegisterPage() {
                                                     onChange={handleChange}
                                                 />
                                             </div>
+                                            {studentIdError && <p className="text-[10px] font-bold text-red-500 mt-1">{studentIdError}</p>}
                                         </div>
 
                                         <div className="space-y-1.5">
