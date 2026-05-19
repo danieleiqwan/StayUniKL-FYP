@@ -14,7 +14,7 @@ export async function GET() {
         let rows: any = [];
         const fullColumns = `
             id, name, email, role, gender, student_id, nric, profile_image, 
-            phone_number, created_at,
+            phone_number, created_at, last_login, status,
             alert_booking, alert_maintenance, alert_announcement,
             address, city, state, postcode,
             emergency_contact1_name, emergency_contact1_relation, emergency_contact1_phone,
@@ -73,6 +73,8 @@ export async function GET() {
                 twoFactorEnabled: !!user.two_factor_enabled,
                 notificationsEnabled: !!user.notifications_enabled,
                 mustChangePassword: user.must_change_password !== undefined ? !!user.must_change_password : false,
+                // Read from JWT token payload (set at login time, before last_login is updated)
+                isFirstLogin: !!(authUser as any).isFirstLogin,
                 createdAt: user.created_at
             }
         });

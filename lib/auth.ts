@@ -10,7 +10,7 @@ if (!JWT_SECRET) {
 
 const SECRET_KEY = new TextEncoder().encode(JWT_SECRET || 'stayunikl_development_only_secret_123456789');
 
-export async function createToken(payload: { id: string; role: string; email: string }, rememberMe: boolean = false) {
+export async function createToken(payload: { id: string; role: string; email: string; isFirstLogin?: boolean }, rememberMe: boolean = false) {
     // Superadmin sessions are always short-lived (4h max), never "remembered"
     const expiresIn = payload.role === 'superadmin' ? '4h' : (rememberMe ? '30d' : '1d');
     return await new SignJWT({ ...payload, iat: Math.floor(Date.now() / 1000) })
@@ -23,7 +23,7 @@ export async function createToken(payload: { id: string; role: string; email: st
 export async function verifyToken(token: string) {
     try {
         const { payload } = await jwtVerify(token, SECRET_KEY);
-        return payload as { id: string; role: string; email: string };
+        return payload as { id: string; role: string; email: string; isFirstLogin?: boolean };
     } catch (err) {
         return null;
     }

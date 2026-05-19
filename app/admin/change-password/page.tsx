@@ -25,6 +25,7 @@ export default function ChangePasswordPage() {
     // Sync current session state
     const [adminName, setAdminName] = useState('Administrator');
     const [adminEmail, setAdminEmail] = useState('');
+    const [isFirstLogin, setIsFirstLogin] = useState<boolean | null>(null);
 
     useEffect(() => {
         // Fetch current user info silently
@@ -34,6 +35,9 @@ export default function ChangePasswordPage() {
                 if (data.success && data.user) {
                     setAdminName(data.user.name);
                     setAdminEmail(data.user.email);
+                    // Detect if this is a true first login (no previous password change)
+                    // vs a superadmin-triggered reset
+                    setIsFirstLogin(!!data.user.isFirstLogin);
                 }
             })
             .catch(err => console.error(err));
@@ -106,8 +110,8 @@ export default function ChangePasswordPage() {
                 {/* Top header options */}
                 <div className="flex justify-between items-center mb-8">
                     <div className="flex items-center gap-2">
-                        <span className="bg-[#F26C22] text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg">
-                            First Login
+                        <span className={`text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${isFirstLogin === false ? 'bg-indigo-600' : 'bg-[#F26C22]'}`}>
+                            {isFirstLogin === false ? 'Password Reset' : 'First Login'}
                         </span>
                         <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">
                             Required Action
@@ -122,15 +126,18 @@ export default function ChangePasswordPage() {
                 {/* Explanatory introduction */}
                 <div className="space-y-3 mb-8">
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-[#F26C22]/10 text-[#F26C22] rounded-2xl border border-[#F26C22]/20">
+                        <div className={`p-3 rounded-2xl border ${isFirstLogin === false ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 'bg-[#F26C22]/10 text-[#F26C22] border-[#F26C22]/20'}`}>
                             <ShieldAlert className="h-7 w-7" />
                         </div>
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
-                                Secure Your Account
+                                {isFirstLogin === false ? 'Password Reset Required' : 'Secure Your Account'}
                             </h1>
                             <p className="text-zinc-400 text-xs sm:text-sm font-medium">
-                                Hi <span className="text-white font-bold">{adminName}</span> ({adminEmail || 'admin'}), you are logging in with a temporary password. Please configure a new credentials set.
+                                Hi <span className="text-white font-bold">{adminName}</span> ({adminEmail || 'admin'}),{' '}
+                                {isFirstLogin === false
+                                    ? 'your password has been reset by a superadmin. Please set a new password to continue.'
+                                    : 'you are logging in for the first time. Please configure a permanent password.'}
                             </p>
                         </div>
                     </div>

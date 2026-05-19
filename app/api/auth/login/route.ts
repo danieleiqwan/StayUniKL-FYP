@@ -123,6 +123,10 @@ export async function POST(request: Request) {
             await pool.query('UPDATE users SET login_attempts = 0, locked_until = NULL WHERE id = ?', [user.id]);
         }
 
+        // Capture whether this admin has ever logged in BEFORE updating last_login.
+        // Used to distinguish "first login" from "superadmin password reset" on the change-password page.
+        const isFirstLogin = !user.last_login;
+
         // Log last login timestamp for security monitoring, audit visibility, and activity tracking
         await pool.query('UPDATE users SET last_login = NOW(), last_login_at = NOW() WHERE id = ?', [user.id]).catch(() => {});
 
@@ -131,7 +135,7 @@ export async function POST(request: Request) {
             id: user.id,
             role: user.role,
             email: user.email,
-            mustChangePassword: !!user.must_change_password
+            ...(user.must_change_password ? { isFirstLogin } : {})
         }, rememberMe);
 
         // 2. Set the token in an HttpOnly cookie
@@ -170,7 +174,8 @@ export async function POST(request: Request) {
                 alertBooking: user.alert_booking !== undefined ? !!user.alert_booking : true,
                 alertMaintenance: user.alert_maintenance !== undefined ? !!user.alert_maintenance : true,
                 alertAnnouncement: user.alert_announcement !== undefined ? !!user.alert_announcement : true,
-                mustChangePassword: !!user.must_change_password
+                mustChangePassword: !!user.must_change_password,
+                isFirstLogin: isFirstLogin
             }
         });
 
