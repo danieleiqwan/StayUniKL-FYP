@@ -87,7 +87,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { roomId, floorId, gender, capacity, roomType, status } = body;
+        const { roomId, floorId, gender, capacity, roomType, status, assets } = body;
 
         if (!roomId || !floorId || !gender || !capacity || !roomType) {
             conn.release();
@@ -148,6 +148,35 @@ export async function POST(request: Request) {
                 'INSERT INTO beds (id, room_id, label, status) VALUES (?, ?, ?, ?)',
                 [bedId, String(roomId), label, 'Available']
             );
+        }
+
+        // 3. Auto-generate or insert default assets into room_assets (if quantity > 0)
+        await conn.query('DELETE FROM room_assets WHERE location_id = ?', [String(roomId)]);
+        if (assets && Array.isArray(assets)) {
+            const assetTypesConfig: Record<string, { name: string; type: string; value: number }> = {
+                'AC': { name: 'Aircond', type: 'Appliance', value: 1200.00 },
+                'CHR': { name: 'Chair', type: 'Furniture', value: 80.00 },
+                'BED': { name: 'Bed', type: 'Furniture', value: 150.00 },
+                'TB': { name: 'Table', type: 'Furniture', value: 120.00 },
+                'LKR': { name: 'Locker', type: 'Furniture', value: 250.00 }
+            };
+
+            for (const asset of assets) {
+                const count = Number(asset.quantity);
+                if (isNaN(count) || count <= 0) continue;
+
+                const code = asset.asset_code;
+                const config = assetTypesConfig[code];
+                if (!config) continue;
+
+                for (let i = 1; i <= count; i++) {
+                    const assetId = `AST-${roomId}-${code}-${i}`;
+                    await conn.query(
+                        `INSERT INTO room_assets (id, name, type, status, location_id, value) VALUES (?, ?, ?, 'Good', ?, ?)`,
+                        [assetId, config.name, config.type, String(roomId), config.value]
+                    );
+                }
+            }
         }
 
         await conn.commit();

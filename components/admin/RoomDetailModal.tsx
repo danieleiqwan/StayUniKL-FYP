@@ -59,6 +59,7 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
     const [isMaintenance, setIsMaintenance] = useState(room?.status === 'Maintenance');
     const [assigningBed, setAssigningBed] = useState<{ id: string, label: string } | null>(null);
     const [complaints, setComplaints] = useState<any[]>([]);
+    const [roomAssets, setRoomAssets] = useState<any[]>([]);
 
     // Deletion states
     const [deleting, setDeleting] = useState(false);
@@ -114,6 +115,15 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
                     }
                 })
                 .catch(err => console.error('Error fetching room complaints:', err));
+
+            fetch(`/api/assets?roomId=${room.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.assets) {
+                        setRoomAssets(data.assets);
+                    }
+                })
+                .catch(err => console.error('Error fetching room assets:', err));
         }
     }, [room?.id, room?.label, room?.beds]);
 
@@ -122,6 +132,23 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
     const occupiedCount = room.beds.filter(b => b.isOccupied).length;
     const occupancyLabel = occupiedCount === 0 ? 'Empty' : 
                          occupiedCount === room.capacity ? 'Full' : 'Partial';
+
+    const assetCounts = roomAssets.reduce((acc: Record<string, { count: number, damagedCount: number, type: string }>, asset: any) => {
+        const name = asset.name;
+        const type = asset.type;
+        const isDamaged = asset.status !== 'Good';
+        if (!acc[name]) {
+            acc[name] = { count: 0, damagedCount: 0, type };
+        }
+        acc[name].count += 1;
+        if (isDamaged) {
+            acc[name].damagedCount += 1;
+        }
+        return acc;
+    }, {});
+
+    const furnitureAssets = Object.entries(assetCounts).filter(([_, info]) => info.type === 'Furniture');
+    const nonFurnitureAssets = Object.entries(assetCounts).filter(([_, info]) => info.type !== 'Furniture');
     
     const statusColors = {
         'Available': 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
@@ -275,52 +302,34 @@ export default function RoomDetailModal({ room, onClose, onUpdate }: RoomDetailM
                         {/* Furniture Group */}
                         <div className="space-y-3">
                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Furniture</p>
-                            <AssetItem 
-                                label="Bed Frames" 
-                                count={room.capacity} 
-                                status={complaints.some(c => 
-                                    c.status !== 'Resolved' && (c.title?.toLowerCase().includes('bed') || c.asset?.toLowerCase().includes('bed'))
-                                ) ? 'Damaged' : 'Good'} 
-                            />
-                            <AssetItem 
-                                label="Study Tables" 
-                                count={room.capacity} 
-                                status={complaints.some(c => 
-                                    c.status !== 'Resolved' && (c.title?.toLowerCase().includes('table') || c.asset?.toLowerCase().includes('table'))
-                                ) ? 'Damaged' : 'Good'} 
-                            />
-                            <AssetItem 
-                                label="Wardrobes" 
-                                count={room.capacity} 
-                                status={complaints.some(c => 
-                                    c.status !== 'Resolved' && (c.title?.toLowerCase().includes('wardrobe') || c.asset?.toLowerCase().includes('wardrobe'))
-                                ) ? 'Damaged' : 'Good'} 
-                            />
+                            {furnitureAssets.length > 0 ? (
+                                furnitureAssets.map(([name, info]) => (
+                                    <AssetItem 
+                                        key={name}
+                                        label={name} 
+                                        count={info.count} 
+                                        status={info.damagedCount > 0 ? 'Damaged' : 'Good'} 
+                                    />
+                                ))
+                            ) : (
+                                <p className="text-[10px] text-slate-400 italic">No furniture registered</p>
+                            )}
                         </div>
-                        {/* Electronics Group */}
+                        {/* Electronics & Appliances Group */}
                         <div className="space-y-3">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Electronics</p>
-                            <AssetItem 
-                                label="Ceiling Fan" 
-                                count={1} 
-                                status={complaints.some(c => 
-                                    c.status !== 'Resolved' && (c.title?.toLowerCase().includes('fan') || c.asset?.toLowerCase().includes('fan'))
-                                ) ? 'Damaged' : 'Good'} 
-                            />
-                            <AssetItem 
-                                label="LED Lights" 
-                                count={2} 
-                                status={complaints.some(c => 
-                                    c.status !== 'Resolved' && (c.title?.toLowerCase().includes('light') || c.asset?.toLowerCase().includes('light'))
-                                ) ? 'Damaged' : 'Good'} 
-                            />
-                            <AssetItem 
-                                label="AC Unit" 
-                                count={room.roomType.includes('Single') ? 1 : 0} 
-                                status={complaints.some(c => 
-                                    c.status !== 'Resolved' && (c.title?.toLowerCase().includes('ac') || c.asset?.toLowerCase().includes('ac'))
-                                ) ? 'Damaged' : 'Good'} 
-                            />
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Electronics & Appliances</p>
+                            {nonFurnitureAssets.length > 0 ? (
+                                nonFurnitureAssets.map(([name, info]) => (
+                                    <AssetItem 
+                                        key={name}
+                                        label={name} 
+                                        count={info.count} 
+                                        status={info.damagedCount > 0 ? 'Damaged' : 'Good'} 
+                                    />
+                                ))
+                            ) : (
+                                <p className="text-[10px] text-slate-400 italic">No electronics or appliances registered</p>
+                            )}
                         </div>
                     </div>
 

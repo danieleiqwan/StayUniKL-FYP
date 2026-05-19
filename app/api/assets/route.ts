@@ -28,7 +28,7 @@ export async function GET(request: Request) {
         const roomId = searchParams.get('roomId');
         const status = searchParams.get('status');
 
-        let query = 'SELECT * FROM assets WHERE 1=1';
+        let query = 'SELECT * FROM room_assets WHERE 1=1';
         const params: any[] = [];
 
         if (roomId) {
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
             const { name, type, locationId, value } = body;
             const id = `AST-${Date.now()}`;
             await db.query(
-                `INSERT INTO assets (id, name, type, status, location_id, value) VALUES (?, ?, ?, 'Good', ?, ?)`,
+                `INSERT INTO room_assets (id, name, type, status, location_id, value) VALUES (?, ?, ?, 'Good', ?, ?)`,
                 [id, name, type, locationId, value || 0]
             );
 
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
 
         if (action === 'update_status') {
             const { id, status } = body;
-            await db.query('UPDATE assets SET status = ? WHERE id = ?', [status, id]);
+            await db.query('UPDATE room_assets SET status = ? WHERE id = ?', [status, id]);
 
             await logAction({
                 actorId: actorId || 'ADMIN',
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
             );
 
             if (body.newStatus) {
-                await db.query('UPDATE assets SET status = ? WHERE id = ?', [body.newStatus, assetId]);
+                await db.query('UPDATE room_assets SET status = ? WHERE id = ?', [body.newStatus, assetId]);
             }
 
             await logAction({
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
             if (maintenanceAction === 'Repair' || body.newStatus === 'Good') {
                 try {
                     // 1. Get asset details to know its name and room
-                    const [assetRows]: any = await db.query('SELECT name, location_id FROM assets WHERE id = ?', [assetId]);
+                    const [assetRows]: any = await db.query('SELECT name, location_id FROM room_assets WHERE id = ?', [assetId]);
                     if (assetRows.length > 0) {
                         const asset = assetRows[0];
                         const assetName = asset.name;

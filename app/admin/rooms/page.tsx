@@ -29,6 +29,13 @@ export default function AdminRoomsPage() {
     const [form, setForm] = useState<AddRoomForm>({
         roomId: '', floorId: '', gender: 'Male', capacity: '2', roomType: 'Double', status: 'Active'
     });
+    const [assetsForm, setAssetsForm] = useState<Record<string, number>>({
+        'Aircond': 1,
+        'Chair': 2,
+        'Bed': 2,
+        'Table': 2,
+        'Locker': 2
+    });
 
     const fetchData = async () => {
         try {
@@ -52,12 +59,20 @@ export default function AdminRoomsPage() {
         return () => clearInterval(interval);
     }, [user]);
 
-    // Auto-sync capacity and roomType
+    // Auto-sync capacity and roomType, plus default asset quantities
     const handleCapacityChange = (cap: string) => {
         const typeMap: Record<string, AddRoomForm['roomType']> = {
             '1': 'Single', '2': 'Double', '3': 'Triple', '4': 'Quad'
         };
+        const capNum = parseInt(cap);
         setForm(f => ({ ...f, capacity: cap as AddRoomForm['capacity'], roomType: typeMap[cap] }));
+        setAssetsForm(prev => ({
+            ...prev,
+            'Chair': capNum,
+            'Bed': capNum,
+            'Table': capNum,
+            'Locker': capNum
+        }));
     };
 
     const handleAddRoom = async () => {
@@ -67,6 +82,15 @@ export default function AdminRoomsPage() {
             return;
         }
         setSubmitting(true);
+        
+        const formattedAssets = [
+            { asset_code: "AC", quantity: assetsForm['Aircond'] || 0 },
+            { asset_code: "CHR", quantity: assetsForm['Chair'] || 0 },
+            { asset_code: "BED", quantity: assetsForm['Bed'] || 0 },
+            { asset_code: "TB", quantity: assetsForm['Table'] || 0 },
+            { asset_code: "LKR", quantity: assetsForm['Locker'] || 0 }
+        ].filter(a => a.quantity > 0);
+
         try {
             const res = await fetch('/api/rooms', {
                 method: 'POST',
@@ -77,7 +101,8 @@ export default function AdminRoomsPage() {
                     gender: form.gender,
                     capacity: parseInt(form.capacity),
                     roomType: form.roomType,
-                    status: form.status
+                    status: form.status,
+                    assets: formattedAssets
                 })
             });
             const data = await res.json();
@@ -88,6 +113,7 @@ export default function AdminRoomsPage() {
                     setShowAddRoom(false);
                     setAddMsg(null);
                     setForm({ roomId: '', floorId: '', gender: 'Male', capacity: '2', roomType: 'Double', status: 'Active' });
+                    setAssetsForm({ 'Aircond': 1, 'Chair': 2, 'Bed': 2, 'Table': 2, 'Locker': 2 });
                 }, 1800);
             } else {
                 setAddMsg({ type: 'error', text: data.error || 'Failed to create room.' });
@@ -299,6 +325,59 @@ export default function AdminRoomsPage() {
                                 </div>
                             </div>
 
+                             {/* Room Assets Configuration */}
+                             <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                                     Room Assets Configuration
+                                 </label>
+                                 <p className="text-[11px] text-slate-500 mb-2">
+                                     Adjust the starting inventory for this room. Items with quantity 0 will not be created.
+                                 </p>
+                                 <div className="space-y-2.5 bg-slate-50 dark:bg-slate-850 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                     {(['Aircond', 'Chair', 'Bed', 'Table', 'Locker'] as const).map(assetKey => {
+                                         const labelMap: Record<string, string> = {
+                                             Aircond: 'Aircond (AC)',
+                                             Chair: 'Chair (CHR)',
+                                             Bed: 'Bed (BED)',
+                                             Table: 'Table (TB)',
+                                             Locker: 'Locker (LKR)'
+                                         };
+                                         return (
+                                             <div key={assetKey} className="flex items-center justify-between py-1 border-b border-slate-100/50 last:border-0 dark:border-slate-800/50">
+                                                 <span className="text-xs font-bold text-slate-700 dark:text-slate-350">
+                                                     {labelMap[assetKey]}
+                                                 </span>
+                                                 <div className="flex items-center gap-2.5">
+                                                     <button
+                                                         type="button"
+                                                         onClick={() => setAssetsForm(prev => ({
+                                                             ...prev,
+                                                             [assetKey]: Math.max(0, (prev[assetKey] || 0) - 1)
+                                                         }))}
+                                                         className="h-7 w-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors shadow-sm select-none"
+                                                     >
+                                                         －
+                                                     </button>
+                                                     <span className="w-8 text-center text-sm font-mono font-extrabold text-slate-800 dark:text-slate-150">
+                                                         {assetsForm[assetKey] || 0}
+                                                     </span>
+                                                     <button
+                                                         type="button"
+                                                         onClick={() => setAssetsForm(prev => ({
+                                                             ...prev,
+                                                             [assetKey]: (prev[assetKey] || 0) + 1
+                                                         }))}
+                                                         className="h-7 w-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors shadow-sm select-none"
+                                                     >
+                                                         ＋
+                                                     </button>
+                                                 </div>
+                                             </div>
+                                         );
+                                     })}
+                                 </div>
+                             </div>
+
                             {/* Live Preview */}
                             <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-800">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Preview</p>
@@ -309,6 +388,20 @@ export default function AdminRoomsPage() {
                                     {form.roomType} · {form.gender} · {form.capacity} bed(s) →{' '}
                                     {['A', 'B', 'C', 'D'].slice(0, parseInt(form.capacity || '1')).map(l => `${form.roomId || '??'}-${l}`).join(', ')}
                                 </p>
+                                <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700/50">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Asset Generation Summary</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {Object.entries(assetsForm).filter(([_, qty]) => (qty as number) > 0).length > 0 ? (
+                                            Object.entries(assetsForm).filter(([_, qty]) => (qty as number) > 0).map(([key, qty]) => (
+                                                <span key={key} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                                                    {key} <span className="text-[#F26C22]">×{qty as number}</span>
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span className="text-xs text-slate-400 italic">No assets will be generated.</span>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

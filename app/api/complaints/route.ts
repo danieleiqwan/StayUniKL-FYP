@@ -51,7 +51,7 @@ async function findMatchingAsset(studentId: string, assetKeyword: string): Promi
     const params = patterns.map((p: string) => `%${p}%`);
 
     const [assetRows]: any = await pool.query(
-        `SELECT * FROM assets WHERE location_id = ? AND (${placeholders}) ORDER BY created_at ASC LIMIT 1`,
+        `SELECT * FROM room_assets WHERE location_id = ? AND (${placeholders}) ORDER BY created_at ASC LIMIT 1`,
         [roomId, ...params]
     );
 
@@ -261,7 +261,7 @@ export async function POST(request: Request) {
             try {
                 const matchedAsset = await findMatchingAsset(studentId, asset);
                 if (matchedAsset && matchedAsset.status === 'Good') {
-                    await pool.query('UPDATE assets SET status = ? WHERE id = ?', ['Maintenance', matchedAsset.id]);
+                    await pool.query('UPDATE room_assets SET status = ? WHERE id = ?', ['Maintenance', matchedAsset.id]);
                     linkedAssetId = matchedAsset.id;
                     console.log(`[Asset Sync] Complaint ${id} → asset ${matchedAsset.id} flagged as Maintenance`);
                 }
@@ -351,7 +351,7 @@ export async function PUT(request: Request) {
                 const matchedAsset = await findMatchingAsset(complaint.student_id, complaint.asset);
                 if (matchedAsset) {
                     // Restore asset status
-                    await pool.query('UPDATE assets SET status = ? WHERE id = ?', ['Good', matchedAsset.id]);
+                    await pool.query('UPDATE room_assets SET status = ? WHERE id = ?', ['Good', matchedAsset.id]);
 
                     // Auto-log a maintenance entry
                     const logId = `LOG-${Date.now()}`;

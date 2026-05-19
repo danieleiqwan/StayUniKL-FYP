@@ -44,7 +44,7 @@ export async function GET(request: Request) {
         // Delete existing to avoid conflicts
         await db.query('SET FOREIGN_KEY_CHECKS = 0');
         await db.query('DELETE FROM maintenance_logs');
-        await db.query('DELETE FROM assets');
+        await db.query('DELETE FROM room_assets');
         await db.query('SET FOREIGN_KEY_CHECKS = 1');
 
         console.log(`Total assets to insert: ${assetValues.length}`);
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
             const placeholders = chunk.map(() => '(?, ?, ?, ?, ?, ?)').join(', ');
             const flatValues = chunk.flat();
             await db.query(
-                `INSERT INTO assets (id, name, type, status, location_id, value) VALUES ${placeholders}`,
+                `INSERT INTO room_assets (id, name, type, status, location_id, value) VALUES ${placeholders}`,
                 flatValues
             );
         }
