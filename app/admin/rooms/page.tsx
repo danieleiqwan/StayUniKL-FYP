@@ -333,7 +333,7 @@ export default function AdminRoomsPage() {
                                  <p className="text-[11px] text-slate-500 mb-2">
                                      Adjust the starting inventory for this room. Items with quantity 0 will not be created.
                                  </p>
-                                 <div className="space-y-2.5 bg-slate-50 dark:bg-slate-850 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                                 <div className="space-y-2.5 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
                                      {(['Aircond', 'Chair', 'Bed', 'Table', 'Locker'] as const).map(assetKey => {
                                          const labelMap: Record<string, string> = {
                                              Aircond: 'Aircond (AC)',
@@ -344,7 +344,7 @@ export default function AdminRoomsPage() {
                                          };
                                          return (
                                              <div key={assetKey} className="flex items-center justify-between py-1 border-b border-slate-100/50 last:border-0 dark:border-slate-800/50">
-                                                 <span className="text-xs font-bold text-slate-700 dark:text-slate-350">
+                                                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                                                      {labelMap[assetKey]}
                                                  </span>
                                                  <div className="flex items-center gap-2.5">
@@ -354,11 +354,11 @@ export default function AdminRoomsPage() {
                                                              ...prev,
                                                              [assetKey]: Math.max(0, (prev[assetKey] || 0) - 1)
                                                          }))}
-                                                         className="h-7 w-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors shadow-sm select-none"
+                                                         className="h-7 w-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm select-none"
                                                      >
                                                          －
                                                      </button>
-                                                     <span className="w-8 text-center text-sm font-mono font-extrabold text-slate-800 dark:text-slate-150">
+                                                     <span className="w-8 text-center text-sm font-mono font-extrabold text-slate-800 dark:text-slate-200">
                                                          {assetsForm[assetKey] || 0}
                                                      </span>
                                                      <button
@@ -367,7 +367,7 @@ export default function AdminRoomsPage() {
                                                              ...prev,
                                                              [assetKey]: (prev[assetKey] || 0) + 1
                                                          }))}
-                                                         className="h-7 w-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors shadow-sm select-none"
+                                                         className="h-7 w-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shadow-sm select-none"
                                                      >
                                                          ＋
                                                      </button>
