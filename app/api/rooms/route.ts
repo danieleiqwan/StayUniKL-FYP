@@ -135,6 +135,13 @@ export async function POST(request: Request) {
 
         // 2. Auto-generate beds based on capacity
         const bedLabels = ['A', 'B', 'C', 'D'].slice(0, Number(capacity));
+        
+        // Clean up any duplicate/orphaned beds for this room prefix to prevent primary key conflicts
+        await conn.query('DELETE FROM beds WHERE room_id = ?', [String(roomId)]);
+        for (const label of bedLabels) {
+            await conn.query('DELETE FROM beds WHERE id = ?', [`${roomId}-${label}`]);
+        }
+
         for (const label of bedLabels) {
             const bedId = `${roomId}-${label}`;
             await conn.query(
