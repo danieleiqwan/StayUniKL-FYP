@@ -404,7 +404,7 @@ function AdminDashboard() {
                                 return (
                                 <div 
                                     key={i} 
-                                    onClick={() => stat.tab && setActiveTab(stat.tab)}
+                                    onClick={() => stat.tab && router.push(`/admin?tab=${stat.tab}`)}
                                     className={`bg-white dark:bg-slate-900 rounded-[2rem] p-6 border shadow-sm relative overflow-hidden group ${stat.tab ? 'cursor-pointer border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-colors' : 'border-slate-100 dark:border-slate-800'}`}
                                 >
                                     <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full ${stat.bg} dark:bg-slate-800 opacity-50 group-hover:scale-150 transition-transform duration-500`}></div>
@@ -457,7 +457,7 @@ function AdminDashboard() {
                                                         <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{counts.applications} applications waiting for review</p>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => setActiveTab('applications')} className="px-4 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold shadow-md shadow-orange-500/20 hover:bg-orange-600 transition-colors">Review</button>
+                                                <button onClick={() => router.push('/admin?tab=applications')} className="px-4 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold shadow-md shadow-orange-500/20 hover:bg-orange-600 transition-colors">Review</button>
                                             </div>
                                         )}
                                         {counts.complaints > 0 && (
@@ -471,7 +471,7 @@ function AdminDashboard() {
                                                         <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{counts.complaints} facility issues require attention</p>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => setActiveTab('complaints')} className="px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 hover:bg-blue-600 transition-colors">Resolve</button>
+                                                <button onClick={() => router.push('/admin?tab=complaints')} className="px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-500/20 hover:bg-blue-600 transition-colors">Resolve</button>
                                             </div>
                                         )}
                                         {counts.roomChanges > 0 && (
@@ -485,7 +485,7 @@ function AdminDashboard() {
                                                         <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{counts.roomChanges} students requested room changes</p>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => setActiveTab('room-changes')} className="px-4 py-2 bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 hover:bg-indigo-600 transition-colors">Manage</button>
+                                                <button onClick={() => router.push('/admin?tab=room-changes')} className="px-4 py-2 bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 hover:bg-indigo-600 transition-colors">Manage</button>
                                             </div>
                                         )}
 
@@ -550,7 +550,7 @@ function AdminDashboard() {
                                                 const subtitle = isComplaint ? item.studentName : item.roomType;
                                                 
                                                 return (
-                                                    <div key={i} className="flex gap-4 group cursor-pointer" onClick={() => setActiveTab(isComplaint ? 'complaints' : 'applications')}>
+                                                    <div key={i} className="flex gap-4 group cursor-pointer" onClick={() => router.push(`/admin?tab=${isComplaint ? 'complaints' : 'applications'}`)}>
                                                         <div className="relative">
                                                             <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${color}`}>
                                                                 <Icon className="h-4 w-4" />
