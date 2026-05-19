@@ -3,7 +3,7 @@
 import { useAuth } from '@/context/AuthContext';
 import { useData } from '@/context/DataContext';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
     CheckCircle2, ChevronRight, ChevronLeft, CalendarDays, 
@@ -28,6 +28,24 @@ export default function CourtBookingPage() {
     const currentDate = new Date();
     const [currentMonth, setCurrentMonth] = useState(currentDate.getMonth());
     const [currentYear, setCurrentYear] = useState(currentDate.getFullYear());
+
+    // --- Active Semester State ---
+    const [activeSemester, setActiveSemester] = useState<{ start_date: string; end_date: string; name: string } | null>(null);
+
+    useEffect(() => {
+        const fetchActiveSemester = async () => {
+            try {
+                const res = await fetch('/api/semesters?active=true');
+                const data = await res.json();
+                if (data.semester) {
+                    setActiveSemester(data.semester);
+                }
+            } catch (err) {
+                console.error('Failed to fetch active semester:', err);
+            }
+        };
+        fetchActiveSemester();
+    }, []);
 
     // --- Color Theme Mapping ---
     const colorThemes: Record<string, { idle: string; active: string }> = {
@@ -203,6 +221,26 @@ export default function CourtBookingPage() {
         // 2. Custom Rule: Past 9 PM today is disabled
         if (testDate === todayStr && now.getHours() >= 21) {
             return 'disabled';
+        }
+
+        // Rule 1: Monthly Booking Window (bookingDate <= currentMonthEnd) - Admin exempt
+        if (user.role !== 'admin' && user.role !== 'superadmin') {
+            const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            const lastDay = currentMonthEnd.getDate();
+            const currentMonthEndStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
+            if (testDate > currentMonthEndStr) {
+                return 'disabled';
+            }
+
+            // Rule 2: Semester Boundary Restriction (bookingDate <= activeSemesterEndDate) - Admin exempt
+            if (activeSemester && activeSemester.end_date) {
+                const semesterEndDateStr = activeSemester.end_date.includes('T') 
+                    ? activeSemester.end_date.split('T')[0] 
+                    : activeSemester.end_date;
+                if (testDate > semesterEndDateStr) {
+                    return 'disabled';
+                }
+            }
         }
 
         // Only mark as 'my_booking' if it's an active (non-cancelled, non-rejected) booking

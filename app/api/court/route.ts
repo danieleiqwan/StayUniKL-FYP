@@ -270,17 +270,39 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'This time slot has already passed and cannot be booked.' }, { status: 400 });
         }
 
-        // 1.1 Check if the slot is too far in the future (Limit: 30 days advance)
+        // 1.1 Enforce Governance Booking Rules (Admin exempt)
         if (!isUserAdmin) {
-            const maxAdvanceDays = 30;
-            const maxDate = getKLDate();
-            maxDate.setDate(maxDate.getDate() + maxAdvanceDays);
-            maxDate.setHours(23, 59, 59, 999);
+            // Rule 1: Monthly Booking Window (bookingDate <= currentMonthEnd)
+            const nowKL = getKLDate();
+            const currentMonthEnd = new Date(nowKL.getFullYear(), nowKL.getMonth() + 1, 0, 23, 59, 59, 999);
 
-            if (requestDate > maxDate) {
+            if (requestDate > currentMonthEnd) {
                 return NextResponse.json({ 
-                    error: `Advance Booking Limit: You can only book courts up to ${maxAdvanceDays} days (1 month) in advance.` 
+                    error: 'Monthly Booking Window Restriction: You can only book courts within the current active month.' 
                 }, { status: 400 });
+            }
+
+            // Rule 2: Semester Boundary Restriction (bookingDate <= activeSemesterEndDate)
+            const [semesterRows]: any = await pool.query(
+                'SELECT name, end_date FROM semesters WHERE is_active = 1 LIMIT 1'
+            );
+
+            if (semesterRows.length > 0) {
+                const sem = semesterRows[0];
+                const semName = sem.name;
+                const endDateStr = sem.end_date instanceof Date 
+                    ? sem.end_date.toISOString().split('T')[0] 
+                    : String(sem.end_date).split('T')[0];
+                
+                const [y, m, d] = endDateStr.split('-').map(Number);
+                const activeSemesterEndDate = new Date(y, m - 1, d, 23, 59, 59, 999);
+
+                if (requestDate > activeSemesterEndDate) {
+                    const semEndStr = activeSemesterEndDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+                    return NextResponse.json({ 
+                        error: `Semester Boundary Restriction: Your booking date (${requestDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}) exceeds the active semester (${semName}) end date of ${semEndStr}. Bookings are not allowed beyond the active semester.` 
+                    }, { status: 400 });
+                }
             }
         }
 
