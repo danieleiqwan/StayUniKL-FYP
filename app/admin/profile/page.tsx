@@ -16,7 +16,13 @@ import {
     CheckCircle,
     ArrowUpRight,
     Search,
-    Loader2
+    Loader2,
+    Key,
+    X,
+    Eye,
+    EyeOff,
+    Lock,
+    Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +34,17 @@ export default function AdminProfilePage() {
     const [activeTab, setActiveTab] = useState<'overview' | 'activity'>('overview');
     const [toggles, setToggles] = useState({ twoFactor: false, notifications: true });
     const [updatingPrefs, setUpdatingPrefs] = useState(false);
+
+    // Change Password Modal State
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showCurrent, setShowCurrent] = useState(false);
+    const [showNew, setShowNew] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [passLoading, setPassLoading] = useState(false);
+    const [passMsg, setPassMsg] = useState<{type: 'success' | 'error' | null, text: string}>({type: null, text: ''});
 
     useEffect(() => {
         if (user) {
@@ -71,6 +88,45 @@ export default function AdminProfilePage() {
             .catch(err => console.error(err))
             .finally(() => setLoadingLogs(false));
     }, [user]);
+
+    // Password Validation Rules
+    const hasMinLength = newPassword.length >= 8;
+    const hasUppercase = /[A-Z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+    const hasSpecialChar = /[^A-Za-z0-9]/.test(newPassword);
+    const isPasswordValid = hasMinLength && hasUppercase && hasNumber && hasSpecialChar;
+    const isMatching = newPassword === confirmPassword && confirmPassword.length > 0;
+    const isNotSameAsOld = currentPassword !== newPassword && newPassword.length > 0;
+    const canSubmitPass = isPasswordValid && isMatching && isNotSameAsOld && currentPassword.length > 0;
+
+    const handlePasswordSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!canSubmitPass) return;
+        setPassLoading(true);
+        setPassMsg({ type: null, text: '' });
+        try {
+            const res = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                setPassMsg({ type: 'error', text: data.error || 'Failed to update password.' });
+                setPassLoading(false);
+            } else {
+                setPassMsg({ type: 'success', text: 'Password secured successfully!' });
+                setPassLoading(false);
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+                setTimeout(() => setShowPasswordModal(false), 2000);
+            }
+        } catch (error) {
+            setPassMsg({ type: 'error', text: 'An unexpected network error occurred.' });
+            setPassLoading(false);
+        }
+    };
 
     if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
         return <div className="p-10 text-center">Access Denied. Admins only.</div>;
@@ -234,6 +290,24 @@ export default function AdminProfilePage() {
                                     <section className="pt-8 border-t border-slate-100 dark:border-slate-800">
                                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">System Preferences</h3>
                                         <div className="space-y-4">
+                                            {/* Account Password */}
+                                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
+                                                <div>
+                                                    <p className="font-bold text-slate-900 dark:text-white text-sm">Account Password</p>
+                                                    <p className="text-xs text-slate-500">Update your administrator password.</p>
+                                                </div>
+                                                <button 
+                                                    onClick={() => {
+                                                        setPassMsg({type: null, text: ''});
+                                                        setShowPasswordModal(true);
+                                                    }}
+                                                    className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold rounded-lg shadow hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors flex items-center gap-2"
+                                                >
+                                                    <Key className="h-3.5 w-3.5" />
+                                                    Change Password
+                                                </button>
+                                            </div>
+                                            
                                             <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700">
                                                 <div>
                                                     <p className="font-bold text-slate-900 dark:text-white text-sm">Two-Factor Authentication</p>
@@ -353,6 +427,97 @@ export default function AdminProfilePage() {
                     </div>
                 </div>
             </div>
+
+            {/* Change Password Modal */}
+            {showPasswordModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 duration-200 relative">
+                        <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center">
+                                    <Lock className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                                </div>
+                                <div>
+                                    <h3 className="font-black text-slate-900 dark:text-white">Change Password</h3>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Secure your account</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowPasswordModal(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-400 hover:text-slate-700 dark:hover:text-slate-300">
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handlePasswordSubmit} className="p-6 space-y-5">
+                            {passMsg.text && (
+                                <div className={`flex items-start gap-3 p-4 rounded-2xl text-sm font-bold animate-in fade-in duration-200 ${passMsg.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-400' : 'bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-400'}`}>
+                                    {passMsg.type === 'success' ? <CheckCircle className="h-5 w-5 shrink-0 mt-0.5" /> : <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />}
+                                    <p>{passMsg.text}</p>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Current Password</label>
+                                <div className="relative">
+                                    <input 
+                                        type={showCurrent ? 'text' : 'password'}
+                                        required value={currentPassword} onChange={e => setCurrentPassword(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition-all"
+                                    />
+                                    <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                        {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">New Password</label>
+                                <div className="relative">
+                                    <input 
+                                        type={showNew ? 'text' : 'password'}
+                                        required value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition-all"
+                                    />
+                                    <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                        {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Confirm New Password</label>
+                                <div className="relative">
+                                    <input 
+                                        type={showConfirm ? 'text' : 'password'}
+                                        required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-indigo-500 transition-all"
+                                    />
+                                    <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                                        {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700 text-xs font-semibold text-slate-500 dark:text-slate-400 space-y-2">
+                                <p className="text-[10px] uppercase font-black tracking-widest mb-2">Password Requirements</p>
+                                <div className="flex gap-2 items-center"><Check className={`h-3.5 w-3.5 ${hasMinLength ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-600'}`} /> At least 8 characters</div>
+                                <div className="flex gap-2 items-center"><Check className={`h-3.5 w-3.5 ${hasUppercase ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-600'}`} /> At least 1 uppercase letter</div>
+                                <div className="flex gap-2 items-center"><Check className={`h-3.5 w-3.5 ${hasNumber ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-600'}`} /> At least 1 number</div>
+                                <div className="flex gap-2 items-center"><Check className={`h-3.5 w-3.5 ${hasSpecialChar ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-600'}`} /> At least 1 special character</div>
+                                <div className="flex gap-2 items-center pt-2 mt-2 border-t border-slate-200 dark:border-slate-700"><Check className={`h-3.5 w-3.5 ${isMatching ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-600'}`} /> Passwords match</div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={!canSubmitPass || passLoading}
+                                className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-black uppercase tracking-widest transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
+                            >
+                                {passLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
+                                {passLoading ? 'Updating...' : 'Update Password'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

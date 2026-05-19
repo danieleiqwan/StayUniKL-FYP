@@ -66,18 +66,17 @@ export async function POST(request: Request) {
         await logAction({
             actorId: authUser.id,
             actorName: authUser.email,
-            action: 'ADMIN_PASSWORD_CHANGED_FIRST_LOGIN',
+            action: 'ADMIN_PASSWORD_CHANGED',
             entityType: 'User',
             entityId: authUser.id,
             details: { email: authUser.email }
         });
 
-        // 7. Re-issue new session JWT token with mustChangePassword = false so they are instantly authorized
+        // 7. Re-issue new session JWT token so they are instantly authorized
         const newToken = await createToken({
             id: authUser.id,
             role: authUser.role,
-            email: authUser.email,
-            mustChangePassword: false
+            email: authUser.email
         }, false);
         await setTokenCookie(newToken, false);
 
@@ -86,10 +85,8 @@ export async function POST(request: Request) {
             message: 'Password updated successfully!',
             user: {
                 id: authUser.id,
-                name: authUser.name,
                 email: authUser.email,
-                role: authUser.role,
-                mustChangePassword: false
+                role: authUser.role
             }
         });
 
