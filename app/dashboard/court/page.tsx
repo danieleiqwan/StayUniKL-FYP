@@ -481,15 +481,16 @@ export default function CourtBookingPage() {
                                             {calendarDays.map((calDay, idx) => {
                                                 const status = getDateStatus(calDay.dateStr);
                                                 const isSelected = selectedDate === calDay.dateStr;
+                                                const isDisabled = status.startsWith('disabled');
                                                 
                                                 let bgColor = "bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-600 border border-slate-100 dark:border-slate-800";
-                                                if (calDay.isCurrentMonth && status !== 'disabled') {
+                                                if (calDay.isCurrentMonth && !isDisabled) {
                                                     if (status === 'available') bgColor = "bg-[#BFE9C9] dark:bg-emerald-900/40 text-slate-900 dark:text-emerald-200 border-[#A2D3AF] dark:border-emerald-800";
                                                     if (status === 'booked') bgColor = "bg-[#EE6C6C] dark:bg-red-900/40 text-white dark:text-red-200 border-[#D65454] dark:border-red-800";
                                                     if (status === 'my_booking') bgColor = "bg-[#435B9D] dark:bg-blue-900/40 text-white dark:text-blue-200 border-[#344882] dark:border-blue-800";
                                                 }
 
-                                                if (calDay.isCurrentMonth && status === 'disabled') {
+                                                if (calDay.isCurrentMonth && isDisabled) {
                                                     bgColor = "bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-600 border border-slate-100 dark:border-slate-800";
                                                 }
 
@@ -497,20 +498,33 @@ export default function CourtBookingPage() {
                                                     bgColor = "bg-slate-50 dark:bg-slate-800/30 text-slate-300 dark:text-slate-700 border border-slate-50 dark:border-slate-800 opacity-70";
                                                 }
 
-                                                // In the reference image, the border is slightly rounded square.
-                                                // If selected, we might want to highlight it with a ring.
+                                                // Tooltip text mapping
+                                                let tooltipText = "";
+                                                if (isDisabled) {
+                                                    if (status === 'disabled_semester') {
+                                                        tooltipText = "Booking unavailable beyond active semester period.";
+                                                    } else if (status === 'disabled_monthly') {
+                                                        tooltipText = "Booking unavailable beyond current calendar month.";
+                                                    } else {
+                                                        tooltipText = "This date has passed and cannot be booked.";
+                                                    }
+                                                } else if (status === 'booked') {
+                                                    tooltipText = "All slots on this date are fully reserved.";
+                                                }
+
                                                 return (
                                                     <button 
                                                         key={idx}
-                                                        disabled={status === 'disabled' || status === 'booked' || !calDay.isCurrentMonth}
+                                                        disabled={isDisabled || status === 'booked' || !calDay.isCurrentMonth}
                                                         onClick={() => {
                                                             setSelectedDate(calDay.dateStr);
                                                             setSelectedSlot(null);
                                                         }}
+                                                        title={tooltipText || undefined}
                                                         className={`aspect-square rounded-lg flex items-center justify-center text-sm font-semibold transition-all ${bgColor} ${
                                                             isSelected ? 'ring-2 ring-offset-2 dark:ring-offset-slate-900 ring-[#F26C22] scale-105 shadow-sm' : 'hover:opacity-80'
                                                         } ${
-                                                            (status === 'disabled' || status === 'booked' || !calDay.isCurrentMonth) ? 'cursor-not-allowed' : 'cursor-pointer'
+                                                            (isDisabled || status === 'booked' || !calDay.isCurrentMonth) ? 'cursor-not-allowed' : 'cursor-pointer'
                                                         }`}
                                                     >
                                                         {calDay.day}
@@ -525,6 +539,18 @@ export default function CourtBookingPage() {
                                             <div className="flex items-center gap-1.5"><div className="w-3.5 h-3.5 rounded bg-[#EE6C6C] dark:bg-red-900/40 border border-[#D65454] dark:border-red-800"></div>Booked</div>
                                             <div className="flex items-center gap-1.5"><div className="w-3.5 h-3.5 rounded bg-[#435B9D] dark:bg-blue-900/40 border border-[#344882] dark:border-blue-800"></div>My Booking</div>
                                         </div>
+
+                                        {activeSemester && (
+                                            <div className="mt-5 p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800/80 flex items-start gap-2.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                                                <Info className="h-4 w-4 text-[#F26C22] shrink-0 mt-0.5" />
+                                                <div className="space-y-0.5">
+                                                    <p className="text-slate-800 dark:text-slate-200">Facility Governance Notice</p>
+                                                    <p className="font-normal text-slate-500 dark:text-slate-400 leading-normal">
+                                                        Booking unavailable beyond the active semester period (<span className="font-bold text-slate-700 dark:text-slate-300">{activeSemester.name}</span> ending <span className="font-bold text-slate-700 dark:text-slate-300">{new Date(activeSemester.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>).
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Right: Time Slots */}
