@@ -395,14 +395,18 @@ function AdminDashboard() {
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                             {[
                                 { label: 'Live Users', val: liveUserCount ?? 0, color: 'text-purple-500', bg: 'bg-purple-50', icon: Users, isLive: true },
-                                { label: 'Pending Apps', val: counts.applications, color: 'text-orange-500', bg: 'bg-orange-50', icon: FileText },
-                                { label: 'Active Complaints', val: counts.complaints, color: 'text-blue-500', bg: 'bg-blue-50', icon: Wrench },
-                                { label: 'Room Transfers', val: counts.roomChanges, color: 'text-indigo-500', bg: 'bg-indigo-50', icon: Building2 },
-                                { label: 'Bookings Today', val: totalCourtBookingsToday, color: 'text-emerald-500', bg: 'bg-emerald-50', icon: CalendarDays },
+                                { label: 'Pending Apps', val: counts.applications, color: 'text-orange-500', bg: 'bg-orange-50', icon: FileText, tab: 'applications' },
+                                { label: 'Active Complaints', val: counts.complaints, color: 'text-blue-500', bg: 'bg-blue-50', icon: Wrench, tab: 'complaints' },
+                                { label: 'Room Transfers', val: counts.roomChanges, color: 'text-indigo-500', bg: 'bg-indigo-50', icon: Building2, tab: 'room-changes' },
+                                { label: 'Bookings Today', val: totalCourtBookingsToday, color: 'text-emerald-500', bg: 'bg-emerald-50', icon: CalendarDays, tab: 'facilities' },
                             ].map((stat: any, i) => {
                                 const Icon = stat.icon;
                                 return (
-                                <div key={i} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                                <div 
+                                    key={i} 
+                                    onClick={() => stat.tab && setActiveTab(stat.tab)}
+                                    className={`bg-white dark:bg-slate-900 rounded-[2rem] p-6 border shadow-sm relative overflow-hidden group ${stat.tab ? 'cursor-pointer border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-colors' : 'border-slate-100 dark:border-slate-800'}`}
+                                >
                                     <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full ${stat.bg} dark:bg-slate-800 opacity-50 group-hover:scale-150 transition-transform duration-500`}></div>
                                     <div className="relative z-10">
                                         <div className="flex items-center justify-between mb-4">
