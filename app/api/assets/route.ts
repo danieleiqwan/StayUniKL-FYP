@@ -62,23 +62,53 @@ export async function POST(request: Request) {
         const { action, actorId, actorName } = body;
 
         if (action === 'create_asset') {
-            const { name, type, locationId, value } = body;
-            const id = `AST-${Date.now()}`;
-            await db.query(
-                `INSERT INTO room_assets (id, name, type, status, location_id, value) VALUES (?, ?, ?, 'Good', ?, ?)`,
-                [id, name, type, locationId, value || 0]
+            const { name, type, locationId, value, quantity = 1 } = body;
+            
+            let assetCode = 'GEN';
+            const lowerName = name.toLowerCase();
+            if (lowerName.includes('aircond') || lowerName.includes('ac')) assetCode = 'AC';
+            else if (lowerName.includes('chair')) assetCode = 'CHR';
+            else if (lowerName.includes('bed')) assetCode = 'BED';
+            else if (lowerName.includes('table') || lowerName.includes('desk')) assetCode = 'TB';
+            else if (lowerName.includes('locker') || lowerName.includes('wardrobe')) assetCode = 'LKR';
+            else assetCode = name.replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase() || 'GEN';
+
+            const locClean = locationId.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 8);
+            
+            const [rows] = await db.query(
+                'SELECT id FROM room_assets WHERE location_id = ? AND id LIKE ?', 
+                [locationId, `AST-${locClean}-${assetCode}-%`]
             );
+            
+            let maxIndex = 0;
+            if (Array.isArray(rows)) {
+                for (const row of rows as any[]) {
+                    const parts = row.id.split('-');
+                    const num = parseInt(parts[parts.length - 1]);
+                    if (!isNaN(num) && num > maxIndex) maxIndex = num;
+                }
+            }
+            
+            const createdIds = [];
+            for (let i = 1; i <= quantity; i++) {
+                const id = `AST-${locClean}-${assetCode}-${maxIndex + i}`;
+                await db.query(
+                    `INSERT INTO room_assets (id, name, type, status, location_id, value) VALUES (?, ?, ?, 'Good', ?, ?)`,
+                    [id, name, type, locationId, value || 0]
+                );
+                createdIds.push(id);
+            }
 
             await logAction({
                 actorId: actorId || 'ADMIN',
                 actorName: actorName || 'Administrator',
                 action: 'CREATE_ASSET',
                 entityType: 'ASSET',
-                entityId: id,
-                details: { name, type, locationId, value }
+                entityId: createdIds[0] + (createdIds.length > 1 ? ` (+${createdIds.length - 1} more)` : ''),
+                details: { name, type, locationId, value, quantity, generatedIds: createdIds }
             });
 
-            return NextResponse.json({ success: true, id });
+            return NextResponse.json({ success: true, ids: createdIds });
         }
 
         if (action === 'update_status') {

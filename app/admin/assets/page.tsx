@@ -64,6 +64,7 @@ export default function AssetManagementPage() {
                 type:form.type, 
                 locationId:form.locationId, 
                 value:form.value||0,
+                quantity: parseInt(form.quantity) || 1,
                 actorId: user?.id,
                 actorName: user?.name
             }) 
