@@ -12,7 +12,7 @@ interface AddRoomForm {
     gender: 'Male' | 'Female' | 'Co-Ed';
     capacity: '1' | '2' | '3' | '4';
     roomType: 'Single' | 'Double' | 'Triple' | 'Quad';
-    status: 'Available' | 'Maintenance';
+    status: 'Active' | 'Maintenance';
 }
 
 export default function AdminRoomsPage() {
@@ -27,7 +27,7 @@ export default function AdminRoomsPage() {
     const [submitting, setSubmitting] = useState(false);
     const [addMsg, setAddMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [form, setForm] = useState<AddRoomForm>({
-        roomId: '', floorId: '', gender: 'Male', capacity: '2', roomType: 'Double', status: 'Available'
+        roomId: '', floorId: '', gender: 'Male', capacity: '2', roomType: 'Double', status: 'Active'
     });
 
     const fetchData = async () => {
@@ -87,7 +87,7 @@ export default function AdminRoomsPage() {
                 setTimeout(() => {
                     setShowAddRoom(false);
                     setAddMsg(null);
-                    setForm({ roomId: '', floorId: '', gender: 'Male', capacity: '2', roomType: 'Double', status: 'Available' });
+                    setForm({ roomId: '', floorId: '', gender: 'Male', capacity: '2', roomType: 'Double', status: 'Active' });
                 }, 1800);
             } else {
                 setAddMsg({ type: 'error', text: data.error || 'Failed to create room.' });
@@ -286,12 +286,15 @@ export default function AdminRoomsPage() {
                             <div>
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Initial Status</label>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {(['Available', 'Maintenance'] as const).map(s => (
+                                    {[
+                                        { val: 'Active', label: 'Available' },
+                                        { val: 'Maintenance', label: 'Maintenance' }
+                                    ].map(s => (
                                         <button
-                                            key={s}
-                                            onClick={() => setForm(f => ({ ...f, status: s }))}
-                                            className={`py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${form.status === s ? (s === 'Available' ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white') : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
-                                        >{s}</button>
+                                            key={s.val}
+                                            onClick={() => setForm(f => ({ ...f, status: s.val as any }))}
+                                            className={`py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${form.status === s.val ? (s.val === 'Active' ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white') : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                                        >{s.label}</button>
                                     ))}
                                 </div>
                             </div>

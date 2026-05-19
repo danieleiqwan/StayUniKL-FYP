@@ -31,6 +31,13 @@ export async function GET() {
     }
 
     try {
+        await pool.query("ALTER TABLE rooms MODIFY COLUMN gender ENUM('Male', 'Female', 'Co-Ed') NOT NULL");
+        results.push('✅ Updated rooms gender ENUM to include Co-Ed');
+    } catch (e: any) {
+        results.push(`ℹ️ rooms gender ENUM: ${e.message}`);
+    }
+
+    try {
         await pool.query('ALTER TABLE users MODIFY COLUMN nric VARCHAR(20) NULL');
         await pool.query('ALTER TABLE users MODIFY COLUMN student_id VARCHAR(50) NULL');
         results.push('✅ Made nric and student_id nullable');

@@ -114,9 +114,10 @@ export async function POST(request: Request) {
         await conn.beginTransaction();
 
         // 1. Insert the room
+        const dbStatus = (status === 'Available' || !status) ? 'Active' : status;
         await conn.query(
             'INSERT INTO rooms (id, floor_id, gender, capacity, room_type, status) VALUES (?, ?, ?, ?, ?, ?)',
-            [String(roomId), Number(floorId), gender, Number(capacity), roomType, status || 'Available']
+            [String(roomId), Number(floorId), gender, Number(capacity), roomType, dbStatus]
         );
 
         // 2. Auto-generate beds based on capacity
