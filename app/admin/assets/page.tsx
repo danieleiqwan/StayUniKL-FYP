@@ -72,7 +72,7 @@ export default function AssetManagementPage() {
         fetchAssets();
     };
     const handleRepair = async (id: string) => {
-        const cost = prompt('Enter repair cost (RM):','0'); if(cost===null) return;
+        if (!confirm('Are you sure you want to mark this asset as repaired?')) return;
         await fetch('/api/assets', { 
             method:'POST', 
             headers:{'Content-Type':'application/json'}, 
@@ -81,7 +81,7 @@ export default function AssetManagementPage() {
                 assetId:id, 
                 maintenanceAction:'Repair', 
                 description:'Routine repair', 
-                cost:parseFloat(cost), 
+                cost:0, 
                 performedBy:user?.name||'Admin', 
                 newStatus:'Good',
                 actorId: user?.id,
