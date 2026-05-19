@@ -10,6 +10,21 @@ export async function GET(request: Request) {
     }
 
     try {
+        // Ensure table exists on production
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS room_assets (
+                id VARCHAR(50) PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                type VARCHAR(50) NOT NULL,
+                status VARCHAR(50) DEFAULT 'Good',
+                location_id VARCHAR(50),
+                value DECIMAL(10, 2) DEFAULT 0.00,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                FOREIGN KEY (location_id) REFERENCES rooms(id) ON DELETE SET NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+        `);
+
         const [tables]: any = await db.query('SHOW TABLES');
         console.log('Tables found:', tables);
         
