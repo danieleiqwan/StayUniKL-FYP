@@ -126,7 +126,7 @@ export default function AssetManagementPage() {
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
                 {kpis.map(k => (
                     <div key={k.label} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm flex items-start gap-4">
                         <div className={`${k.bg} h-12 w-12 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg`}>{k.icon}</div>
@@ -140,7 +140,7 @@ export default function AssetManagementPage() {
 
             {/* Inventory Tab */}
             {tab === 'inventory' && (
-                <div className="grid gap-6 lg:grid-cols-[340px_1fr]">
+                <div className="grid gap-6 2xl:grid-cols-[340px_1fr]">
                     <AssetFormPanel onSubmit={handleCreate} />
                     <div className="space-y-4">
                         {/* Filters */}
