@@ -188,3 +188,32 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Failed to process request' }, { status: 500 });
     }
 }
+
+// DELETE: Remove an asset from the inventory
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+        
+        if (!id) {
+            return NextResponse.json({ error: 'Asset ID is required' }, { status: 400 });
+        }
+
+        await db.query('DELETE FROM room_assets WHERE id = ?', [id]);
+        
+        // Log deletion
+        await logAction({
+            actorId: 'ADMIN',
+            actorName: 'Administrator',
+            action: 'DELETE_ASSET',
+            entityType: 'ASSET',
+            entityId: id,
+            details: { message: 'Asset deleted manually' }
+        });
+
+        return NextResponse.json({ success: true, message: 'Asset deleted successfully' });
+    } catch (error) {
+        console.error("Error deleting asset:", error);
+        return NextResponse.json({ error: 'Failed to delete asset' }, { status: 500 });
+    }
+}
