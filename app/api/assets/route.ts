@@ -40,7 +40,7 @@ export async function GET(request: Request) {
             params.push(status);
         }
 
-        query += ' ORDER BY created_at DESC';
+        query += ' ORDER BY location_id ASC, name ASC, created_at DESC';
 
         const [assets] = await db.query(query, params);
 
