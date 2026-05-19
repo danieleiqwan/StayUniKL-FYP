@@ -224,7 +224,7 @@ export default function AssetManagementPage() {
                                                         <td className="px-5 py-3.5 text-slate-700 dark:text-slate-300 font-bold">RM {parseFloat(a.value||0).toLocaleString()}</td>
                                                         <td className="px-5 py-3.5 text-right">
                                                             <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                <button title="View" className="p-1.5 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-slate-400 hover:text-indigo-600 transition-colors"><Eye className="h-3.5 w-3.5"/></button>
+
                                                                 {a.status==='Good' && <button title="Report Issue" onClick={()=>handleReportIssue(a.id)} className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-400 hover:text-rose-600 transition-colors"><Pencil className="h-3.5 w-3.5"/></button>}
                                                                 {(a.status==='Damaged'||a.status==='Maintenance') && <button title="Log Repair" onClick={()=>handleRepair(a.id)} className="p-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-slate-400 hover:text-emerald-600 transition-colors"><Wrench className="h-3.5 w-3.5"/></button>}
                                                                 <button title="Delete Asset" onClick={() => handleDeleteAsset(a.id)} className="p-1.5 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-900/40 text-slate-400 hover:text-rose-600 transition-colors"><Trash2 className="h-3.5 w-3.5"/></button>
@@ -286,8 +286,8 @@ export default function AssetManagementPage() {
                                                                 <Wrench className="h-4 w-4"/>
                                                             </button>
                                                         )}
-                                                        <button className="h-8 px-3 flex items-center gap-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest transition-all hover:bg-indigo-600 hover:text-white">
-                                                            <Eye className="h-3.5 w-3.5"/> Details
+                                                        <button onClick={() => handleDeleteAsset(a.id)} className="h-8 px-3 flex items-center gap-2 rounded-lg bg-rose-50 dark:bg-rose-900/20 text-rose-600 border border-rose-100 dark:border-rose-500/20 text-[10px] font-black uppercase tracking-widest transition-all hover:bg-rose-600 hover:text-white">
+                                                            <Trash2 className="h-3.5 w-3.5"/> Delete
                                                         </button>
                                                     </div>
                                                 </div>
