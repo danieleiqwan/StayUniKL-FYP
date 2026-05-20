@@ -25,6 +25,7 @@ const emptyForm = {
     hostel_block: '',
     floor: '',
     duty_date: '',
+    end_date: '',
     start_time: '',
     end_time: '',
     contact_number: '',
@@ -40,6 +41,8 @@ export default function AdminDutiesPage() {
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [deletingId, setDeletingId] = useState<number | null>(null);
+
+    const today = new Date().toISOString().split('T')[0];
 
     const fetchDuties = async () => {
         setLoading(true);
@@ -73,6 +76,7 @@ export default function AdminDutiesPage() {
             hostel_block: duty.hostel_block,
             floor: duty.floor,
             duty_date: duty.duty_date.split('T')[0],
+            end_date: '',
             start_time: duty.start_time,
             end_time: duty.end_time,
             contact_number: duty.contact_number,
@@ -355,16 +359,43 @@ export default function AdminDutiesPage() {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Duty Date</label>
-                                <input 
-                                    type="date" 
-                                    required 
-                                    value={form.duty_date} 
-                                    onChange={e => setForm({ ...form, duty_date: e.target.value })}
-                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-5 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-100 dark:focus:ring-orange-900/20 transition-all" 
-                                />
-                            </div>
+                            {!editId ? (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Start Date</label>
+                                        <input 
+                                            type="date" 
+                                            required 
+                                            min={today}
+                                            value={form.duty_date} 
+                                            onChange={e => setForm({ ...form, duty_date: e.target.value })}
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-5 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-100 dark:focus:ring-orange-900/20 transition-all" 
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">End Date (Optional)</label>
+                                        <input 
+                                            type="date" 
+                                            min={form.duty_date || today}
+                                            value={form.end_date} 
+                                            onChange={e => setForm({ ...form, end_date: e.target.value })}
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-5 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-100 dark:focus:ring-orange-900/20 transition-all" 
+                                        />
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Duty Date</label>
+                                    <input 
+                                        type="date" 
+                                        required 
+                                        min={today}
+                                        value={form.duty_date} 
+                                        onChange={e => setForm({ ...form, duty_date: e.target.value })}
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-5 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-100 dark:focus:ring-orange-900/20 transition-all" 
+                                    />
+                                </div>
+                            )}
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
