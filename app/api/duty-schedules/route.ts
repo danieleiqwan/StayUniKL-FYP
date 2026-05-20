@@ -47,7 +47,7 @@ export async function GET(request: Request) {
     }
 }
 
-// POST: Create a new duty schedule (admin only)
+// POST: Create a new duty schedule (admin only, prevents overlaps)
 export async function POST(request: Request) {
     try {
         const admin = await isAdmin();
@@ -58,6 +58,29 @@ export async function POST(request: Request) {
 
         if (!name || !role || !hostel_block || !floor || !duty_date || !start_time || !end_time || !contact_number) {
             return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
+        }
+
+        // Validate time formats (start_time < end_time)
+        if (start_time >= end_time) {
+            return NextResponse.json({ error: 'Start time must be strictly before end time.' }, { status: 400 });
+        }
+
+        // Check for overlaps (same date, block, active, and overlapping times)
+        const overlapQuery = `
+            SELECT name, role, start_time, end_time FROM duty_schedules
+            WHERE duty_date = ? 
+              AND hostel_block = ? 
+              AND status = 'active'
+              AND start_time < ? 
+              AND end_time > ?
+        `;
+        const [overlaps]: any = await pool.query(overlapQuery, [duty_date, hostel_block, end_time, start_time]);
+
+        if (overlaps.length > 0) {
+            const o = overlaps[0];
+            return NextResponse.json({ 
+                error: `Overlap Error: ${o.name} (${o.role}) is already scheduled on Block ${hostel_block} from ${o.start_time.substring(0, 5)} to ${o.end_time.substring(0, 5)}.` 
+            }, { status: 409 });
         }
 
         const [result]: any = await pool.query(
@@ -84,7 +107,7 @@ export async function POST(request: Request) {
     }
 }
 
-// PUT: Update an existing duty schedule (admin only)
+// PUT: Update an existing duty schedule (admin only, prevents overlaps)
 export async function PUT(request: Request) {
     try {
         const admin = await isAdmin();
@@ -94,6 +117,33 @@ export async function PUT(request: Request) {
         const { id, name, role, hostel_block, floor, duty_date, start_time, end_time, contact_number, status } = body;
 
         if (!id) return NextResponse.json({ error: 'ID is required.' }, { status: 400 });
+
+        if (!name || !role || !hostel_block || !floor || !duty_date || !start_time || !end_time || !contact_number) {
+            return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
+        }
+
+        if (start_time >= end_time) {
+            return NextResponse.json({ error: 'Start time must be strictly before end time.' }, { status: 400 });
+        }
+
+        // Check for overlaps (excluding the current record id)
+        const overlapQuery = `
+            SELECT name, role, start_time, end_time FROM duty_schedules
+            WHERE duty_date = ? 
+              AND hostel_block = ? 
+              AND status = 'active'
+              AND id != ?
+              AND start_time < ? 
+              AND end_time > ?
+        `;
+        const [overlaps]: any = await pool.query(overlapQuery, [duty_date, hostel_block, id, end_time, start_time]);
+
+        if (status === 'active' && overlaps.length > 0) {
+            const o = overlaps[0];
+            return NextResponse.json({ 
+                error: `Overlap Error: ${o.name} (${o.role}) is already scheduled on Block ${hostel_block} from ${o.start_time.substring(0, 5)} to ${o.end_time.substring(0, 5)}.` 
+            }, { status: 409 });
+        }
 
         await pool.query(
             `UPDATE duty_schedules 
@@ -128,7 +178,6 @@ export async function DELETE(request: Request) {
         const id = searchParams.get('id');
         if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
 
-        // Get details before deleting for audit logs
         const [rows]: any = await pool.query('SELECT name, role FROM duty_schedules WHERE id = ?', [id]);
         
         await pool.query('DELETE FROM duty_schedules WHERE id = ?', [id]);

@@ -11,8 +11,11 @@ import {
     Clock, 
     MapPin, 
     Search,
-    Filter,
-    ExternalLink
+    ChevronRight,
+    ArrowRight,
+    HelpCircle,
+    Info,
+    CalendarCheck
 } from 'lucide-react';
 
 interface DutySchedule {
@@ -71,6 +74,16 @@ const STATIC_CONTACTS = [
     }
 ];
 
+const DAYS_OF_WEEK = [
+    { name: 'Monday', index: 1 },
+    { name: 'Tuesday', index: 2 },
+    { name: 'Wednesday', index: 3 },
+    { name: 'Thursday', index: 4 },
+    { name: 'Friday', index: 5 },
+    { name: 'Saturday', index: 6 },
+    { name: 'Sunday', index: 0 }
+];
+
 export default function ContactsPage() {
     const [duties, setDuties] = useState<DutySchedule[]>([]);
     const [loading, setLoading] = useState(true);
@@ -92,7 +105,7 @@ export default function ContactsPage() {
 
     // Filter logic
     const filteredDuties = duties.filter(d => {
-        const matchesBlock = selectedBlock === 'all' || d.hostel_block === selectedBlock;
+        const matchesBlock = selectedBlock === 'all' || d.hostel_block.toLowerCase() === selectedBlock.toLowerCase();
         const matchesRole = selectedRole === 'all' || d.role === selectedRole;
         const matchesSearch = d.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                               d.floor.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -101,7 +114,15 @@ export default function ContactsPage() {
     });
 
     // Unique blocks for filtering
-    const blocks = ['all', ...Array.from(new Set(duties.map(d => d.hostel_block)))];
+    const blocks = ['all', ...Array.from(new Set(duties.map(d => d.hostel_block.toUpperCase())))];
+
+    // Helper to get duties on a specific day of the week
+    const getDutiesForDay = (dayIndex: number) => {
+        return filteredDuties.filter(d => {
+            const date = new Date(d.duty_date);
+            return date.getDay() === dayIndex;
+        });
+    };
 
     return (
         <div className="space-y-12">
@@ -114,7 +135,7 @@ export default function ContactsPage() {
                     Emergency & Governance
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400 text-sm">
-                    Access urgent contacts and find Student Representative Council (SRC) members or Fellows currently on duty.
+                    Access urgent contacts, find scheduled SRC or Fellow shifts, and follow our escalation pathway.
                 </p>
             </div>
 
@@ -200,15 +221,15 @@ export default function ContactsPage() {
                 </div>
             </section>
 
-            {/* SECTION 2: SRC & Fellow Duty Schedules */}
+            {/* SECTION 2: Weekly Schedule Table */}
             <section className="space-y-6">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
                     <div>
                         <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                            📅 Governance Duty Schedules
+                            📅 Weekly Governance Schedule
                         </h2>
                         <p className="text-slate-500 dark:text-slate-400 text-xs">
-                            Find SRC members and Fellows on active duty by block or role.
+                            Timetable layout showing assigned SRC members and Fellows on duty per block/floor.
                         </p>
                     </div>
 
@@ -218,10 +239,10 @@ export default function ContactsPage() {
                             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                             <input
                                 type="text"
-                                placeholder="Search duty list..."
+                                placeholder="Search on-duty list..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all w-48"
+                                className="pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 transition-all w-44"
                             />
                         </div>
 
@@ -279,105 +300,198 @@ export default function ContactsPage() {
                 </div>
 
                 {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-10 space-y-4 animate-pulse">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 animate-pulse space-y-4">
-                                <div className="flex justify-between">
-                                    <div className="h-10 w-10 bg-slate-100 dark:bg-slate-800 rounded-xl" />
-                                    <div className="h-6 w-16 bg-slate-100 dark:bg-slate-800 rounded-full" />
-                                </div>
-                                <div className="h-5 bg-slate-100 dark:bg-slate-800 rounded w-2/3" />
-                                <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
-                            </div>
+                            <div key={i} className="h-16 bg-slate-150 dark:bg-slate-800 rounded-2xl w-full" />
                         ))}
                     </div>
-                ) : filteredDuties.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800">
-                        <div className="h-16 w-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-4">
-                            <Calendar className="h-8 w-8 text-slate-300 dark:text-slate-600" />
-                        </div>
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">No active duties scheduled</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                            Check back later or adjust filters.
-                        </p>
-                    </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredDuties.map((duty) => {
-                            const isSRC = duty.role === 'SRC';
-                            
-                            return (
-                                <div 
-                                    key={duty.id}
-                                    className="group relative bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-6 flex flex-col justify-between hover:shadow-lg transition-all duration-300 hover:border-orange-100 dark:hover:border-orange-950/30"
-                                >
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-2">
-                                                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
-                                                    isSRC 
-                                                        ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400' 
-                                                        : 'bg-purple-50 text-purple-600 dark:bg-purple-950/30 dark:text-purple-400'
-                                                }`}>
-                                                    <User className="h-5 w-5" />
-                                                </div>
-                                                <div>
-                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
-                                                        isSRC
-                                                            ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
-                                                            : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                                                    }`}>
-                                                        {duty.role}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                                                duty.status === 'active' 
-                                                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' 
-                                                    : 'bg-slate-100 text-slate-500'
-                                            }`}>
-                                                {duty.status}
-                                            </span>
-                                        </div>
-
-                                        <div>
-                                            <h3 className="text-base font-black text-slate-900 dark:text-white group-hover:text-[#F26C22] transition-colors leading-tight">
-                                                {duty.name}
-                                            </h3>
-
-                                            {/* Details list */}
-                                            <div className="mt-3 space-y-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                                                <div className="flex items-center gap-2">
-                                                    <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                                                    <span>Block {duty.hostel_block}, Floor {duty.floor}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Calendar className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                                                    <span>{new Date(duty.duty_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                                                    <span>{duty.start_time.substring(0, 5)} - {duty.end_time.substring(0, 5)}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800/80">
-                                        <a 
-                                            href={`tel:${duty.contact_number.replace(/\s+/g, '')}`}
-                                            className="w-full py-3 px-4 rounded-xl flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white border border-slate-100 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-750 font-bold text-xs uppercase tracking-wider transition-all"
-                                        >
-                                            <Phone className="h-3.5 w-3.5" />
-                                            Call Contact
-                                        </a>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-850">
+                                        <th className="w-32 px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-100 dark:border-slate-850">
+                                            Day
+                                        </th>
+                                        <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                            Assigned On-Duty Staff & Student Representatives
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-850">
+                                    {DAYS_OF_WEEK.map((day) => {
+                                        const dayDuties = getDutiesForDay(day.index);
+                                        return (
+                                            <tr key={day.name} className="transition-colors hover:bg-slate-50/30 dark:hover:bg-slate-850/10">
+                                                <td className="px-6 py-5 align-top font-black text-slate-950 dark:text-white text-sm border-r border-slate-100 dark:border-slate-850 bg-slate-50/20 dark:bg-slate-800/10">
+                                                    {day.name}
+                                                    {dayDuties.length > 0 && (
+                                                        <span className="block mt-1.5 text-[9px] font-black uppercase text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full w-max">
+                                                            {dayDuties.length} {dayDuties.length === 1 ? 'Shift' : 'Shifts'}
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    {dayDuties.length === 0 ? (
+                                                        <p className="text-slate-400 dark:text-slate-600 text-xs font-semibold py-2">
+                                                            No duties scheduled for this day.
+                                                        </p>
+                                                    ) : (
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            {dayDuties.map((duty) => {
+                                                                const isSRC = duty.role === 'SRC';
+                                                                return (
+                                                                    <div 
+                                                                        key={duty.id} 
+                                                                        className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-orange-100 dark:hover:border-orange-950/20 hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+                                                                    >
+                                                                        <div>
+                                                                            <div className="flex items-center justify-between mb-2">
+                                                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
+                                                                                    isSRC
+                                                                                        ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400 border border-indigo-100/50'
+                                                                                        : 'bg-purple-50 text-purple-600 dark:bg-purple-950/30 dark:text-purple-400 border border-purple-100/50'
+                                                                                }`}>
+                                                                                    {duty.role}
+                                                                                </span>
+                                                                                <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                                                                                    <Clock className="h-3 w-3" />
+                                                                                    {duty.start_time.substring(0, 5)} - {duty.end_time.substring(0, 5)}
+                                                                                </span>
+                                                                            </div>
+                                                                            <h4 className="font-black text-slate-900 dark:text-white text-sm">
+                                                                                {duty.name}
+                                                                            </h4>
+                                                                            <div className="mt-2 space-y-1 text-[11px] font-semibold text-slate-500">
+                                                                                <div className="flex items-center gap-1.5">
+                                                                                    <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
+                                                                                    <span>Block {duty.hostel_block}, Floor {duty.floor}</span>
+                                                                                </div>
+                                                                                <div className="flex items-center gap-1.5">
+                                                                                    <Calendar className="h-3 w-3 text-slate-400 shrink-0" />
+                                                                                    <span>
+                                                                                        {new Date(duty.duty_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="mt-4 pt-3 border-t border-slate-50 dark:border-slate-800 flex justify-between items-center">
+                                                                            <span className="text-[10px] text-slate-400 font-bold">{duty.contact_number}</span>
+                                                                            <a 
+                                                                                href={`tel:${duty.contact_number.replace(/\s+/g, '')}`}
+                                                                                className="py-1 px-3 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white hover:bg-orange-50 dark:hover:bg-orange-950/30 hover:text-[#F26C22] border border-slate-100 dark:border-slate-700/60 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1"
+                                                                            >
+                                                                                <Phone className="h-3 w-3" />
+                                                                                Call
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                              })
+                                                            }
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
+            </section>
+
+            {/* SECTION 3: System Flow / Escalation Pathway */}
+            <section className="bg-gradient-to-r from-orange-500/5 to-[#F26C22]/5 border border-orange-500/10 rounded-[2.5rem] p-8 md:p-10 space-y-8">
+                <div className="flex items-start gap-4">
+                    <div className="h-12 w-12 bg-[#F26C22]/10 rounded-2xl flex items-center justify-center shrink-0">
+                        <HelpCircle className="h-6 w-6 text-[#F26C22]" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                            📢 StayUniKL Help & Escalation Pathway
+                        </h2>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs">
+                            Follow this sequence of communication to resolve any issues quickly and efficiently.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Pathway Stepper */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+                    {/* Stepper Card 1 */}
+                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800/80 shadow-sm flex flex-col justify-between group hover:border-orange-100 dark:hover:border-orange-950/30 transition-all duration-300">
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="h-8 w-8 rounded-full bg-slate-50 dark:bg-slate-800 text-[#F26C22] font-black text-xs flex items-center justify-center">
+                                    01
+                                </span>
+                                <span className="text-[8px] font-black uppercase tracking-wider text-slate-400">First Contact</span>
+                            </div>
+                            <h3 className="font-black text-slate-900 dark:text-white text-sm mb-2">Check Schedule</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+                                View the active duty timetable above to identify the SRC or Fellow assigned to your floor/block today.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Stepper Card 2 */}
+                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800/80 shadow-sm flex flex-col justify-between group hover:border-orange-100 dark:hover:border-orange-950/30 transition-all duration-300">
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="h-8 w-8 rounded-full bg-slate-50 dark:bg-slate-800 text-[#F26C22] font-black text-xs flex items-center justify-center">
+                                    02
+                                </span>
+                                <span className="text-[8px] font-black uppercase tracking-wider text-slate-400">Reach Out</span>
+                            </div>
+                            <h3 className="font-black text-slate-900 dark:text-white text-sm mb-2">Contact Representative</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+                                Call the active Fellow or SRC directly using their listed phone number for initial support or room issues.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Stepper Card 3 */}
+                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800/80 shadow-sm flex flex-col justify-between group hover:border-orange-100 dark:hover:border-orange-950/30 transition-all duration-300">
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="h-8 w-8 rounded-full bg-slate-50 dark:bg-slate-800 text-[#F26C22] font-black text-xs flex items-center justify-center">
+                                    03
+                                </span>
+                                <span className="text-[8px] font-black uppercase tracking-wider text-slate-400">Escalate</span>
+                            </div>
+                            <h3 className="font-black text-slate-900 dark:text-white text-sm mb-2">Office / Security</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+                                If the issue is unresolved by your representative, call the Hostel Management Office or Security Office immediately.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Stepper Card 4 */}
+                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800/80 shadow-sm flex flex-col justify-between group hover:border-orange-100 dark:hover:border-orange-950/30 transition-all duration-300">
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <span className="h-8 w-8 rounded-full bg-rose-500 text-white font-black text-xs flex items-center justify-center shadow-md shadow-rose-500/10">
+                                    04
+                                </span>
+                                <span className="text-[8px] font-black uppercase tracking-wider text-rose-400">Critical</span>
+                            </div>
+                            <h3 className="font-black text-slate-900 dark:text-white text-sm mb-2">Admin Intervention</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">
+                                High-priority incidents and critical system/maintenance issues will trigger admin intervention for final resolution.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-5 bg-white/40 dark:bg-slate-900/40 rounded-2xl flex items-center gap-3.5 border border-slate-100 dark:border-slate-800/60">
+                    <Info className="h-5 w-5 text-[#F26C22] shrink-0" />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-semibold">
+                        <strong>Security Tip:</strong> In the event of fire, severe medical emergencies, or physical safety threats, always call national emergency services <strong>(999)</strong> first, then inform hostel security immediately.
+                    </p>
+                </div>
             </section>
         </div>
     );
