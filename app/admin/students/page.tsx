@@ -9,7 +9,8 @@ import StudentDetailModal from '@/components/admin/StudentDetailModal';
 import { 
     Search, Filter, User, Mail, Phone, MoreHorizontal, 
     ChevronLeft, ChevronRight, Eye, Users, Building, 
-    ArrowUpDown, Download, Plus, CheckCircle, Upload, Clock
+    ArrowUpDown, Download, Plus, CheckCircle, Upload, Clock,
+    Bed, DoorOpen, Key
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -17,7 +18,7 @@ import * as XLSX from 'xlsx';
 
 export default function StudentsDirectoryPage() {
     const { user } = useAuth();
-    const { updateApplicationStatus } = useData();
+    const { updateApplicationStatus, rooms } = useData();
     const router = useRouter();
     const [students, setStudents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -172,6 +173,73 @@ export default function StudentsDirectoryPage() {
         });
     }, [students, searchQuery, statusFilter, residencyFilter, floorFilter, nationalityFilter, semesterFilter, semesters]);
 
+    // Globally Filtered Students (Semester, Floor, Nationality)
+    const globallyFilteredStudents = useMemo(() => {
+        return students.filter(s => {
+            const matchesFloor = floorFilter === 'All Floors' || 
+                (s.room_id && s.room_id.toString().startsWith(floorFilter.replace('Floor ', '')));
+
+            const matchesNationality = nationalityFilter === 'All' || 
+                s.nationality === nationalityFilter;
+
+            const matchesSemester = semesterFilter === 'All Semesters' || (() => {
+                const semester = semesters.find(sem => sem.id === semesterFilter);
+                if (!semester) return true;
+                
+                const compareDate = s.latest_application_date ? new Date(s.latest_application_date) : new Date(s.created_at);
+                const start = new Date(semester.start_date);
+                const end = new Date(semester.end_date);
+                
+                return compareDate >= start && compareDate <= end;
+            })();
+
+            return matchesFloor && matchesNationality && matchesSemester;
+        });
+    }, [students, floorFilter, nationalityFilter, semesterFilter, semesters]);
+
+    // totalStudentsCount (Purple)
+    const totalStudentsCount = useMemo(() => {
+        return globallyFilteredStudents.length;
+    }, [globallyFilteredStudents]);
+
+    // totalBeds (Calculated based on floorFilter)
+    const totalBeds = useMemo(() => {
+        let filteredRooms = rooms || [];
+        if (floorFilter !== 'All Floors') {
+            const floorNum = parseInt(floorFilter.replace('Floor ', ''));
+            filteredRooms = (rooms || []).filter(r => r.floorId === floorNum);
+        }
+        let count = 0;
+        filteredRooms.forEach(room => {
+            if (room.beds) {
+                count += room.beds.length;
+            }
+        });
+        return count || 28; // Fallback default
+    }, [rooms, floorFilter]);
+
+    // checkedInCount (Green)
+    const checkedInCount = useMemo(() => {
+        return globallyFilteredStudents.filter(s => s.latest_status === 'Checked in').length;
+    }, [globallyFilteredStudents]);
+
+    // totalVacancies (Orange)
+    const totalVacancies = useMemo(() => {
+        return Math.max(0, totalBeds - checkedInCount);
+    }, [totalBeds, checkedInCount]);
+
+    // assignedBedsCount (Beds that are reserved/approved/checked-in)
+    const assignedBedsCount = useMemo(() => {
+        return globallyFilteredStudents.filter(s => 
+            ['Checked in', 'Approved', 'Payment Pending'].includes(s.latest_status)
+        ).length;
+    }, [globallyFilteredStudents]);
+
+    // availableBeds (Blue)
+    const availableBeds = useMemo(() => {
+        return Math.max(0, totalBeds - assignedBedsCount);
+    }, [totalBeds, assignedBedsCount]);
+
     // Pagination Logic
     const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
     const paginatedStudents = filteredStudents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -311,35 +379,35 @@ export default function StudentsDirectoryPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <StatCard 
                         title="Total Students" 
-                        value={students.length} 
-                        sub="All time" 
-                        icon={<Users className="h-6 w-6" />} 
-                        bg="bg-[#8E54E9]" 
+                        value={totalStudentsCount} 
+                        sub="Enrolled in period" 
+                        icon={<Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />} 
+                        accentColor="text-purple-600 dark:text-purple-400"
+                        bgClass="bg-purple-50 dark:bg-purple-950/40"
                     />
                     <StatCard 
-                        title="Active Students" 
-                        value={students.filter(s => s.latest_status === 'Checked in').length} 
-                        sub="Currently active" 
-                        icon={<User className="h-6 w-6" />} 
-                        bg="bg-[#2DCE89]" 
+                        title="Total Vacancies" 
+                        value={totalVacancies} 
+                        sub="Vacant spaces / rooms" 
+                        icon={<DoorOpen className="h-6 w-6 text-orange-600 dark:text-orange-400" />} 
+                        accentColor="text-orange-600 dark:text-orange-400"
+                        bgClass="bg-orange-50 dark:bg-orange-950/40"
                     />
                     <StatCard 
-                        title="With Subscriptions" 
-                        value={students.filter(s => s.latest_status === 'Checked in' || s.latest_status === 'Approved').length} 
-                        sub="Have active subscriptions" 
-                        icon={<Download className="h-6 w-6" />} 
-                        bg="bg-[#11CDEF]" 
+                        title="Checked-In Students" 
+                        value={checkedInCount} 
+                        sub="Currently checked in" 
+                        icon={<Key className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />} 
+                        accentColor="text-emerald-600 dark:text-emerald-400"
+                        bgClass="bg-emerald-50 dark:bg-emerald-950/40"
                     />
                     <StatCard 
-                        title="New This Month" 
-                        value={students.filter(s => {
-                            const date = new Date(s.created_at);
-                            const now = new Date();
-                            return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-                        }).length} 
-                        sub="This month" 
-                        icon={<Plus className="h-6 w-6" />} 
-                        bg="bg-[#FB6340]" 
+                        title="Available Beds" 
+                        value={availableBeds} 
+                        sub="Ready to book" 
+                        icon={<Bed className="h-6 w-6 text-blue-600 dark:text-blue-400" />} 
+                        accentColor="text-blue-600 dark:text-blue-400"
+                        bgClass="bg-blue-50 dark:bg-blue-950/40"
                     />
                 </div>
 
@@ -589,23 +657,56 @@ export default function StudentsDirectoryPage() {
     );
 }
 
-function StatCard({ title, value, sub, icon, bg }: any) {
+function AnimatedCounter({ value, duration = 400 }: { value: number; duration?: number }) {
+    const [count, setCount] = useState(value);
+
+    useEffect(() => {
+        let start = count;
+        const end = value;
+        if (start === end) return;
+
+        const totalFrames = Math.min(20, Math.max(5, Math.abs(end - start)));
+        const frameDuration = duration / totalFrames;
+        let currentFrame = 0;
+
+        const counter = setInterval(() => {
+            currentFrame++;
+            const progress = currentFrame / totalFrames;
+            const currentCount = Math.round(start + (end - start) * progress);
+            
+            setCount(currentCount);
+
+            if (currentFrame === totalFrames) {
+                clearInterval(counter);
+                setCount(end);
+            }
+        }, frameDuration);
+
+        return () => clearInterval(counter);
+    }, [value]);
+
+    return <span>{count.toLocaleString()}</span>;
+}
+
+function StatCard({ title, value, sub, icon, accentColor, bgClass, iconColor }: any) {
     return (
-        <div className={`${bg} rounded-3xl p-6 text-white shadow-lg overflow-hidden relative group transition-all hover:scale-[1.02]`}>
+        <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group transition-all duration-300 hover:shadow-md hover:border-slate-200 dark:hover:border-slate-700 hover:-translate-y-1">
+            {/* Soft Glow Effect */}
+            <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full ${bgClass} opacity-30 dark:opacity-10 group-hover:scale-150 transition-transform duration-500`}></div>
             <div className="relative z-10">
-                <p className="text-sm font-bold opacity-80 uppercase tracking-widest">{title}</p>
-                <div className="flex items-end justify-between mt-4">
-                    <div>
-                        <p className="text-4xl font-black">{value}</p>
-                        <p className="text-[10px] font-bold opacity-60 uppercase mt-1 tracking-widest">{sub}</p>
-                    </div>
-                    <div className="h-12 w-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">{title}</span>
+                    <div className={`h-12 w-12 ${bgClass} rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>
                         {icon}
                     </div>
                 </div>
+                <div className="space-y-1">
+                    <p className={`text-4xl font-black ${accentColor} tracking-tight`}>
+                        <AnimatedCounter value={value} />
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{sub}</p>
+                </div>
             </div>
-            {/* Decorative element */}
-            <div className="absolute -right-4 -bottom-4 h-24 w-24 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
         </div>
     );
 }
