@@ -240,6 +240,13 @@ export default function StudentsDirectoryPage() {
         return Math.max(0, totalBeds - assignedBedsCount);
     }, [totalBeds, assignedBedsCount]);
 
+    // Unique Floors for Filter Dropdown
+    const uniqueFloors = useMemo(() => {
+        if (!rooms || rooms.length === 0) return [1, 2, 3, 4, 5, 6, 7];
+        const floors = new Set(rooms.map(r => r.floorId));
+        return Array.from(floors).sort((a, b) => a - b);
+    }, [rooms]);
+
     // Pagination Logic
     const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
     const paginatedStudents = filteredStudents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -449,7 +456,7 @@ export default function StudentsDirectoryPage() {
                                 className="w-full bg-slate-50 dark:bg-slate-800 border border-transparent rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 outline-none focus:bg-white dark:focus:bg-slate-900 focus:ring-4 focus:ring-orange-500/10 focus:border-[#F26C22] transition-all"
                             >
                                 <option>All Floors</option>
-                                {[1, 2, 3, 4, 5, 6, 7].map(f => (
+                                {uniqueFloors.map(f => (
                                     <option key={f}>Floor {f}</option>
                                 ))}
                             </select>
