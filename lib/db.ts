@@ -11,7 +11,9 @@ const pool = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0,
     enableKeepAlive: true,
-    timezone: '+08:00'
+    timezone: '+08:00',
+    // SSL required for TiDB Cloud Serverless (ignored in local dev when DB_SSL is not set)
+    ...(process.env.DB_SSL === 'true' && { ssl: { rejectUnauthorized: true } }),
 });
 
 export default pool;
