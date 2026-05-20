@@ -127,11 +127,25 @@ export default function AdminRoomsPage() {
 
     const floors = Array.from(new Set(rooms.map(r => r.floorId))).sort((a, b) => a - b);
 
-    const totalBeds = rooms.reduce((a, r) => a + r.beds.length, 0);
-    const occupiedBeds = rooms.reduce((a, r) => a + r.beds.filter((b: any) => b.isOccupied).length, 0);
+    const filteredRoomsForStats = selectedFloor === 'All' 
+        ? rooms 
+        : rooms.filter(r => r.floorId === selectedFloor);
+
+    const totalRoomsCount = filteredRoomsForStats.length;
+    const totalBeds = filteredRoomsForStats.reduce((a, r) => a + r.beds.length, 0);
+    const occupiedBeds = filteredRoomsForStats.reduce((a, r) => a + r.beds.filter((b: any) => b.isOccupied).length, 0);
     const availableBeds = totalBeds - occupiedBeds;
-    const maintenanceRooms = rooms.filter(r => r.status === 'Maintenance').length;
-    const fullRooms = rooms.filter(r => r.beds.every((b: any) => b.isOccupied)).length;
+    const maintenanceRooms = filteredRoomsForStats.filter(r => r.status === 'Maintenance').length;
+    const fullRooms = filteredRoomsForStats.filter(r => r.beds.every((b: any) => b.isOccupied)).length;
+
+    const subtextTotalRooms = selectedFloor === 'All' 
+        ? `${floors.length} floors` 
+        : `Floor ${selectedFloor}`;
+    const subtextTotalBeds = `Max capacity`;
+    const occupancyPercent = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
+    const subtextOccupiedBeds = `${occupancyPercent}% occupancy`;
+    const subtextTotalVacancy = `${availableBeds} beds ready`;
+    const subtextFullRooms = `${maintenanceRooms} in maintenance`;
 
     if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return <div className="p-10 text-center">Access Denied. Admins only.</div>;
 
@@ -164,11 +178,12 @@ export default function AdminRoomsPage() {
             </div>
 
             {/* ── Stats Row ── */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <StatCard icon={<Home className="h-5 w-5 text-indigo-500" />} label="Total Rooms" value={rooms.length} sub={`${floors.length} floors`} color="indigo" />
-                <StatCard icon={<BedDouble className="h-5 w-5 text-slate-500" />} label="Total Beds" value={totalBeds} sub={`${availableBeds} available`} color="slate" />
-                <StatCard icon={<Users className="h-5 w-5 text-red-500" />} label="Occupied Beds" value={occupiedBeds} sub={`${Math.round(totalBeds > 0 ? (occupiedBeds / totalBeds) * 100 : 0)}% occupancy`} color="red" />
-                <StatCard icon={<Wrench className="h-5 w-5 text-orange-500" />} label="Full Rooms" value={fullRooms} sub={`${maintenanceRooms} in maintenance`} color="orange" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+                <StatCard icon={<Home className="h-5 w-5 text-indigo-500" />} label="Total Rooms" value={totalRoomsCount} sub={subtextTotalRooms} color="indigo" />
+                <StatCard icon={<BedDouble className="h-5 w-5 text-slate-500" />} label="Total Beds" value={totalBeds} sub={subtextTotalBeds} color="slate" />
+                <StatCard icon={<Users className="h-5 w-5 text-red-500" />} label="Occupied Beds" value={occupiedBeds} sub={subtextOccupiedBeds} color="red" />
+                <StatCard icon={<CheckCircle2 className="h-5 w-5 text-emerald-500" />} label="Total Vacancy" value={availableBeds} sub={subtextTotalVacancy} color="emerald" />
+                <StatCard icon={<Wrench className="h-5 w-5 text-orange-500" />} label="Full Rooms" value={fullRooms} sub={subtextFullRooms} color="orange" />
             </div>
 
             {/* ── Controls Row: Floor Filter + Legend ── */}
@@ -431,13 +446,14 @@ export default function AdminRoomsPage() {
 
 function StatCard({ icon, label, value, sub, color }: {
     icon: React.ReactNode; label: string; value: number; sub: string;
-    color: 'indigo' | 'slate' | 'red' | 'orange';
+    color: 'indigo' | 'slate' | 'red' | 'orange' | 'emerald';
 }) {
     const bg: Record<string, string> = {
         indigo: 'bg-indigo-50 dark:bg-indigo-900/20',
         slate: 'bg-slate-50 dark:bg-slate-800/50',
         red: 'bg-red-50 dark:bg-red-900/20',
         orange: 'bg-orange-50 dark:bg-orange-900/20',
+        emerald: 'bg-emerald-50 dark:bg-emerald-900/20',
     };
     return (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
