@@ -62,6 +62,7 @@ export default function AdminSidebar({ activeTab, onTabChange, counts, isCollaps
         { id: 'finance', label: 'Finance Hub', icon: FileText, path: '/admin/finances/create-invoice' },
         { id: 'rooms', label: 'Room Management', icon: Building2, path: '/admin/rooms' },
         { id: 'docs', label: 'Document Verify', icon: ShieldCheck, path: '/admin/documents' },
+        { id: 'duties', label: 'Duty Scheduling', icon: CalendarClock, path: '/admin/duties' },
         { id: 'academic', label: 'Academic Settings', icon: GraduationCap, path: '/admin/academic' },
         { id: 'audit', label: 'System Log History', icon: History, path: '/admin/audit' },
     ];
