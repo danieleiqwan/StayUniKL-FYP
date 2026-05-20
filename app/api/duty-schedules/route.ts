@@ -54,9 +54,9 @@ export async function POST(request: Request) {
         if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
         const body = await request.json();
-        const { name, role, hostel_block, floor, duty_date, end_date, start_time, end_time, contact_number, status } = body;
+        const { name, role, floor, duty_date, end_date, start_time, end_time, contact_number, status } = body;
 
-        if (!name || !role || !hostel_block || !floor || !duty_date || !start_time || !end_time || !contact_number) {
+        if (!name || !role || !floor || !duty_date || !start_time || !end_time || !contact_number) {
             return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
         }
 
@@ -90,22 +90,22 @@ export async function POST(request: Request) {
             datesToSchedule.push(duty_date);
         }
 
-        // Check overlaps for all dates in the range
+        // Check overlaps for all dates in the range (same floor, same time)
         for (const date of datesToSchedule) {
             const overlapQuery = `
                 SELECT name, role, start_time, end_time FROM duty_schedules
                 WHERE duty_date = ? 
-                  AND hostel_block = ? 
+                  AND floor = ?
                   AND status = 'active'
                   AND start_time < ? 
                   AND end_time > ?
             `;
-            const [overlaps]: any = await pool.query(overlapQuery, [date, hostel_block, end_time, start_time]);
+            const [overlaps]: any = await pool.query(overlapQuery, [date, floor, end_time, start_time]);
 
             if (overlaps.length > 0) {
                 const o = overlaps[0];
                 return NextResponse.json({ 
-                    error: `Overlap Error on ${date}: ${o.name} (${o.role}) is already scheduled on Block ${hostel_block} from ${o.start_time.substring(0, 5)} to ${o.end_time.substring(0, 5)}.` 
+                    error: `Overlap Error on ${date}: ${o.name} (${o.role}) is already scheduled on Floor ${floor} from ${o.start_time.substring(0, 5)} to ${o.end_time.substring(0, 5)}.` 
                 }, { status: 409 });
             }
         }
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
             const [result]: any = await pool.query(
                 `INSERT INTO duty_schedules (name, role, hostel_block, floor, duty_date, start_time, end_time, contact_number, status)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [name, role, hostel_block, floor, date, start_time, end_time, contact_number, status || 'active']
+                [name, role, '', floor, date, start_time, end_time, contact_number, status || 'active']
             );
             newIds.push(result.insertId);
         }
@@ -127,7 +127,7 @@ export async function POST(request: Request) {
             action: 'CREATE_DUTY_SCHEDULE_RANGE',
             entityType: 'DutySchedule',
             entityId: String(newIds[0]),
-            details: { name, role, hostel_block, duty_date, end_date, datesScheduled: datesToSchedule }
+            details: { name, role, floor, duty_date, end_date, datesScheduled: datesToSchedule }
         });
 
         return NextResponse.json({ success: true, ids: newIds });
@@ -144,11 +144,11 @@ export async function PUT(request: Request) {
         if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
         const body = await request.json();
-        const { id, name, role, hostel_block, floor, duty_date, start_time, end_time, contact_number, status } = body;
+        const { id, name, role, floor, duty_date, start_time, end_time, contact_number, status } = body;
 
         if (!id) return NextResponse.json({ error: 'ID is required.' }, { status: 400 });
 
-        if (!name || !role || !hostel_block || !floor || !duty_date || !start_time || !end_time || !contact_number) {
+        if (!name || !role || !floor || !duty_date || !start_time || !end_time || !contact_number) {
             return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
         }
 
@@ -162,30 +162,30 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: 'Start time must be strictly before end time.' }, { status: 400 });
         }
 
-        // Check for overlaps (excluding the current record id)
+        // Check for overlaps (same floor, excluding current record)
         const overlapQuery = `
             SELECT name, role, start_time, end_time FROM duty_schedules
             WHERE duty_date = ? 
-              AND hostel_block = ? 
+              AND floor = ?
               AND status = 'active'
               AND id != ?
               AND start_time < ? 
               AND end_time > ?
         `;
-        const [overlaps]: any = await pool.query(overlapQuery, [duty_date, hostel_block, id, end_time, start_time]);
+        const [overlaps]: any = await pool.query(overlapQuery, [duty_date, floor, id, end_time, start_time]);
 
         if (status === 'active' && overlaps.length > 0) {
             const o = overlaps[0];
             return NextResponse.json({ 
-                error: `Overlap Error: ${o.name} (${o.role}) is already scheduled on Block ${hostel_block} from ${o.start_time.substring(0, 5)} to ${o.end_time.substring(0, 5)}.` 
+                error: `Overlap Error: ${o.name} (${o.role}) is already scheduled on Floor ${floor} from ${o.start_time.substring(0, 5)} to ${o.end_time.substring(0, 5)}.` 
             }, { status: 409 });
         }
 
         await pool.query(
             `UPDATE duty_schedules 
-             SET name = ?, role = ?, hostel_block = ?, floor = ?, duty_date = ?, start_time = ?, end_time = ?, contact_number = ?, status = ?
+             SET name = ?, role = ?, floor = ?, duty_date = ?, start_time = ?, end_time = ?, contact_number = ?, status = ?
              WHERE id = ?`,
-            [name, role, hostel_block, floor, duty_date, start_time, end_time, contact_number, status, id]
+            [name, role, floor, duty_date, start_time, end_time, contact_number, status, id]
         );
 
         await logAction({
@@ -194,7 +194,7 @@ export async function PUT(request: Request) {
             action: 'UPDATE_DUTY_SCHEDULE',
             entityType: 'DutySchedule',
             entityId: String(id),
-            details: { name, role, hostel_block, duty_date }
+            details: { name, role, floor, duty_date }
         });
 
         return NextResponse.json({ success: true });

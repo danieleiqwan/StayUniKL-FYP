@@ -87,7 +87,6 @@ const DAYS_OF_WEEK = [
 export default function ContactsPage() {
     const [duties, setDuties] = useState<DutySchedule[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedBlock, setSelectedBlock] = useState<string>('all');
     const [selectedRole, setSelectedRole] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -105,16 +104,12 @@ export default function ContactsPage() {
 
     // Filter logic
     const filteredDuties = duties.filter(d => {
-        const matchesBlock = selectedBlock === 'all' || d.hostel_block.toLowerCase() === selectedBlock.toLowerCase();
         const matchesRole = selectedRole === 'all' || d.role === selectedRole;
         const matchesSearch = d.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                               d.floor.toLowerCase().includes(searchQuery.toLowerCase()) ||
                               d.contact_number.includes(searchQuery);
-        return matchesBlock && matchesRole && matchesSearch;
+        return matchesRole && matchesSearch;
     });
-
-    // Unique blocks for filtering
-    const blocks = ['all', ...Array.from(new Set(duties.map(d => d.hostel_block.toUpperCase())))];
 
     // Helper to get duties on a specific day of the week
     const getDutiesForDay = (dayIndex: number) => {
@@ -280,22 +275,7 @@ export default function ContactsPage() {
                             </button>
                         </div>
 
-                        {blocks.length > 1 && (
-                            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-1 rounded-xl">
-                                <span className="text-[10px] font-black uppercase text-slate-400 px-2">Block</span>
-                                <select
-                                    value={selectedBlock}
-                                    onChange={(e) => setSelectedBlock(e.target.value)}
-                                    className="bg-transparent text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 focus:outline-none pr-4 cursor-pointer"
-                                >
-                                    {blocks.map(b => (
-                                        <option key={b} value={b} className="bg-white dark:bg-slate-900">
-                                            {b === 'all' ? 'All Blocks' : `Block ${b}`}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
+
                     </div>
                 </div>
 
@@ -366,7 +346,7 @@ export default function ContactsPage() {
                                                                             <div className="mt-2 space-y-1 text-[11px] font-semibold text-slate-500">
                                                                                 <div className="flex items-center gap-1.5">
                                                                                     <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
-                                                                                    <span>Block {duty.hostel_block}, Floor {duty.floor}</span>
+                                                                                    <span>Floor {duty.floor}</span>
                                                                                 </div>
                                                                                 <div className="flex items-center gap-1.5">
                                                                                     <Calendar className="h-3 w-3 text-slate-400 shrink-0" />

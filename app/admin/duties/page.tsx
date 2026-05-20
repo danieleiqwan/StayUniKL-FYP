@@ -22,7 +22,6 @@ interface DutySchedule {
 const emptyForm = {
     name: '',
     role: 'SRC' as 'SRC' | 'Fellow',
-    hostel_block: '',
     floor: '',
     duty_date: '',
     end_date: '',
@@ -73,7 +72,6 @@ export default function AdminDutiesPage() {
         setForm({
             name: duty.name,
             role: duty.role,
-            hostel_block: duty.hostel_block,
             floor: duty.floor,
             duty_date: duty.duty_date.split('T')[0],
             end_date: '',
@@ -202,7 +200,7 @@ export default function AdminDutiesPage() {
                                 <tr className="bg-slate-50 dark:bg-slate-800/50">
                                     <th className="text-left px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</th>
                                     <th className="text-left px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</th>
-                                    <th className="text-left px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Block & Floor</th>
+                                    <th className="text-left px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Floor</th>
                                     <th className="text-left px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date & Time</th>
                                     <th className="text-left px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact</th>
                                     <th className="text-left px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
@@ -230,7 +228,7 @@ export default function AdminDutiesPage() {
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
                                                     <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                                                    <span>Block {duty.hostel_block}, Floor {duty.floor}</span>
+                                                    <span>Floor {duty.floor}</span>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
@@ -334,29 +332,16 @@ export default function AdminDutiesPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hostel Block</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        placeholder="e.g. Block A" 
-                                        value={form.hostel_block} 
-                                        onChange={e => setForm({ ...form, hostel_block: e.target.value })}
-                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-5 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-100 dark:focus:ring-orange-900/20 transition-all" 
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Floor Assignment</label>
-                                    <input 
-                                        type="text" 
-                                        required 
-                                        placeholder="e.g. Floor 3 or All" 
-                                        value={form.floor} 
-                                        onChange={e => setForm({ ...form, floor: e.target.value })}
-                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-5 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-100 dark:focus:ring-orange-900/20 transition-all" 
-                                    />
-                                </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Floor Assignment</label>
+                                <input 
+                                    type="text" 
+                                    required 
+                                    placeholder="e.g. Floor 3 or All" 
+                                    value={form.floor} 
+                                    onChange={e => setForm({ ...form, floor: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-5 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-100 dark:focus:ring-orange-900/20 transition-all" 
+                                />
                             </div>
 
                             {!editId ? (
