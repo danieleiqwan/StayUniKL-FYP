@@ -94,15 +94,17 @@ flowchart LR
     A2["👤\nAdmin"]
 
     subgraph SYS["StayUniKL System — Check-In / Check-Out Management"]
-        UC1(["View Personal QR Code"])
+        UC1(["View/Generate Personal QR Code"])
         UC2(["Scan QR Code for Check-In"])
         UC3(["System Validates Check-In"])
         UC4(["Update Status to Checked In"])
         UC5(["Record Check-In Timestamp"])
-        UC6(["Process Check-Out"])
-        UC7(["Update Status to Checked Out"])
-        UC8(["Record Check-Out Timestamp"])
-        UC9(["View Check-In/Out Logs"])
+        UC6(["Generate Check-Out QR Code"])
+        UC7(["Scan QR Code for Check-Out"])
+        UC8(["System Validates Check-Out"])
+        UC9(["Update Status to Checked Out"])
+        UC10(["Record Check-Out Timestamp"])
+        UC11(["View Check-In/Out Logs"])
     end
 
     A1 --> UC1
@@ -112,11 +114,14 @@ flowchart LR
     UC3 --> UC4
     UC4 --> UC5
 
-    A2 --> UC6
-    UC6 --> UC7
+    A1 --> UC6
+    A1 --> UC7
+    A2 --> UC7
     UC7 --> UC8
+    UC8 --> UC9
+    UC9 --> UC10
 
-    A2 --> UC9
+    A2 --> UC11
 ```
 
 ---

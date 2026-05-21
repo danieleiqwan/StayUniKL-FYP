@@ -21,20 +21,20 @@
 
 ---
 
-## 2. UC-QR-02: Admin Processes Check-Out
+## 2. UC-QR-02: Student QR Check-Out
 
 | **Field** | **Description / Flow** |
 |---|---|
 | **Use Case ID** | UC-QR-02 |
-| **Use Case Name** | Admin Processes Check-Out |
-| **Description** | Allows an administrator to check out a student who is vacating their room, updating their application status and freeing the bed. |
-| **Primary Actor** | Admin |
+| **Use Case Name** | Student QR Check-Out |
+| **Description** | Allows a checked-in student to check out of their room by generating a secure check-out QR code (or presenting their Virtual ID Card) on the mobile dashboard, which is then scanned by the administrator at the check-out terminal. |
+| **Primary Actor** | Student |
 | **Include use cases** | - |
 | **Pre-Condition** | Student application status is `Checked in`. |
 | **Post-Condition** | Application status is updated to `Checked out`, check-out timestamp is recorded, bed status is reset to `Available`, and bed/room references are cleared from the application. |
-| **Main Flow** | **Step** \| **Action**<br>**Pre-Condition** \| Admin is on the Admin Dashboard page.<br>**2.1** \| Admin navigates to the list of checked-in students (or application list).<br>**2.2** \| Admin locates the student's active checked-in application.<br>**2.3** \| Admin clicks the "Check Out" button.<br>**2.4** \| System prompts Admin for confirmation.<br>**2.5** \| Admin confirms the action.<br>**2.6** \| System sends a PUT request to `/api/applications` with status `Checked out` and the application ID.<br>**2.7** \| System updates the application record, setting `check_out_date` to `NOW()`.<br>**2.8** \| System updates the bed status to `Available` and clears `bed_id` and `room_id` associated with the student application.<br>**Post-Condition** \| Student check-out is registered and room bed is freed. |
-| **Alternate Flow** | - |
-| **Robust Flow** | - **Wrong Status Checkout:** If Admin attempts to trigger checkout for an application that is not currently `Checked in`, the Check Out button is disabled in the UI. |
+| **Main Flow** | **Step** \| **Action**<br>**Pre-Condition** \| Student is ready to vacate their hostel room.<br>**2.1** \| Student navigates to the Hostel Application status page on their dashboard.<br>**2.2** \| Student clicks "Generate Check-out QR".<br>**2.3** \| System issues a request, generates a secure check-out token, and logs it in `checkout_tokens`. <br>**2.4** \| System renders the generated check-out QR code on the student's dashboard screen.<br>**2.5** \| Student presents the check-out QR code to the administrator at the terminal.<br>**2.6** \| Admin selects the "Room Check-out" mode on the scan panel and scans the student's QR code.<br>**2.7** \| System captures the token and issues a PUT request to `/api/admin/checkout`.<br>**2.8** \| System updates application status to `Checked out`, sets `check_out_date` to `NOW()`, sets bed status to `Available`, and nullifies bed/room assignments on the application.<br>**Post-Condition** \| Stay is successfully closed, and the bed is freed. |
+| **Alternate Flow** | - **ID Card Check-out:** If the check-out token cannot be generated, the student presents their Virtual ID Card QR instead. The scanner resolves the student ID, locates their active checked-in stay, and completes the check-out. |
+| **Robust Flow** | - **Expired/Invalid QR:** If the check-out QR code has expired or is invalid, the scan panel displays "Scan Failed: Invalid or expired check-out token" and the check-out is denied. |
 
 ---
 
