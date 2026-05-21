@@ -60,7 +60,7 @@ export async function middleware(request: NextRequest) {
                              !pathname.includes('/api/superadmin/bootstrap') && 
                              !pathname.includes('/api/superadmin/migrate');
     const isAdminPath = (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) && !isSuperAdminPath;
-    const isDashboardPath = pathname.startsWith('/dashboard') || pathname.startsWith('/api/applications') || pathname.startsWith('/api/complaints') || pathname.startsWith('/api/court');
+    const isDashboardPath = pathname.startsWith('/dashboard') || pathname.startsWith('/api/applications') || pathname.startsWith('/api/complaints') || pathname.startsWith('/api/court') || pathname.startsWith('/api/student');
     const isAuthPath = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/forgot-password') || pathname.startsWith('/reset-password');
 
     // 2. Allow if not a protected path
@@ -178,6 +178,7 @@ export const config = {
         '/api/applications/:path*',
         '/api/complaints/:path*',
         '/api/court/:path*',
+        '/api/student/:path*',
         '/login',
         '/register',
         '/forgot-password',

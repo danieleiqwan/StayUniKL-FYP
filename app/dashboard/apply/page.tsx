@@ -53,7 +53,8 @@ export default function ApplyPage() {
         if (!myApplication) return;
         setGeneratingCheckout(true);
         try {
-            const res = await fetch('/api/admin/checkout', {
+            // /api/student/checkout is a student-accessible route (not blocked by admin middleware)
+            const res = await fetch('/api/student/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ applicationId: myApplication.id })
@@ -161,14 +162,15 @@ export default function ApplyPage() {
                             <div>
                                 <h3 className="text-sm font-black text-slate-900 dark:text-white">Hostel Check-Out</h3>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                    When you are ready to vacate your room, generate a secure check-out QR code below to scan at the terminal.
+                                    Generate a secure check-out QR below, or present your <strong className="text-slate-700 dark:text-slate-300">Digital ID Card</strong> QR at the terminal — both are accepted.
                                 </p>
                             </div>
-                            
+
                             {checkoutQR ? (
-                                <div className="flex flex-col items-center justify-center animate-in zoom-in-95 duration-300 mt-4 bg-white p-6 rounded-2xl border border-slate-200">
+                                <div className="flex flex-col items-center justify-center animate-in zoom-in-95 duration-300 mt-2 bg-white p-6 rounded-2xl border border-slate-200 w-full">
                                     <QRCode value={checkoutQR} size={180} />
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4">Scan to Check-out</p>
+                                    <p className="text-[10px] text-slate-400 mt-1">Show this to the admin at the terminal</p>
                                     <button
                                         onClick={() => setCheckoutQR(null)}
                                         className="text-xs font-bold text-[#F26C22] hover:text-[#d65a16] mt-3"
@@ -189,6 +191,13 @@ export default function ApplyPage() {
                                     )}
                                     Generate Check-out QR
                                 </button>
+                            )}
+
+                            {/* Tip: Virtual ID Card also works */}
+                            {!checkoutQR && (
+                                <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed">
+                                    💡 Tip: You can also ask the admin to scan your <strong className="text-slate-500 dark:text-slate-400">Digital ID Card</strong> QR (on your Profile page) directly.
+                                </p>
                             )}
                         </div>
                     )}
