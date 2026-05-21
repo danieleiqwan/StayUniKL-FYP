@@ -86,37 +86,37 @@ flowchart LR
 
 ---
 
-## Figure 3: QR Check-In / Check-Out
+## Figure 3: Check-In / Check-Out Management
 
 ```mermaid
 flowchart LR
     A1["👤\nStudent"]
     A2["👤\nAdmin"]
 
-    subgraph SYS["StayUniKL System — QR Check-In / Check-Out"]
+    subgraph SYS["StayUniKL System — Check-In / Check-Out Management"]
         UC1(["View Personal QR Code"])
         UC2(["Scan QR Code for Check-In"])
-        UC3(["System Validates QR Code"])
+        UC3(["System Validates Check-In"])
         UC4(["Update Status to Checked In"])
-        UC5(["Initiate Check-Out"])
-        UC6(["Update Status to Checked Out"])
-        UC7(["Record Check-In Timestamp"])
+        UC5(["Record Check-In Timestamp"])
+        UC6(["Process Check-Out"])
+        UC7(["Update Status to Checked Out"])
         UC8(["Record Check-Out Timestamp"])
-        UC9(["View Check-In / Check-Out Logs"])
-        UC10(["Filter Logs by Date or Student"])
+        UC9(["View Check-In/Out Logs"])
     end
 
     A1 --> UC1
     A1 --> UC2
+    A2 --> UC2
     UC2 --> UC3
     UC3 --> UC4
-    UC4 --> UC7
-    A1 --> UC5
-    UC5 --> UC6
-    UC6 --> UC8
+    UC4 --> UC5
+
+    A2 --> UC6
+    UC6 --> UC7
+    UC7 --> UC8
 
     A2 --> UC9
-    A2 --> UC10
 ```
 
 ---

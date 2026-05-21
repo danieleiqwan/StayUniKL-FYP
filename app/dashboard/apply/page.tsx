@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useData, Room, Bed } from '@/context/DataContext';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import QRCode from 'react-qr-code';
 import {
     CheckCircle2, ChevronRight, BedDouble, CalendarDays, Key,
     AlertTriangle, QrCode, CreditCard, GraduationCap, Banknote, Info,
@@ -43,6 +44,33 @@ export default function ApplyPage() {
     // Session & Classification state
     const [session, setSession] = useState<AppSession | null | 'loading'>('loading');
     const [studentType, setStudentType] = useState<'new' | 'returning' | null>(null);
+
+    // QR Check-out states
+    const [checkoutQR, setCheckoutQR] = useState<string | null>(null);
+    const [generatingCheckout, setGeneratingCheckout] = useState(false);
+
+    const handleGenerateCheckoutQR = async () => {
+        if (!myApplication) return;
+        setGeneratingCheckout(true);
+        try {
+            const res = await fetch('/api/admin/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ applicationId: myApplication.id })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setCheckoutQR(data.token);
+            } else {
+                alert(data.error || 'Failed to generate check-out QR code');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Failed to generate check-out QR code');
+        } finally {
+            setGeneratingCheckout(false);
+        }
+    };
 
     useEffect(() => {
         if (!user) return;
@@ -122,6 +150,46 @@ export default function ApplyPage() {
                                     Proceed to the Hostel Check-In Hub and scan your <strong className="text-slate-700 dark:text-slate-300">Digital Access Card</strong> QR code at the terminal.
                                 </p>
                             </div>
+                        </div>
+                    )}
+
+                    {activeApplication.status === 'Checked in' && (
+                        <div className="mb-8 p-6 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 rounded-3xl flex flex-col items-center gap-4 text-center max-w-md w-full">
+                            <div className="bg-[#F26C22] text-white p-3 rounded-2xl shrink-0">
+                                <QrCode className="h-6 w-6" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-black text-slate-900 dark:text-white">Hostel Check-Out</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                                    When you are ready to vacate your room, generate a secure check-out QR code below to scan at the terminal.
+                                </p>
+                            </div>
+                            
+                            {checkoutQR ? (
+                                <div className="flex flex-col items-center justify-center animate-in zoom-in-95 duration-300 mt-4 bg-white p-6 rounded-2xl border border-slate-200">
+                                    <QRCode value={checkoutQR} size={180} />
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4">Scan to Check-out</p>
+                                    <button
+                                        onClick={() => setCheckoutQR(null)}
+                                        className="text-xs font-bold text-[#F26C22] hover:text-[#d65a16] mt-3"
+                                    >
+                                        Hide QR Code
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={handleGenerateCheckoutQR}
+                                    disabled={generatingCheckout}
+                                    className="mt-2 w-full py-3 bg-[#F26C22] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#d65a16] active:scale-95 transition-all flex items-center justify-center gap-2"
+                                >
+                                    {generatingCheckout ? (
+                                        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <QrCode className="h-4 w-4" />
+                                    )}
+                                    Generate Check-out QR
+                                </button>
+                            )}
                         </div>
                     )}
 

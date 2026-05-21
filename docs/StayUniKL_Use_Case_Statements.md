@@ -21,20 +21,20 @@
 
 ---
 
-## 2. UC-QR-02: Student QR Check-Out
+## 2. UC-QR-02: Admin Processes Check-Out
 
 | **Field** | **Description / Flow** |
 |---|---|
 | **Use Case ID** | UC-QR-02 |
-| **Use Case Name** | Student QR Check-Out |
-| **Description** | Allows a student currently checked into the hostel to check out, releasing the room bed back to the availability pool. |
-| **Primary Actor** | Student |
+| **Use Case Name** | Admin Processes Check-Out |
+| **Description** | Allows an administrator to check out a student who is vacating their room, updating their application status and freeing the bed. |
+| **Primary Actor** | Admin |
 | **Include use cases** | - |
 | **Pre-Condition** | Student application status is `Checked in`. |
 | **Post-Condition** | Application status is updated to `Checked out`, check-out timestamp is recorded, bed status is reset to `Available`, and bed/room references are cleared from the application. |
-| **Main Flow** | **Step** \| **Action**<br>**Pre-Condition** \| Student is ready to vacate room.<br>**2.1** \| Student navigates to the QR Check-Out section on the student dashboard.<br>**2.2** \| Student clicks "Confirm Check-Out".<br>**2.3** \| System issues a PUT request to `/api/applications` with status `Checked out`.<br>**2.4** \| System updates the application record, setting `check_out_date` to `NOW()`.<br>**2.5** \| System updates the bed status to `Available` in the database.<br>**2.6** \| System clears `bed_id` and `room_id` associated with the student application.<br>**Post-Condition** \| Student check-out is registered and room bed is freed. |
-| **Alternate Flow** | - **Admin Checkout:** Admin can checkout a student manually from the admin panel if the student departs without completing the process. |
-| **Robust Flow** | - **Wrong Status Checkout:** If student attempts checkout while status is not `Checked in`, system displays "You are not currently checked in." |
+| **Main Flow** | **Step** \| **Action**<br>**Pre-Condition** \| Admin is on the Admin Dashboard page.<br>**2.1** \| Admin navigates to the list of checked-in students (or application list).<br>**2.2** \| Admin locates the student's active checked-in application.<br>**2.3** \| Admin clicks the "Check Out" button.<br>**2.4** \| System prompts Admin for confirmation.<br>**2.5** \| Admin confirms the action.<br>**2.6** \| System sends a PUT request to `/api/applications` with status `Checked out` and the application ID.<br>**2.7** \| System updates the application record, setting `check_out_date` to `NOW()`.<br>**2.8** \| System updates the bed status to `Available` and clears `bed_id` and `room_id` associated with the student application.<br>**Post-Condition** \| Student check-out is registered and room bed is freed. |
+| **Alternate Flow** | - |
+| **Robust Flow** | - **Wrong Status Checkout:** If Admin attempts to trigger checkout for an application that is not currently `Checked in`, the Check Out button is disabled in the UI. |
 
 ---
 

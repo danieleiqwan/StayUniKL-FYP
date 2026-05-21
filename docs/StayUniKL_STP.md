@@ -584,7 +584,7 @@ Risk-based testing is applied to determine the order in which modules are tested
 
 ---
 
-## 4.3 Use Case: QR Check-In / Check-Out
+## 4.3 Use Case: Check-In / Check-Out Management
 
 ### Use Case Statement – UC-QR-01: Student QR Check-In
 
@@ -600,22 +600,22 @@ Risk-based testing is applied to determine the order in which modules are tested
 
 *Table 15: Use Case Statement – QR Check-In*
 
-### Use Case Statement – UC-QR-02: Student QR Check-Out
+### Use Case Statement – UC-QR-02: Admin Processes Check-Out
 
 | **Field** | **Description** |
 |---|---|
 | **Use Case ID** | UC-QR-02 |
-| **Use Case Name** | QR Code Check-Out |
-| **Actor** | Student |
+| **Use Case Name** | Admin Processes Check-Out |
+| **Actor** | Admin |
 | **Pre-condition** | Student is currently in `Checked In` status. |
-| **Post-condition** | Application status updated to `Checked Out`. Check-out timestamp recorded. |
-| **Main Flow** | 1. Student initiates check-out. 2. System validates current status. 3. Status updated to `Checked Out`. |
+| **Post-condition** | Application status updated to `Checked Out`. Check-out timestamp recorded, and bed status reset to `Available`. |
+| **Main Flow** | 1. Admin navigates to Checked-In Students list. 2. Admin locates student and clicks "Check Out". 3. System updates status to `Checked Out` and frees bed. |
 
-*Table 16: Use Case Statement – QR Check-Out*
+*Table 16: Use Case Statement – Admin Processes Check-Out*
 
 ---
 
-### Test Case Specification – QR Check-In / Check-Out
+### Test Case Specification – Check-In / Check-Out Management
 
 | **Test Case ID** | **Test Case Name** | **Test Input** | **Expected Result** | **Type** |
 |---|---|---|---|---|
@@ -623,11 +623,11 @@ Risk-based testing is applied to determine the order in which modules are tested
 | TC-QR-01-02 | Invalid QR code scan | Corrupted or unknown QR code | Error: "Invalid QR code" | Robustness |
 | TC-QR-01-03 | Check-in with status not Payment Pending | QR for Pending application | Error: "Check-in not permitted at current status" | Robustness |
 | TC-QR-01-04 | Database failure during check-in | Valid QR, DB offline | Error message; status not changed | Catastrophic |
-| TC-QR-02-01 | Valid QR check-out | Student with `Checked In` status initiates check-out | Status → `Checked Out`; timestamp recorded | Functionality |
-| TC-QR-02-02 | Check-out when not checked in | Student with `Pending` status | Error: "You are not currently checked in" | Robustness |
+| TC-QR-02-01 | Valid Admin check-out | Admin clicks Check Out on a `Checked In` student | Status → `Checked Out`; timestamp recorded, bed freed | Functionality |
+| TC-QR-02-02 | Check-out button disabled for non-checked-in student | Student with `Pending` status | Check Out button is disabled/unavailable | Robustness |
 | TC-QR-03-01 | Admin views check-in logs | Admin navigates to check-in log page | All check-in/out records listed with timestamps | Functionality |
 
-*Table 17: Test Case Specification – QR Check-In / Check-Out*
+*Table 17: Test Case Specification – Check-In / Check-Out Management*
 
 ---
 

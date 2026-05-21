@@ -226,7 +226,7 @@ function GeneratorMode() {
 // SCANNER MODE
 // ----------------------------------------------------------------------
 function ScannerMode() {
-    const [scanType, setScanType] = useState<'room' | 'court'>('room');
+    const [scanType, setScanType] = useState<'room' | 'room_checkout' | 'court'>('room');
     const [scanResult, setScanResult] = useState<{ success: boolean; message: string; student?: any } | null>(null);
     const [isScanning, setIsScanning] = useState(false);
     
@@ -262,7 +262,15 @@ function ScannerMode() {
             isProcessingRef.current = true;
             
             try {
-                const endpoint = scanType === 'room' ? '/api/admin/checkin' : '/api/admin/court-checkin';
+                let endpoint = '';
+                if (scanType === 'room') {
+                    endpoint = '/api/admin/checkin';
+                } else if (scanType === 'room_checkout') {
+                    endpoint = '/api/admin/checkout';
+                } else {
+                    endpoint = '/api/admin/court-checkin';
+                }
+
                 const res = await fetch(endpoint, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -319,22 +327,28 @@ function ScannerMode() {
                 }).catch(e => console.error("Failed to stop scanner", e));
             }
         };
-    }, []);
+    }, [scanType]); // Re-initialize camera hook when scanType changes to ensure endpoint binding is correct
 
     return (
         <div className="flex flex-col items-center">
             
             {/* Scan Type Toggle */}
-            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-6 w-full max-w-sm">
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl mb-6 w-full max-w-md">
                 <button
                     onClick={() => setScanType('room')}
-                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${scanType === 'room' ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-sm' : 'text-slate-500'}`}
+                    className={`flex-1 py-2 rounded-lg text-xs md:text-sm font-bold transition-all ${scanType === 'room' ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                     Room Check-in
                 </button>
                 <button
+                    onClick={() => setScanType('room_checkout')}
+                    className={`flex-1 py-2 rounded-lg text-xs md:text-sm font-bold transition-all ${scanType === 'room_checkout' ? 'bg-white dark:bg-slate-900 text-[#F26C22] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                    Room Check-out
+                </button>
+                <button
                     onClick={() => setScanType('court')}
-                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${scanType === 'court' ? 'bg-[#F26C22] text-white shadow-sm' : 'text-slate-500'}`}
+                    className={`flex-1 py-2 rounded-lg text-xs md:text-sm font-bold transition-all ${scanType === 'court' ? 'bg-[#F26C22] text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                     Court Check-in
                 </button>
@@ -359,10 +373,14 @@ function ScannerMode() {
                                 <div className="h-16 w-16 bg-green-500 rounded-full flex items-center justify-center mb-4 shadow-[0_0_40px_rgba(34,197,94,0.4)] animate-bounce">
                                     <UserCheck className="h-8 w-8 text-white" />
                                 </div>
-                                <h3 className="text-2xl font-black text-white mb-2">Check-in Complete!</h3>
+                                <h3 className="text-2xl font-black text-white mb-2">
+                                    {scanType === 'room_checkout' ? 'Check-out Complete!' : 'Check-in Complete!'}
+                                </h3>
                                 <p className="text-green-300 font-medium">{scanResult.student?.name}</p>
                                 {scanType === 'room' ? (
                                     <p className="text-green-400/70 text-sm mt-1">Room {scanResult.student?.room} • Bed {scanResult.student?.bed}</p>
+                                ) : scanType === 'room_checkout' ? (
+                                    <p className="text-green-400/70 text-sm mt-1">Room {scanResult.student?.room} • Bed {scanResult.student?.bed} is now Available</p>
                                 ) : (
                                     <p className="text-green-400/70 text-sm mt-1">{scanResult.student?.sport} Court • {scanResult.student?.timeSlot}</p>
                                 )}
@@ -389,7 +407,12 @@ function ScannerMode() {
                 <p className="font-bold flex items-center justify-center gap-2 mb-1">
                     <ScanLine className="h-4 w-4" /> Present QR Code
                 </p>
-                <p className="text-sm">Scan a generated check-in token to instantly authenticate & review the student's status.</p>
+                <p className="text-sm">
+                    {scanType === 'room_checkout' 
+                        ? "Scan a student's check-out QR token or Virtual ID Card to check them out of their room assignment instantly."
+                        : "Scan a generated check-in token to instantly authenticate & review the student's status."
+                    }
+                </p>
             </div>
             
         </div>
