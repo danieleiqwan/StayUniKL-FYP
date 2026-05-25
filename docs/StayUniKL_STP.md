@@ -957,6 +957,38 @@ Continuous power supply with UPS (Uninterruptible Power Supply) or surge protect
 
 ## 5.4 Testing Group – Testers Involved
 
+### 5.4.1 Test Sequences and Assigned Testers
+
+Below is the detailed test sequence mapping for each feature module in the StayUniKL system, established based on the risk-based testing priority:
+
+| **Test Sequence (Based on Risk Analysis)** | **Tester** |
+|---|---|
+| <p>**Feature 1:** Student Login (Authentication & Role-Based Access Control)<br>**Test Sequence:** 01</p> | Danial Iwan |
+| <p>**Feature 2:** Admin Login (Authentication & Role-Based Access Control)<br>**Test Sequence:** 02</p> | Danial Iwan |
+| <p>**Feature 3:** Logout (Authentication & Role-Based Access Control)<br>**Test Sequence:** 03</p> | Danial Iwan |
+| <p>**Feature 4:** Submit Hostel Application (Hostel Application Management)<br>**Test Sequence:** 04</p> | Danial Iwan / Representative Student User (UAT) |
+| <p>**Feature 5:** Approve or Reject Hostel Application (Hostel Application Management)<br>**Test Sequence:** 05</p> | Danial Iwan / Representative Admin User (UAT) |
+| <p>**Feature 6:** Assign Bed to Approved Application (Hostel Application Management)<br>**Test Sequence:** 06</p> | Danial Iwan / Representative Admin User (UAT) |
+| <p>**Feature 7:** Student QR Check-In (Check-In / Check-Out Management)<br>**Test Sequence:** 07</p> | Danial Iwan / Representative Student User (UAT) |
+| <p>**Feature 8:** Student QR Check-Out (Check-In / Check-Out Management)<br>**Test Sequence:** 08</p> | Danial Iwan / Representative Student User (UAT) |
+| <p>**Feature 9:** Make Hostel Fee Payment (Finance & Invoice Management)<br>**Test Sequence:** 09</p> | Danial Iwan / Representative Student User (UAT) |
+| <p>**Feature 10:** View Payment Records (Finance & Invoice Management)<br>**Test Sequence:** 10</p> | Danial Iwan / Representative Admin User (UAT) |
+| <p>**Feature 11:** Book Facility Slot (Facility Booking Management)<br>**Test Sequence:** 11</p> | Danial Iwan / Representative Student User (UAT) |
+| <p>**Feature 12:** Approve or Reject Facility Booking (Facility Booking Management)<br>**Test Sequence:** 12</p> | Danial Iwan / Representative Admin User (UAT) |
+| <p>**Feature 13:** Cancel Facility Booking (Facility Booking Management)<br>**Test Sequence:** 13</p> | Danial Iwan / Representative Student User (UAT) |
+| <p>**Feature 14:** Submit Maintenance Complaint (Complaint Management)<br>**Test Sequence:** 14</p> | Danial Iwan / Representative Student User (UAT) |
+| <p>**Feature 15:** Update Complaint Status (Complaint Management)<br>**Test Sequence:** 15</p> | Danial Iwan / Representative Admin User (UAT) |
+| <p>**Feature 16:** View Room and Bed Availability (Room & Asset Management)<br>**Test Sequence:** 16</p> | Danial Iwan / Representative Admin User (UAT) |
+| <p>**Feature 17:** Manage Hostel Asset Inventory (Room & Asset Management)<br>**Test Sequence:** 17</p> | Danial Iwan / Representative Admin User (UAT) |
+| <p>**Feature 18:** View System Audit Log (Admin Dashboard & Audit Log)<br>**Test Sequence:** 18</p> | Danial Iwan / Representative Admin User (UAT) |
+| <p>**Feature 19:** Manage Admin Staff Accounts (Admin Dashboard & Audit Log)<br>**Test Sequence:** 19</p> | Danial Iwan |
+
+*Table 36: Test Sequence and Assigned Testers*
+
+### 5.4.2 Roles and High-Level Responsibilities
+
+The testing group is comprised of various stakeholders, each performing critical roles throughout the testing life cycle:
+
 | **No.** | **Name** | **Role** | **Responsibilities** |
 |---|---|---|---|
 | 1 | Danial Iwan | Developer / Primary Tester | Designs and executes all test cases; documents results; logs and resolves defects. |
@@ -964,9 +996,25 @@ Continuous power supply with UPS (Uninterruptible Power Supply) or surge protect
 | 3 | Representative Student User | UAT Participant | Participates in User Acceptance Testing for student-facing modules (hostel application, complaint, booking). |
 | 4 | Representative Admin User | UAT Participant | Participates in User Acceptance Testing for admin modules (approval, room management, asset). |
 
-*Table 36: Testing Group – Testers Involved*
+*Table 37: Testing Group Roles and Responsibilities*
 
 ## 5.5 Preparation and Training Required
+
+### 5.5.1 Roles and Technical Responsibilities of the Test Team
+
+Below are the key testing roles and their corresponding technical responsibilities established to ensure comprehensive coverage throughout the testing life cycle:
+
+| **Roles** | **Responsibilities** |
+|---|---|
+| <p>**Test Planner / Controller**<br>- Danial Iwan<br>- FYP Supervisor (Observer / Reviewer)</p> | <p>- Ensure each testing phase is delivered to schedule and quality.<br>- Produce high-level and detailed test conditions and strategy.<br>- Produce expected results and review test specification.<br>- Report progress at regular status reporting milestones.<br>- Coordinate review and sign-off of test conditions.<br>- Manage individual test cycles and resolve UAT queries/problems.</p> |
+| <p>**Lead Tester**<br>- Danial Iwan<br>- Representative Student User (UAT)<br>- Representative Admin User (UAT)</p> | <p>- Identify test data and prepare test environments.<br>- Execute test conditions and mark-off actual results against expected results.<br>- Prepare software error and defect logs.<br>- Administrate defect measurement system and tracking.<br>- Ensure test systems outages/problems are reported immediately.<br>- Ensure entrance criteria are achieved prior to the start of system test execution.<br>- Ensure exit criteria are achieved prior to final system test sign-off.</p> |
+| <p>**Test Designer**<br>- Danial Iwan</p> | <p>- Design test components such as test cases, test data, test sequences, test procedures, and scenarios.<br>- Determine appropriate techniques, tools, and guidelines to implement and automate tests.</p> |
+
+*Table 38: Roles and Responsibilities of the Test Team*
+
+### 5.5.2 Preparation and Training Requirements
+
+In order to ensure that all testers are fully equipped to conduct their testing tasks, the following training schedule is established:
 
 | **Role** | **Training Required** | **Duration** |
 |---|---|---|
@@ -975,7 +1023,7 @@ Continuous power supply with UPS (Uninterruptible Power Supply) or surge protect
 | UAT Participants (Admin) | Walkthrough of admin dashboard; explanation of approval and management workflows. | 30 minutes |
 | Supervisor | Review of STP document; briefing on test objectives and schedule. | 1 hour |
 
-*Table 37: Preparation and Training Requirements*
+*Table 39: Preparation and Training Requirements*
 
 ---
 
@@ -1002,7 +1050,7 @@ The following schedule outlines the planned testing activities for StayUniKL, al
 | 15 | Final Test Report Compilation | 03/06/2026 | 05/06/2026 | Danial Iwan |
 | 16 | Supervisor Review & Sign-Off | 05/06/2026 | 07/06/2026 | Supervisor |
 
-*Table 38: Test Schedule*
+*Table 40: Test Schedule*
 
 ---
 
@@ -1026,7 +1074,7 @@ The following schedule outlines the planned testing activities for StayUniKL, al
 | UAT | User Acceptance Testing — testing performed by end-users to verify the system meets their needs before final deployment. |
 | Use Case Testing | A black-box testing technique where test cases are derived from use case specifications. |
 
-*Table 39: Definitions*
+*Table 41: Definitions*
 
 ## 7.2 Abbreviations
 
@@ -1049,7 +1097,7 @@ The following schedule outlines the planned testing activities for StayUniKL, al
 | UC | Use Case |
 | UniKL | Universiti Kuala Lumpur |
 
-*Table 40: Abbreviations*
+*Table 42: Abbreviations*
 
 ---
 
