@@ -94,12 +94,13 @@ export interface ProratedBillingResult {
 /**
  * Computes the number of whole calendar months between two dates (inclusive of both months).
  * Example: March (start) to July (end) = 5 months.
+ * Uses UTC getters because DB dates are stored in UTC (e.g. 2026-02-28T16:00:00Z = 1 Mar MYT).
  */
 function countInclusiveMonths(start: Date, end: Date): number {
-    const startYear = start.getFullYear();
-    const startMonth = start.getMonth(); // 0-indexed
-    const endYear = end.getFullYear();
-    const endMonth = end.getMonth();
+    const startYear = start.getUTCFullYear();
+    const startMonth = start.getUTCMonth(); // 0-indexed, UTC
+    const endYear = end.getUTCFullYear();
+    const endMonth = end.getUTCMonth();
     return (endYear - startYear) * 12 + (endMonth - startMonth) + 1;
 }
 
@@ -153,9 +154,12 @@ async function getProratedBillingForNow(
         );
 
         if (semesterRows && semesterRows.length > 0) {
+            // Use UTC date to preserve the admin-entered local date (stored as UTC in DB)
             const semesterStart = new Date(semesterRows[0].start_date);
             const semesterEnd = new Date(semesterRows[0].end_date);
-            return calculateProratedBilling(now, semesterStart, semesterEnd);
+            // registrationDate: use UTC-equivalent of today so month comparison is consistent
+            const nowUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+            return calculateProratedBilling(nowUtc, semesterStart, semesterEnd);
         }
     } catch {
         // Table semesters might not exist or be set up yet – fall through
