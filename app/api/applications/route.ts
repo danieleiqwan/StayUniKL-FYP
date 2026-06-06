@@ -378,9 +378,13 @@ try {
                         );
                     }
                     await syncApplicationPaymentStatus(id, connection);
-                } else if (status === 'Rejected' || status === 'Cancelled') {
+                } else if (status === 'Rejected') {
+                    title = 'Application Rejected';
+                    message = `Your application for ${app.room_type} has been rejected.${cancellationReason ? ` Reason: ${cancellationReason}` : ' Please contact the hostel office for more information.'}`;
+                    type = 'error';
+                } else if (status === 'Cancelled') {
                     title = 'Application Cancelled';
-                    message = `Your application for ${app.room_type} has been ${status.toLowerCase()}. ${cancellationReason ? `Reason: ${cancellationReason}` : ''}`;
+                    message = `Your application for ${app.room_type} has been cancelled.${cancellationReason ? ` Reason: ${cancellationReason}` : ''}`;
                     type = 'error';
                 } else if (status === 'Checked in') {
                     title = 'Welcome to StayUniKL!';

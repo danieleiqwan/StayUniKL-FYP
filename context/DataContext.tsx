@@ -70,7 +70,7 @@ interface DataContextType {
         paymentMethod: 'Full Payment' | 'Installment Plan';
     }) => Promise<{ success?: boolean; error?: string }>;
     reapplyApplication: (id: string) => void;
-    updateApplicationStatus: (id: string, status: Application['status']) => void;
+    updateApplicationStatus: (id: string, status: Application['status'], cancellationReason?: string) => void;
     updateBulkApplicationStatus: (ids: string[], status: Application['status']) => Promise<{ success?: boolean; error?: string }>;
     myApplication: Application | undefined;
     myRoomChangeRequest: any | undefined;
@@ -315,12 +315,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
         } catch (e) { console.error(e); }
     };
 
-    const updateApplicationStatus = async (id: string, status: Application['status']) => {
+    const updateApplicationStatus = async (id: string, status: Application['status'], cancellationReason?: string) => {
         try {
             await fetch('/api/applications', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, status })
+                body: JSON.stringify({ id, status, cancellationReason })
             });
             fetchData();
         } catch (e) { console.error(e); }
