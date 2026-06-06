@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { X, Home, CheckCircle, AlertCircle, Users, Bed as BedIcon, Building2, FileText } from 'lucide-react';
+import { X, Home, CheckCircle, AlertCircle, Users, Bed as BedIcon, Building2, FileText, Wrench } from 'lucide-react';
 
 interface Room {
     id: string;
@@ -48,14 +48,29 @@ export default function RoomAssignmentModal({
     const [selectedBedId, setSelectedBedId] = useState('');
     const [adminNotes, setAdminNotes] = useState('');
     const [availableBeds, setAvailableBeds] = useState<any[]>([]);
+    const [resolvedGender, setResolvedGender] = useState(studentGender || '');
 
     useEffect(() => {
         loadRoomsAndBeds();
-    }, []);
+    }, [studentGender, studentId]);
 
     const loadRoomsAndBeds = async () => {
         try {
             setLoading(true);
+
+            let activeGender = studentGender;
+            if (!activeGender && studentId) {
+                try {
+                    const detailsRes = await fetch(`/api/admin/student-details?studentId=${studentId}`);
+                    const detailsData = await detailsRes.json();
+                    if (detailsData.success) {
+                        activeGender = detailsData.data.profile?.gender || detailsData.data.roomDetails?.wing || '';
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch student details for gender resolution:', err);
+                }
+            }
+            setResolvedGender(activeGender);
 
             const roomsRes = await fetch('/api/rooms');
             const roomsData = await roomsRes.json();
@@ -65,7 +80,7 @@ export default function RoomAssignmentModal({
 
             const available = filterAvailableBeds(
                 roomsList,
-                studentGender,
+                activeGender,
                 preferredRoomType
             );
 
@@ -232,7 +247,7 @@ export default function RoomAssignmentModal({
                                 No Inventory Available
                             </h3>
                             <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md text-lg">
-                                We couldn't find any rooms matching the student's gender ({studentGender})
+                                We couldn't find any rooms matching the student's gender ({resolvedGender || 'Unknown'})
                                 {preferredRoomType && ` and requested room type (${preferredRoomType})`}.
                             </p>
                             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-2xl p-6 max-w-md">

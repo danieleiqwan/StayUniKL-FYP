@@ -51,7 +51,7 @@ export async function GET(request: Request) {
             SELECT rcr.*,
                    COALESCE(u.student_id, rcr.student_id) as student_id,
                    u.name as student_name,
-                   u.gender as student_gender,
+                   COALESCE(u.gender, curr_room.gender) as student_gender,
                    curr_room.id as current_room_number,
                    curr_room.floor_id as current_floor_id,
                    new_room.id as new_room_number,

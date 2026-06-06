@@ -256,6 +256,35 @@ function AdminDashboard() {
         setAssignModalOpen(true);
     };
 
+    // Used by the WaitlistOpportunities auto-match panel — directly assigns without opening the modal
+    const handleDirectAssign = async (req: any, roomId: string, bedId: string) => {
+        if (!window.confirm(`Approve & assign ${req.student_name} to Room ${roomId}, Bed ${bedId}?`)) return;
+        try {
+            const res = await fetch('/api/room-change-requests', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id: req.id,
+                    status: 'Approved - Assigned',
+                    newRoomId: roomId,
+                    newBedId: bedId,
+                    adminNotes: 'Auto-assigned via Waitlist Opportunity match.',
+                    reviewedBy: user?.name || 'admin'
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(`✅ Room assigned! ${req.student_name} has been notified.`);
+                refreshData();
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        } catch (error) {
+            console.error('Error assigning room:', error);
+            alert('Failed to assign room. Please try again.');
+        }
+    };
+
     const handleAssignRoom = async (roomId: string, bedId: string, adminNotes: string) => {
         try {
             const res = await fetch('/api/room-change-requests', {
@@ -1039,17 +1068,7 @@ function AdminDashboard() {
                     <div className="animate-in fade-in duration-300">
                         <WaitlistOpportunities 
                             roomChangeRequests={roomChangeRequests} 
-                            onAssign={(req, roomId, bedId) => {
-                                setSelectedRequest(req);
-                                // Pre-fill or directly assign. Since we already have the match, we can directly assign.
-                                // But handleAssignRoom expects roomId, bedId, adminNotes.
-                                if (window.confirm(`Auto-assign ${req.student_name} to Room ${roomId} Bed ${bedId}?`)) {
-                                    // Make sure selectedRequest is set, handleAssignRoom uses it.
-                                    // Since state updates are async, we might need a modified handler or pass req.
-                                    // For now, setting state and opening modal is safer so admin can confirm.
-                                    setAssignModalOpen(true);
-                                }
-                            }}
+                            onAssign={(req, roomId, bedId) => handleDirectAssign(req, roomId, bedId)}
                         />
                         {/* Filters */}
                         <div className="mb-6">
