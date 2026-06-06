@@ -147,6 +147,22 @@ async function getProratedBillingForNow(
     const now = new Date();
 
     try {
+        // 1. Query the active academic semester configured in Academic Settings
+        const [semesterRows]: any = await connection.query(
+            `SELECT start_date, end_date FROM semesters WHERE is_active = 1 LIMIT 1`
+        );
+
+        if (semesterRows && semesterRows.length > 0) {
+            const semesterStart = new Date(semesterRows[0].start_date);
+            const semesterEnd = new Date(semesterRows[0].end_date);
+            return calculateProratedBilling(now, semesterStart, semesterEnd);
+        }
+    } catch {
+        // Table semesters might not exist or be set up yet – fall through
+    }
+
+    try {
+        // 2. Fallback: Query the open application session
         const [sessions]: any = await connection.query(
             `SELECT start_date, end_date FROM application_sessions
              WHERE DATE(start_date) <= CURDATE() AND DATE(end_date) >= CURDATE()
@@ -159,10 +175,10 @@ async function getProratedBillingForNow(
             return calculateProratedBilling(now, semesterStart, semesterEnd);
         }
     } catch {
-        // Table may not exist yet – fall through to default
+        // Fall through to hardcoded default
     }
 
-    // Fallback: treat as full semester (4 installments, RM150 each)
+    // 3. Fallback: treat as full semester (4 installments, RM150 each)
     return {
         totalSemesterMonths: 4,
         remainingMonths: 4,
