@@ -142,6 +142,23 @@ export function calculateProratedBilling(
  * Fetches the current open application session and calculates prorated billing.
  * Falls back to full-semester billing if no session is found.
  */
+/**
+ * Parses a DB date value (Date object or ISO string like "2026-02-28T16:00:00.000Z")
+ * by extracting only the YYYY-MM-DD portion in the LOCAL admin timezone.
+ * This prevents the UTC-offset shift where "2026-03-01" (MYT) gets stored
+ * as "2026-02-28T16:00:00Z" and then misread as February.
+ */
+function parseDateAsUtcMidnight(dbValue: Date | string): Date {
+    // MySQL2 may return a JS Date object or an ISO string
+    const raw = dbValue instanceof Date ? dbValue.toISOString() : String(dbValue);
+    // Take just the date part (first 10 chars: YYYY-MM-DD) and interpret as UTC midnight
+    // This correctly maps "2026-02-28T16:00:00Z" → local admin date "2026-03-01" → UTC "2026-03-01T00:00:00Z"
+    // We do this by adding the UTC+8 offset (8 hours) to recover the intended local date
+    const asDate = new Date(raw);
+    const localDateStr = asDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' }); // 'YYYY-MM-DD'
+    const [year, month, day] = localDateStr.split('-').map(Number);
+    return new Date(Date.UTC(year, month - 1, day));
+}
 async function getProratedBillingForNow(
     connection: PoolConnection
 ): Promise<ProratedBillingResult> {
@@ -154,10 +171,10 @@ async function getProratedBillingForNow(
         );
 
         if (semesterRows && semesterRows.length > 0) {
-            // Use UTC date to preserve the admin-entered local date (stored as UTC in DB)
-            const semesterStart = new Date(semesterRows[0].start_date);
-            const semesterEnd = new Date(semesterRows[0].end_date);
-            // registrationDate: use UTC-equivalent of today so month comparison is consistent
+            // Parse using local MYT timezone to recover the admin-intended date
+            const semesterStart = parseDateAsUtcMidnight(semesterRows[0].start_date);
+            const semesterEnd = parseDateAsUtcMidnight(semesterRows[0].end_date);
+            // registrationDate: today in UTC midnight
             const nowUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
             return calculateProratedBilling(nowUtc, semesterStart, semesterEnd);
         }
