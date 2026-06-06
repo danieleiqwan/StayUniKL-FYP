@@ -45,6 +45,7 @@ function FinancialsContent() {
         .sort((a, b) => (a.installment_no || 0) - (b.installment_no || 0));
     const isInstallment = installmentInvoices.length > 0;
     const installmentsPaid = installmentInvoices.filter(i => i.status === 'Paid').length;
+    const nextInstallmentIndex = installmentInvoices.findIndex(inv => inv.status !== 'Paid');
 
     // Stats
     const totalPaid = payments.filter(p => p.status === 'Success').reduce((s, p) => s + Number(p.amount), 0);
@@ -101,17 +102,19 @@ function FinancialsContent() {
                             </div>
                             <div>
                                 <p className="font-black text-white text-sm uppercase tracking-wider">Installment Plan Progress</p>
-                                <p className="text-slate-400 text-xs">{installmentsPaid} of 4 installments paid · RM 600 total</p>
+                                <p className="text-slate-400 text-xs">
+                                    {installmentsPaid} of {installmentInvoices.length} installments paid · RM {installmentInvoices.reduce((sum, inv) => sum + Number(inv.amount), 0).toFixed(2)} total
+                                </p>
                             </div>
                         </div>
-                        <span className="text-2xl font-black text-[#F26C22]">{installmentsPaid}/4</span>
+                        <span className="text-2xl font-black text-[#F26C22]">{installmentsPaid}/{installmentInvoices.length}</span>
                     </div>
 
                     {/* Progress Bar */}
                     <div className="h-3 bg-slate-700 rounded-full mb-4 overflow-hidden">
                         <div
                             className="h-full bg-gradient-to-r from-[#F26C22] to-orange-400 rounded-full transition-all duration-700"
-                            style={{ width: `${(installmentsPaid / 4) * 100}%` }}
+                            style={{ width: `${(installmentsPaid / installmentInvoices.length) * 100}%` }}
                         />
                     </div>
 
@@ -122,20 +125,20 @@ function FinancialsContent() {
                                 "rounded-2xl p-4 text-center border transition-all",
                                 inv.status === 'Paid' ? 'bg-emerald-900/30 border-emerald-700/50' :
                                 inv.status === 'Overdue' ? 'bg-rose-900/30 border-rose-700/50' :
-                                i === installmentsPaid ? 'bg-orange-900/30 border-orange-700/50' :
+                                i === nextInstallmentIndex ? 'bg-orange-900/30 border-orange-700/50 animate-pulse' :
                                 'bg-slate-800/50 border-slate-700/50 opacity-50'
                             )}>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Month {i + 1}</p>
-                                <p className="text-lg font-black text-white">RM 150</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Month {inv.installment_no || (i + 1)}</p>
+                                <p className="text-lg font-black text-white">RM {Number(inv.amount).toFixed(0)}</p>
                                 <div className="mt-2">
                                     {inv.status === 'Paid' ? (
                                         <span className="text-[10px] font-black text-emerald-400 flex items-center justify-center gap-1">
                                             <CheckCircle2 className="h-3 w-3" /> Paid
                                         </span>
                                     ) : inv.status === 'Overdue' ? (
-                                        <button onClick={() => handlePay(inv.id, 150)} className="text-[10px] font-black text-rose-400 hover:text-rose-300 uppercase">Overdue · Pay</button>
-                                    ) : i === installmentsPaid ? (
-                                        <button onClick={() => handlePay(inv.id, 150)} className="text-[10px] font-black text-orange-400 hover:text-orange-300 uppercase">Pay Now</button>
+                                        <button onClick={() => handlePay(inv.id, Number(inv.amount))} className="text-[10px] font-black text-rose-400 hover:text-rose-300 uppercase">Overdue · Pay</button>
+                                    ) : i === nextInstallmentIndex ? (
+                                        <button onClick={() => handlePay(inv.id, Number(inv.amount))} className="text-[10px] font-black text-orange-400 hover:text-orange-300 uppercase">Pay Now</button>
                                     ) : (
                                         <span className="text-[10px] font-black text-slate-500 uppercase">Upcoming</span>
                                     )}
