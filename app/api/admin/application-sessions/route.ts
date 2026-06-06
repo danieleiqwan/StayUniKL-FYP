@@ -21,11 +21,12 @@ async function ensureTable() {
     `);
 }
 
-// Compute status based on dates (compare date-only to avoid timezone issues)
-function resolveStatus(start: string, end: string): 'Upcoming' | 'Open' | 'Closed' {
-    const today = new Date().toISOString().split('T')[0]; // e.g. "2026-06-06"
-    const s = start.toString().split('T')[0].split(' ')[0]; // handle both ISO and MySQL DATETIME
-    const e = end.toString().split('T')[0].split(' ')[0];
+// Compute status based on dates (compare date-only strings to avoid timezone/datetime issues)
+// Note: mysql2 returns DATETIME columns as JavaScript Date objects, so we use toISOString()
+function resolveStatus(start: any, end: any): 'Upcoming' | 'Open' | 'Closed' {
+    const today = new Date().toISOString().split('T')[0]; // "2026-06-06" (UTC)
+    const s = new Date(start).toISOString().split('T')[0];
+    const e = new Date(end).toISOString().split('T')[0];
     if (today < s) return 'Upcoming';
     if (today >= s && today <= e) return 'Open';
     return 'Closed';
