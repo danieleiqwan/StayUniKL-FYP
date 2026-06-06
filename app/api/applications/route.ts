@@ -123,7 +123,7 @@ export async function POST(request: Request) {
         if (user.role === 'student') {
             const [sessionRows]: any = await pool.query(
                 `SELECT * FROM application_sessions
-                 WHERE start_date <= NOW() AND end_date >= NOW()
+                 WHERE DATE(start_date) <= DATE(NOW()) AND DATE(end_date) >= DATE(NOW())
                  ORDER BY start_date DESC LIMIT 1`
             ).catch(() => [[]]); // Graceful fallback if table doesn't exist yet
 

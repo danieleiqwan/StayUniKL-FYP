@@ -21,13 +21,13 @@ async function ensureTable() {
     `);
 }
 
-// Compute status based on dates
+// Compute status based on dates (compare date-only to avoid timezone issues)
 function resolveStatus(start: string, end: string): 'Upcoming' | 'Open' | 'Closed' {
-    const now = new Date();
-    const s = new Date(start);
-    const e = new Date(end);
-    if (now < s) return 'Upcoming';
-    if (now >= s && now <= e) return 'Open';
+    const today = new Date().toISOString().split('T')[0]; // e.g. "2026-06-06"
+    const s = start.toString().split('T')[0].split(' ')[0]; // handle both ISO and MySQL DATETIME
+    const e = end.toString().split('T')[0].split(' ')[0];
+    if (today < s) return 'Upcoming';
+    if (today >= s && today <= e) return 'Open';
     return 'Closed';
 }
 
