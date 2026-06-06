@@ -24,47 +24,970 @@ This document contains formal test cases for the StayUniKL Hostel Management Sys
 
 ### TC-001: Student Authentication (Login)
 
-| Field | Description |
-| :--- | :--- |
-| **Tested By:** | [Name/Role] |
-| **Test Type:** | Functional Testing / Security Testing |
-| **Test Design Technique:** | Equivalence Partitioning |
-| **Risk Number:** | R-AUTH-01 |
-| **Test Case Number:** | TC-001 |
-| **Test Case Name:** | Student Login Authentication |
-| **Requirement Traceability:** | FR-01: User Authentication System |
-| **Test Case Description:** | Verify that a registered student can successfully log in with valid credentials and is blocked with invalid ones. |
+<!-- TC-AUTH-01-01: Successful student login -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:30%;"><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+  <tr>
+    <td><strong>Test Type:</strong></td>
+    <td>Functional Testing</td>
+  </tr>
+  <tr>
+    <td><strong>Test Design Technique:</strong></td>
+    <td>Equivalence Partitioning</td>
+  </tr>
+  <tr>
+    <td><strong>Risk Number:</strong></td>
+    <td>R-AUTH-01</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Number:</strong></td>
+    <td>TC-AUTH-01-01</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Name:</strong></td>
+    <td>Successful student login</td>
+  </tr>
+  <tr>
+    <td><strong>Requirement Traceability:</strong></td>
+    <td>FR-01: User Authentication System</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Description:</strong></td>
+    <td>Verify that a registered student can successfully log in with valid credentials.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Item(s) to be tested</strong></td>
+  </tr>
+  <tr>
+    <td style="width:10%; text-align: center;"><strong>1</strong></td>
+    <td>1. Login form inputs (Email, Password)<br>2. Session management (JWT/Cookies)</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Pre-condition:</strong> Student account exists in the database and email has been verified.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Specifications</strong></td>
+  </tr>
+  <tr style="background-color: #fafafa;">
+    <td><strong>Input</strong></td>
+    <td><strong>Expected Output/Result</strong></td>
+  </tr>
+  <tr>
+    <td>Valid Student Email + Valid Password</td>
+    <td>Successful redirect to Student Dashboard; Cookie set.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Test Procedure Steps</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Navigate to the StayUniKL Login page.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Enter a registered student email address.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Enter the correct corresponding password.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>Click the "Login" button.</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Verify redirection to /dashboard and check that session cookie is set.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Post-condition</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      * Successful login creates a valid session.<br>
+      * Login attempt counter resets to 0.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+</table>
 
-**Item(s) to be tested:**
-1. Login form inputs (Email, Password)
-2. Session management (JWT/Cookies)
-3. Error message display
+<!-- TC-AUTH-01-02: Invalid password -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:30%;"><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+  <tr>
+    <td><strong>Test Type:</strong></td>
+    <td>Security Testing / Robustness</td>
+  </tr>
+  <tr>
+    <td><strong>Test Design Technique:</strong></td>
+    <td>Equivalence Partitioning</td>
+  </tr>
+  <tr>
+    <td><strong>Risk Number:</strong></td>
+    <td>R-AUTH-01</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Number:</strong></td>
+    <td>TC-AUTH-01-02</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Name:</strong></td>
+    <td>Invalid password</td>
+  </tr>
+  <tr>
+    <td><strong>Requirement Traceability:</strong></td>
+    <td>FR-01: User Authentication System</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Description:</strong></td>
+    <td>Verify that the system denies login and displays appropriate error message when an invalid password is entered.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Item(s) to be tested</strong></td>
+  </tr>
+  <tr>
+    <td style="width:10%; text-align: center;"><strong>1</strong></td>
+    <td>1. Login form inputs (Email, Password)<br>2. Error message display</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Pre-condition:</strong> Student account exists in the database and email has been verified.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Specifications</strong></td>
+  </tr>
+  <tr style="background-color: #fafafa;">
+    <td><strong>Input</strong></td>
+    <td><strong>Expected Output/Result</strong></td>
+  </tr>
+  <tr>
+    <td>Valid Student Email + Wrong Password</td>
+    <td>Error message: "Invalid email or password" (or attempts remaining details).</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Test Procedure Steps</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Navigate to the StayUniKL Login page.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Enter a registered student email address.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Enter an incorrect password.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>Click the "Login" button.</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Verify validation fails, an error message is displayed, and the page is not redirected.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Post-condition</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      * Failed login increments the attempt counter.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+</table>
 
-**Pre-condition:**
-*   Student account exists in the database.
-*   Email has been verified.
+<!-- TC-AUTH-01-03: Non-existent email -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:30%;"><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+  <tr>
+    <td><strong>Test Type:</strong></td>
+    <td>Security Testing / Robustness</td>
+  </tr>
+  <tr>
+    <td><strong>Test Design Technique:</strong></td>
+    <td>Equivalence Partitioning</td>
+  </tr>
+  <tr>
+    <td><strong>Risk Number:</strong></td>
+    <td>R-AUTH-01</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Number:</strong></td>
+    <td>TC-AUTH-01-03</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Name:</strong></td>
+    <td>Non-existent email</td>
+  </tr>
+  <tr>
+    <td><strong>Requirement Traceability:</strong></td>
+    <td>FR-01: User Authentication System</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Description:</strong></td>
+    <td>Verify that the system denies login and displays appropriate error message when a non-existent email is entered.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Item(s) to be tested</strong></td>
+  </tr>
+  <tr>
+    <td style="width:10%; text-align: center;"><strong>1</strong></td>
+    <td>1. Login form inputs (Email, Password)<br>2. Error message display</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Pre-condition:</strong> Student email does not exist in the database.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Specifications</strong></td>
+  </tr>
+  <tr style="background-color: #fafafa;">
+    <td><strong>Input</strong></td>
+    <td><strong>Expected Output/Result</strong></td>
+  </tr>
+  <tr>
+    <td>Unknown Student Email + Any Password</td>
+    <td>Error message: "Invalid email or password" (or user not found details).</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Test Procedure Steps</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Navigate to the StayUniKL Login page.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Enter an unregistered email address.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Enter any password.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>Click the "Login" button.</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Verify validation fails, an error message is displayed, and the page is not redirected.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Post-condition</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      * Session is not established.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+</table>
 
-**Specifications:**
-| Input | Expected Output/Result |
-| :--- | :--- |
-| Valid Email + Valid Password | Successful redirect to Student Dashboard; Cookie set. |
-| Invalid Password | Error message showing attempts remaining; after 5 failures, account locks for 15 mins. |
-| Non-existent Email | Error message: "Invalid credentials or user not found". |
+<!-- TC-AUTH-01-04: Empty email field -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:30%;"><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+  <tr>
+    <td><strong>Test Type:</strong></td>
+    <td>Robustness Testing</td>
+  </tr>
+  <tr>
+    <td><strong>Test Design Technique:</strong></td>
+    <td>Boundary Value Analysis</td>
+  </tr>
+  <tr>
+    <td><strong>Risk Number:</strong></td>
+    <td>R-AUTH-01</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Number:</strong></td>
+    <td>TC-AUTH-01-04</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Name:</strong></td>
+    <td>Empty email field</td>
+  </tr>
+  <tr>
+    <td><strong>Requirement Traceability:</strong></td>
+    <td>FR-01: User Authentication System</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Description:</strong></td>
+    <td>Verify that empty email input fails client-side / server-side Zod validation.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Item(s) to be tested</strong></td>
+  </tr>
+  <tr>
+    <td style="width:10%; text-align: center;"><strong>1</strong></td>
+    <td>1. Input fields validation (Email required checks)</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Pre-condition:</strong> None.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Specifications</strong></td>
+  </tr>
+  <tr style="background-color: #fafafa;">
+    <td><strong>Input</strong></td>
+    <td><strong>Expected Output/Result</strong></td>
+  </tr>
+  <tr>
+    <td>Blank Email + Valid Password</td>
+    <td>Validation error: "Email is required" (or zod validation failure block).</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Test Procedure Steps</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Navigate to the StayUniKL Login page.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Leave the email input field blank.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Enter any valid password.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>Click the "Login" button.</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Verify validation message displays and form submission is prevented.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Post-condition</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      * Login form prevents API invocation.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+</table>
 
-**Test Procedure Steps:**
-1. Navigate to the StayUniKL Login page.
-2. Enter a registered email address.
-3. Enter an INCORRECT password.
-4. Click the "Login" button.
-5. Verify the error message shows "X attempts remaining".
-6. Repeat until 5 failures are reached.
-7. Verify the error message changes to "Account locked for 15 minutes".
-8. Try logging in with the CORRECT password immediately.
-9. Verify access is still blocked during the lockout period.
+<!-- TC-AUTH-01-05: Empty password field -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:30%;"><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+  <tr>
+    <td><strong>Test Type:</strong></td>
+    <td>Robustness Testing</td>
+  </tr>
+  <tr>
+    <td><strong>Test Design Technique:</strong></td>
+    <td>Boundary Value Analysis</td>
+  </tr>
+  <tr>
+    <td><strong>Risk Number:</strong></td>
+    <td>R-AUTH-01</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Number:</strong></td>
+    <td>TC-AUTH-01-05</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Name:</strong></td>
+    <td>Empty password field</td>
+  </tr>
+  <tr>
+    <td><strong>Requirement Traceability:</strong></td>
+    <td>FR-01: User Authentication System</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Description:</strong></td>
+    <td>Verify that empty password input fails client-side / server-side Zod validation.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Item(s) to be tested</strong></td>
+  </tr>
+  <tr>
+    <td style="width:10%; text-align: center;"><strong>1</strong></td>
+    <td>1. Input fields validation (Password required checks)</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Pre-condition:</strong> None.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Specifications</strong></td>
+  </tr>
+  <tr style="background-color: #fafafa;">
+    <td><strong>Input</strong></td>
+    <td><strong>Expected Output/Result</strong></td>
+  </tr>
+  <tr>
+    <td>Valid Email + Blank Password</td>
+    <td>Validation error: "Password is required" (or zod validation failure block).</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Test Procedure Steps</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Navigate to the StayUniKL Login page.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Enter a valid registered email address.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Leave the password input field blank.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>Click the "Login" button.</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Verify validation message displays and form submission is prevented.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Post-condition</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      * Login form prevents API invocation.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+</table>
 
-**Post-condition:**
-*   Successful login resets the attempt counter to 0.
-*   Failed login increments the `login_attempts` column and sets `locked_until` after 5 failures.
+<!-- TC-AUTH-01-06: Admin accessing student routes -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:30%;"><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+  <tr>
+    <td><strong>Test Type:</strong></td>
+    <td>Functional Testing / Security (RBAC)</td>
+  </tr>
+  <tr>
+    <td><strong>Test Design Technique:</strong></td>
+    <td>Use Case Testing</td>
+  </tr>
+  <tr>
+    <td><strong>Risk Number:</strong></td>
+    <td>R-AUTH-01</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Number:</strong></td>
+    <td>TC-AUTH-01-06</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Name:</strong></td>
+    <td>Admin accessing student routes</td>
+  </tr>
+  <tr>
+    <td><strong>Requirement Traceability:</strong></td>
+    <td>FR-01: User Authentication System / RBAC</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Description:</strong></td>
+    <td>Verify that Administrator credentials do not allow access to student-specific dashboard routes.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Item(s) to be tested</strong></td>
+  </tr>
+  <tr>
+    <td style="width:10%; text-align: center;"><strong>1</strong></td>
+    <td>1. Route middleware redirection rules<br>2. RBAC access permissions</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Pre-condition:</strong> User is logged in as an Admin.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Specifications</strong></td>
+  </tr>
+  <tr style="background-color: #fafafa;">
+    <td><strong>Input</strong></td>
+    <td><strong>Expected Output/Result</strong></td>
+  </tr>
+  <tr>
+    <td>Admin JWT, GET /dashboard</td>
+    <td>Redirected appropriately (to /admin or /login) or allowed per RBAC.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Test Procedure Steps</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Log in to the system as an Administrator.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Directly enter the student dashboard path in the address bar: `http://localhost:3000/dashboard`.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Press Enter to navigate.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>Verify the system intercepts the request and redirects to `/admin` or `/superadmin`.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Post-condition</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      * Route protection maintains security boundary between roles.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+</table>
+
+<!-- TC-AUTH-01-07: Student accessing admin routes -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:30%;"><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+  <tr>
+    <td><strong>Test Type:</strong></td>
+    <td>Security Testing / Robustness (RBAC)</td>
+  </tr>
+  <tr>
+    <td><strong>Test Design Technique:</strong></td>
+    <td>Use Case Testing</td>
+  </tr>
+  <tr>
+    <td><strong>Risk Number:</strong></td>
+    <td>R-AUTH-01</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Number:</strong></td>
+    <td>TC-AUTH-01-07</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Name:</strong></td>
+    <td>Student accessing admin routes</td>
+  </tr>
+  <tr>
+    <td><strong>Requirement Traceability:</strong></td>
+    <td>FR-01: User Authentication System / RBAC</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Description:</strong></td>
+    <td>Verify that Student credentials are blocked from administrative routes and API endpoints.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Item(s) to be tested</strong></td>
+  </tr>
+  <tr>
+    <td style="width:10%; text-align: center;"><strong>1</strong></td>
+    <td>1. Route middleware protection<br>2. API response code for unauthorized calls</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Pre-condition:</strong> User is logged in as a Student.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Specifications</strong></td>
+  </tr>
+  <tr style="background-color: #fafafa;">
+    <td><strong>Input</strong></td>
+    <td><strong>Expected Output/Result</strong></td>
+  </tr>
+  <tr>
+    <td>Student JWT, GET /admin</td>
+    <td>Redirect to /login or 403 Forbidden page.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Test Procedure Steps</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Log in to the system as a Student.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Directly enter the admin panel path in the address bar: `http://localhost:3000/admin`.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Press Enter to navigate.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>Verify the system blocks access and redirects to `/dashboard` or shows 403 Forbidden.</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Attempt to send a POST request to `/api/admin/reports` using Student JWT token.</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>Verify the server returns HTTP 403 Forbidden.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Post-condition</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      * Student remains restricted to Student routes.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+</table>
+
+<!-- TC-AUTH-01-08: Database unavailable during login -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:30%;"><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+  <tr>
+    <td><strong>Test Type:</strong></td>
+    <td>Robustness / Catastrophic Recovery</td>
+  </tr>
+  <tr>
+    <td><strong>Test Design Technique:</strong></td>
+    <td>Error Guessing</td>
+  </tr>
+  <tr>
+    <td><strong>Risk Number:</strong></td>
+    <td>R-AUTH-01</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Number:</strong></td>
+    <td>TC-AUTH-01-08</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Name:</strong></td>
+    <td>Database unavailable during login</td>
+  </tr>
+  <tr>
+    <td><strong>Requirement Traceability:</strong></td>
+    <td>FR-01: User Authentication System</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Description:</strong></td>
+    <td>Ensure the system handles database outages gracefully without crashing.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Item(s) to be tested</strong></td>
+  </tr>
+  <tr>
+    <td style="width:10%; text-align: center;"><strong>1</strong></td>
+    <td>1. Database exception handling<br>2. Error message format</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Pre-condition:</strong> Database service is offline.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Specifications</strong></td>
+  </tr>
+  <tr style="background-color: #fafafa;">
+    <td><strong>Input</strong></td>
+    <td><strong>Expected Output/Result</strong></td>
+  </tr>
+  <tr>
+    <td>Valid credentials, DB offline</td>
+    <td>Error: "Service temporarily unavailable" or "Internal Server Error" (HTTP 500/503).</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Test Procedure Steps</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Simulate a database offline event (e.g., stop DB server).</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Navigate to the StayUniKL Login page.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Enter credentials and click "Login".</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>Verify that the server does not crash and handles the exception.</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Verify the client receives a 500 status code with a proper error message.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Post-condition</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      * No user data is leaked; backend recovers when database is back online.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+</table>
+
+<!-- TC-AUTH-01-09: Successful admin login -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:30%;"><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+  <tr>
+    <td><strong>Test Type:</strong></td>
+    <td>Functional Testing</td>
+  </tr>
+  <tr>
+    <td><strong>Test Design Technique:</strong></td>
+    <td>Equivalence Partitioning</td>
+  </tr>
+  <tr>
+    <td><strong>Risk Number:</strong></td>
+    <td>R-AUTH-01</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Number:</strong></td>
+    <td>TC-AUTH-01-09</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Name:</strong></td>
+    <td>Successful admin login</td>
+  </tr>
+  <tr>
+    <td><strong>Requirement Traceability:</strong></td>
+    <td>FR-01: User Authentication System</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Description:</strong></td>
+    <td>Verify that a registered system administrator can successfully log in with valid credentials.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Item(s) to be tested</strong></td>
+  </tr>
+  <tr>
+    <td style="width:10%; text-align: center;"><strong>1</strong></td>
+    <td>1. Admin form credentials (Email, Password)<br>2. Redirect to /admin route</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Pre-condition:</strong> Admin account exists in the database.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Specifications</strong></td>
+  </tr>
+  <tr style="background-color: #fafafa;">
+    <td><strong>Input</strong></td>
+    <td><strong>Expected Output/Result</strong></td>
+  </tr>
+  <tr>
+    <td>Admin email + password</td>
+    <td>Redirected to /admin, admin session established.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Test Procedure Steps</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Navigate to the StayUniKL Login portal.</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Select the "Admin" or "Superadmin" role.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Enter valid administrator email and password.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>Click the "Login" button.</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Verify successful redirection to `/admin` or `/superadmin`.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Post-condition</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      * Admin session is active and cookies are securely set.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+</table>
+
+<!-- TC-AUTH-01-10: Successful logout -->
+<table border="1" style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
+  <tr>
+    <td style="width:30%;"><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+  <tr>
+    <td><strong>Test Type:</strong></td>
+    <td>Functional Testing</td>
+  </tr>
+  <tr>
+    <td><strong>Test Design Technique:</strong></td>
+    <td>Use Case Testing</td>
+  </tr>
+  <tr>
+    <td><strong>Risk Number:</strong></td>
+    <td>R-AUTH-01</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Number:</strong></td>
+    <td>TC-AUTH-01-10</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Name:</strong></td>
+    <td>Successful logout</td>
+  </tr>
+  <tr>
+    <td><strong>Requirement Traceability:</strong></td>
+    <td>FR-01: User Authentication System</td>
+  </tr>
+  <tr>
+    <td><strong>Test Case Description:</strong></td>
+    <td>Verify that a user is successfully logged out and the session is cleared upon logout action.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Item(s) to be tested</strong></td>
+  </tr>
+  <tr>
+    <td style="width:10%; text-align: center;"><strong>1</strong></td>
+    <td>1. Logout button interaction<br>2. Session clearance</td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong>Pre-condition:</strong> User has an active authenticated session.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Specifications</strong></td>
+  </tr>
+  <tr style="background-color: #fafafa;">
+    <td><strong>Input</strong></td>
+    <td><strong>Expected Output/Result</strong></td>
+  </tr>
+  <tr>
+    <td>Click logout button</td>
+    <td>Session cleared, redirected to /login.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Test Procedure Steps</strong></td>
+  </tr>
+  <tr>
+    <td><strong>Step</strong></td>
+    <td><strong>Action</strong></td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Access the system with an active session (e.g., student dashboard).</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Click on the "Logout" button.</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Confirm the action on the modern logout modal.</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>Verify successful redirection to `/` or `/login`.</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Attempt to go back to `/dashboard` using browser history.</td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td>Verify the system redirects back to login page.</td>
+  </tr>
+  <tr style="background-color: #f2f2f2; text-align: center;">
+    <td colspan="2"><strong>Post-condition</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      * Session token is cleared from cookies and client-side storage.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>Tested By:</strong></td>
+    <td>Muhammad Daniel Eiqwan Bin Mohd Jasmin</td>
+  </tr>
+</table>
 
 ---
 
