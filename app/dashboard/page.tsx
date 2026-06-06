@@ -176,7 +176,7 @@ function DashboardContent() {
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const recentBookings = upcomingBookings.slice(0, 2);
 
-    const isApplied = !!myApplication;
+    const isApplied = !!myApplication && myApplication.status !== 'Cancelled' && myApplication.status !== 'Rejected';
     const appStatus = myApplication?.status;
     const isApproved = appStatus === 'Approved' || appStatus === 'Payment Pending' || appStatus === 'Checked in';
     const isCheckedIn = appStatus === 'Checked in';
@@ -366,7 +366,11 @@ function DashboardContent() {
                 <div className="xl:col-span-2 space-y-6">
 
                     {/* HERO: Room Assignment Card */}
-                    <div className={`relative rounded-2xl overflow-hidden text-white ${isApproved ? 'bg-gradient-to-br from-[#F26C22] via-orange-500 to-amber-500 shadow-xl shadow-orange-500/10' : 'bg-gradient-to-br from-slate-700 to-slate-800'}`}>
+                    <div className={`relative rounded-2xl overflow-hidden text-white ${
+                        isApproved ? 'bg-gradient-to-br from-[#F26C22] via-orange-500 to-amber-500 shadow-xl shadow-orange-500/10' : 
+                        (appStatus === 'Rejected' || appStatus === 'Cancelled') ? 'bg-gradient-to-br from-rose-600 to-red-700 shadow-xl shadow-red-500/10' :
+                        'bg-gradient-to-br from-slate-700 to-slate-800'
+                    }`}>
                         {/* Decorative circles */}
                         <div className="absolute -top-10 -right-10 h-52 w-52 bg-white/5 rounded-full"></div>
                         <div className="absolute -bottom-12 -left-8 h-40 w-40 bg-white/5 rounded-full"></div>
@@ -374,7 +378,12 @@ function DashboardContent() {
                         <div className="relative p-8">
                             <div className="flex items-center gap-3 mb-6">
                                 <span className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full ${isApproved ? 'bg-white/20' : 'bg-white/10'}`}>
-                                    {isCheckedIn ? '● Currently Staying' : isApproved ? '● Room Assigned' : isApplied ? '● Application Pending' : '○ No Application Found'}
+                                    {isCheckedIn ? '● Currently Staying' : 
+                                     isApproved ? '● Room Assigned' : 
+                                     appStatus === 'Rejected' ? '● Application Rejected' :
+                                     appStatus === 'Cancelled' ? '● Application Cancelled' :
+                                     isApplied ? '● Application Pending' : 
+                                     '○ No Application Found'}
                                 </span>
                                 <span className="text-xs font-bold opacity-60 uppercase tracking-widest">{isApplied ? 'Current Assignment' : 'Placement Status'}</span>
                             </div>
@@ -384,13 +393,22 @@ function DashboardContent() {
                                     <div className="flex items-center gap-3 mb-1">
                                         <Home className="h-6 w-6 opacity-70" />
                                         <h2 className="text-5xl font-black tracking-tight">
-                                            {displayRoom}
+                                            {appStatus === 'Rejected' ? 'Rejected' :
+                                             appStatus === 'Cancelled' ? 'Cancelled' :
+                                             displayRoom}
                                         </h2>
                                     </div>
-                                    <p className="text-sm opacity-70 font-medium mt-1">
-                                        {myApplication?.roomType || 'No active application'} ·&nbsp;
-                                        {user.gender === 'Male' ? 'Alpha Wing' : 'Beta Wing'} · {myRoom ? `Floor ${myRoom.floorId}` : 'Ground Floor'}
-                                    </p>
+                                    {appStatus === 'Rejected' || appStatus === 'Cancelled' ? (
+                                        <p className="text-sm opacity-90 font-bold mt-2 bg-white/15 px-4 py-2.5 rounded-xl border border-white/10">
+                                            {appStatus === 'Rejected' ? 'Reason: ' : 'Reason: '}
+                                            <span className="font-medium">{myApplication?.cancellationReason || 'No reason provided.'}</span>
+                                        </p>
+                                    ) : (
+                                        <p className="text-sm opacity-70 font-medium mt-1">
+                                            {myApplication?.roomType || 'No active application'} ·&nbsp;
+                                            {user.gender === 'Male' ? 'Alpha Wing' : 'Beta Wing'} · {myRoom ? `Floor ${myRoom.floorId}` : 'Ground Floor'}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -418,13 +436,21 @@ function DashboardContent() {
 
                             {/* CTA Buttons */}
                             <div className="flex flex-wrap gap-3">
-                                <Link href="/dashboard/apply" className="flex items-center gap-2 bg-white text-[#F26C22] px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-orange-50 transition-all">
-                                    {isApplied ? 'View room details' : 'Apply for Room'} <ArrowRight className="h-3.5 w-3.5" />
-                                </Link>
-                                {isApplied && (
-                                    <Link href="/dashboard/room-change" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
-                                        Request room change
+                                {appStatus === 'Rejected' || appStatus === 'Cancelled' ? (
+                                    <Link href="/dashboard/apply" className="flex items-center gap-2 bg-white text-rose-600 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-rose-50 transition-all">
+                                        Reapply for Room <ArrowRight className="h-3.5 w-3.5" />
                                     </Link>
+                                ) : (
+                                    <>
+                                        <Link href="/dashboard/apply" className="flex items-center gap-2 bg-white text-[#F26C22] px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-orange-50 transition-all">
+                                            {isApplied ? 'View room details' : 'Apply for Room'} <ArrowRight className="h-3.5 w-3.5" />
+                                        </Link>
+                                        {isApplied && (
+                                            <Link href="/dashboard/room-change" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all">
+                                                Request room change
+                                            </Link>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -446,20 +472,29 @@ function DashboardContent() {
                             {/* Progress Steps */}
                             <div className="relative flex justify-between items-start px-2 my-6">
                                 <div className="absolute top-3.5 left-4 right-4 h-0.5 bg-slate-100 dark:bg-slate-800 z-0">
-                                    <div className={`h-full bg-[#F26C22] transition-all duration-700 ${isCheckedIn ? 'w-full' : isApproved ? 'w-1/2' : isApplied ? 'w-0' : 'w-0'}`}></div>
+                                    <div className={`h-full bg-[#F26C22] transition-all duration-700 ${isCheckedIn ? 'w-full' : isApproved ? 'w-1/2' : (isApplied && appStatus !== 'Rejected' && appStatus !== 'Cancelled') ? 'w-0' : 'w-0'}`}></div>
                                 </div>
                                 {[
-                                    { label: 'Apply', done: isApplied },
+                                    { label: 'Apply', done: isApplied || appStatus === 'Rejected' || appStatus === 'Cancelled' },
                                     { label: 'Review', done: isApproved },
                                     { label: 'Stay', done: isCheckedIn },
-                                ].map((step, i) => (
-                                    <div key={i} className="flex flex-col items-center gap-1.5 z-10">
-                                        <div className={`h-7 w-7 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-slate-900 ${step.done ? 'bg-[#F26C22] text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600'}`}>
-                                            {step.done ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : <span className="text-xs font-black">{i + 1}</span>}
+                                ].map((step, i) => {
+                                    const isStepFailed = (i === 1 && (appStatus === 'Rejected' || appStatus === 'Cancelled'));
+                                    return (
+                                        <div key={i} className="flex flex-col items-center gap-1.5 z-10">
+                                            <div className={`h-7 w-7 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-slate-900 ${
+                                                isStepFailed ? 'bg-rose-500 text-white' :
+                                                step.done ? 'bg-[#F26C22] text-white' : 
+                                                'bg-slate-100 dark:bg-slate-800 text-slate-300 dark:text-slate-600'
+                                            }`}>
+                                                {isStepFailed ? <X className="h-3.5 w-3.5" strokeWidth={3} /> :
+                                                 step.done ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : 
+                                                 <span className="text-xs font-black">{i + 1}</span>}
+                                            </div>
+                                            <span className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-tight">{step.label}</span>
                                         </div>
-                                        <span className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-tight">{step.label}</span>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
@@ -467,12 +502,16 @@ function DashboardContent() {
                                     ? `Application submitted. Approved. You're currently in residence.`
                                     : isApproved
                                         ? 'Application approved. Complete payment to check in.'
-                                        : isApplied
-                                            ? 'Application submitted. Awaiting review.'
-                                            : 'No application submitted yet.'}
+                                        : appStatus === 'Rejected'
+                                            ? `Your application has been rejected.${myApplication?.cancellationReason ? ` Reason: ${myApplication.cancellationReason}` : ''}`
+                                            : appStatus === 'Cancelled'
+                                                ? `Your application has been cancelled.${myApplication?.cancellationReason ? ` Reason: ${myApplication.cancellationReason}` : ''}`
+                                                : isApplied
+                                                    ? 'Application submitted. Awaiting review.'
+                                                    : 'No application submitted yet.'}
                             </p>
                             <Link href="/dashboard/apply" className="text-xs font-black text-[#F26C22] dark:text-orange-400 hover:underline flex items-center gap-1">
-                                Track application <ArrowRight className="h-3 w-3" />
+                                {appStatus === 'Rejected' || appStatus === 'Cancelled' ? 'Reapply for room' : 'Track application'} <ArrowRight className="h-3 w-3" />
                             </Link>
                         </div>
 

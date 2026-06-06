@@ -78,6 +78,7 @@ export async function GET(request: Request) {
             paymentStatus: row.payment_status,
             date: row.date,
             checkInDate: row.check_in_date,
+            cancellationReason: row.cancellation_reason,
         }));
 
         return NextResponse.json({ applications });
@@ -268,6 +269,20 @@ export async function PUT(request: Request) {
         }
 
         const body = await request.json();
+
+        // Ensure database table supports the 'Rejected' status ENUM
+        try {
+            await pool.query(`
+                ALTER TABLE applications 
+                MODIFY COLUMN status ENUM('Pending', 'Payment Pending', 'Approved', 'Checked in', 'Checked out', 'Cancelled', 'No show', 'Rejected') DEFAULT 'Pending'
+            `);
+            await pool.query(`
+                ALTER TABLE applications 
+                MODIFY COLUMN previous_status ENUM('Pending', 'Payment Pending', 'Approved', 'Checked in', 'Checked out', 'Cancelled', 'No show', 'Rejected') DEFAULT NULL
+            `);
+        } catch (alterErr) {
+            console.error("Migration error running ALTER TABLE: ", alterErr);
+        }
         const validation = updateStatusSchema.safeParse(body);
         
         if (!validation.success) {

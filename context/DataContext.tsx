@@ -10,8 +10,8 @@ export interface Room { id: string; floorId: number; label: string; beds: Bed[];
 export interface Application {
     id: string; studentId: string; studentName: string;
     roomType: 'Single' | 'Shared (2)' | 'Shared (4)';
-    status: 'Pending' | 'Payment Pending' | 'Approved' | 'Checked in' | 'Checked out' | 'Cancelled' | 'No show';
-    previousStatus?: 'Pending' | 'Payment Pending' | 'Approved' | 'Checked in' | 'Checked out' | 'Cancelled' | 'No show';
+    status: 'Pending' | 'Payment Pending' | 'Approved' | 'Checked in' | 'Checked out' | 'Cancelled' | 'No show' | 'Rejected';
+    previousStatus?: 'Pending' | 'Payment Pending' | 'Approved' | 'Checked in' | 'Checked out' | 'Cancelled' | 'No show' | 'Rejected';
     gender?: 'Male' | 'Female';
     bedId?: string; floorId?: number; roomId?: string;
     stayDuration?: number;
@@ -575,13 +575,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
         } catch (e: any) { return { error: e.message }; }
     };
 
-    const myApplication = user 
-        ? (applications
-            .filter(app => ['Pending', 'Payment Pending', 'Approved', 'Checked in'].includes(app.status))
-            .sort((a, b) => {
-                const priority: Record<string, number> = { 'Checked in': 4, 'Approved': 3, 'Payment Pending': 2, 'Pending': 1 };
-                return (priority[b.status] || 0) - (priority[a.status] || 0);
-            })[0] || applications[0]) 
+    const myApplication = user
+        ? (() => {
+            const studentApps = applications.filter(app => app.studentId === user.id || app.studentId === (user as any).officialId);
+            // Prefer active statuses first
+            const priority: Record<string, number> = { 'Checked in': 5, 'Approved': 4, 'Payment Pending': 3, 'Pending': 2, 'Rejected': 1, 'Cancelled': 0 };
+            const sorted = [...studentApps].sort((a, b) => (priority[b.status] ?? -1) - (priority[a.status] ?? -1));
+            return sorted[0];
+        })()
         : undefined;
     const myRoomChangeRequest = roomChangeRequest;
     const myComplaints = user ? complaints.filter(c => c.studentId === user.id) : [];

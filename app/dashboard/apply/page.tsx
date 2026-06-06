@@ -284,6 +284,31 @@ export default function ApplyPage() {
                 <p className="text-slate-500 dark:text-slate-400 text-sm">All students are required to stay for a full semester (RM600).</p>
             </div>
 
+            {myApplication && (myApplication.status === 'Rejected' || myApplication.status === 'Cancelled') && (
+                <div className="flex flex-col gap-2 p-5 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-950/40 rounded-2xl mb-2">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-rose-100 dark:bg-rose-900/30 rounded-xl flex items-center justify-center text-rose-600 shrink-0">
+                            <UserX className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-black text-rose-700 dark:text-rose-450">
+                                Previous Application {myApplication.status}
+                            </p>
+                            <p className="text-xs text-rose-600/75 dark:text-rose-500 mt-0.5">
+                                {myApplication.status === 'Rejected' 
+                                    ? 'Your previous application was rejected by the administration.' 
+                                    : 'Your previous application was cancelled.'}
+                                {myApplication.cancellationReason && (
+                                    <span className="block mt-1 font-bold text-rose-800 dark:text-rose-300">
+                                        Reason: {myApplication.cancellationReason}
+                                    </span>
+                                )}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Session & eligibility loading state */}
             {session === 'loading' && (
                 <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 animate-pulse">

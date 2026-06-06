@@ -662,7 +662,7 @@ function AdminDashboard() {
                                                     app.status === 'Checked in' ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' :
                                                     app.status === 'Checked out' ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400' :
                                                     app.status === 'Payment Pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                                                    app.status === 'Cancelled' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
+                                                    app.status === 'Cancelled' || app.status === 'Rejected' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
                                                     app.status === 'No show' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
                                                     'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
                                                 }`}>{app.status === 'Approved' ? 'Approved - Pending Check-In' : (app.status || 'Pending')}</span>
