@@ -27,11 +27,11 @@ export async function GET(request: Request) {
         // ----------------------
 
         // --- AUTO CLEANUP ---
-        // Delete notifications older than 72 hours (3 days) to keep the UI clean
-        await pool.query(`
+        // Delete notifications older than 72 hours (3 days) in the background to avoid blocking the GET request
+        pool.query(`
             DELETE FROM notifications 
             WHERE created_at < DATE_SUB(NOW(), INTERVAL 72 HOUR)
-        `);
+        `).catch(err => console.error('[Notifications Cleanup Error]', err));
         // --------------------
 
         let query = `

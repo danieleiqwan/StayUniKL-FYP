@@ -139,87 +139,109 @@ export function DataProvider({ children }: { children: ReactNode }) {
         if (!user) return;
 
         try {
-            // Fetch Applications
-            const appRes = await fetch(`/api/applications${user.role === 'student' ? `?studentId=${user.id}` : (user.role === 'admin' || user.role === 'superadmin' ? '?all=true' : '')}`, { cache: 'no-store' });
-            const appData = await appRes.json();
-            if (appData.applications) setApplications(appData.applications);
+            // Define all fetch promises to run in parallel
+            const fetchTasks = [
+                // Fetch Applications
+                fetch(`/api/applications${user.role === 'student' ? `?studentId=${user.id}` : (user.role === 'admin' || user.role === 'superadmin' ? '?all=true' : '')}`, { cache: 'no-store' })
+                    .then(res => res.json())
+                    .then(data => { if (data.applications) setApplications(data.applications); }),
 
-            // Fetch Rooms (Inventory)
-            const roomRes = await fetch('/api/rooms', { cache: 'no-store' });
-            const roomData = await roomRes.json();
-            if (roomData.rooms) setRooms(roomData.rooms);
+                // Fetch Rooms (Inventory)
+                fetch('/api/rooms', { cache: 'no-store' })
+                    .then(res => res.json())
+                    .then(data => { if (data.rooms) setRooms(data.rooms); }),
 
-            // Fetch Complaints
-            const compRes = await fetch(`/api/complaints${user.role === 'student' ? `?studentId=${user.id}` : (user.role === 'admin' || user.role === 'superadmin' ? '?all=true' : '')}`, { cache: 'no-store' });
-            const compData = await compRes.json();
-            if (compData.complaints) setComplaints(compData.complaints);
+                // Fetch Complaints
+                fetch(`/api/complaints${user.role === 'student' ? `?studentId=${user.id}` : (user.role === 'admin' || user.role === 'superadmin' ? '?all=true' : '')}`, { cache: 'no-store' })
+                    .then(res => res.json())
+                    .then(data => { if (data.complaints) setComplaints(data.complaints); }),
 
-            // Fetch Court/Facility Data
-            const courtRes = await fetch(`/api/facilities${user.role === 'admin' || user.role === 'superadmin' ? '?all=true' : ''}`, { cache: 'no-store' });
-            const courtData = await courtRes.json();
-            if (courtData.bookings) setCourtBookings(courtData.bookings);
-            if (courtData.settings) {
-                setFacilitySettings(prev => ({
-                    ...prev,
-                    court: courtData.settings.court || prev.court,
-                    gym: courtData.settings.gym || prev.gym,
-                    laundry: courtData.settings.laundry || prev.laundry
-                }));
-            }
+                // Fetch Court/Facility Data
+                fetch(`/api/facilities${user.role === 'admin' || user.role === 'superadmin' ? '?all=true' : ''}`, { cache: 'no-store' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.bookings) setCourtBookings(data.bookings);
+                        if (data.settings) {
+                            setFacilitySettings(prev => ({
+                                ...prev,
+                                court: data.settings.court || prev.court,
+                                gym: data.settings.gym || prev.gym,
+                                laundry: data.settings.laundry || prev.laundry
+                            }));
+                        }
+                    }),
 
-            // Fetch Payments & Invoices
-            const payRes = await fetch(`/api/payments?userId=${user.id}`, { cache: 'no-store' });
-            const payData = await payRes.json();
-            if (payData.payments) setPayments(payData.payments);
+                // Fetch Payments
+                fetch(`/api/payments?userId=${user.id}`, { cache: 'no-store' })
+                    .then(res => res.json())
+                    .then(data => { if (data.payments) setPayments(data.payments); }),
 
-            const invRes = await fetch(`/api/billing/invoices?${user.role === 'student' ? `userId=${user.id}` : 'all=true'}`, { cache: 'no-store' });
-            const invData = await invRes.json();
-            if (invData.invoices) setInvoices(invData.invoices);
+                // Fetch Invoices
+                fetch(`/api/billing/invoices?${user.role === 'student' ? `userId=${user.id}` : 'all=true'}`, { cache: 'no-store' })
+                    .then(res => res.json())
+                    .then(data => { if (data.invoices) setInvoices(data.invoices); }),
 
-            // Fetch Room Change Request (Student)
+                // Fetch Sports
+                fetch('/api/sports?admin=true', { cache: 'no-store' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.sports) {
+                            setAllSports(data.sports);
+                            setSports(data.sports.filter((s: Sport) => s.isActive));
+                        }
+                    })
+            ];
+
+            // Student-specific fetches
             if (user.role === 'student') {
-                const rcrRes = await fetch(`/api/room-change-requests?studentId=${user.id}`, { cache: 'no-store' });
-                const rcrData = await rcrRes.json();
-                if (rcrData.requests && rcrData.requests.length > 0) {
-                    // Find active request
-                    const active = rcrData.requests.find((r: any) =>
-                        ['Pending Review', 'Approved - Assigned', 'Approved - Waitlist'].includes(r.status)
-                    );
-                    setRoomChangeRequest(active || null);
-                } else {
-                    setRoomChangeRequest(null);
-                }
+                fetchTasks.push(
+                    // Fetch Room Change Request
+                    fetch(`/api/room-change-requests?studentId=${user.id}`, { cache: 'no-store' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.requests && data.requests.length > 0) {
+                                const active = data.requests.find((r: any) =>
+                                    ['Pending Review', 'Approved - Assigned', 'Approved - Waitlist'].includes(r.status)
+                                );
+                                setRoomChangeRequest(active || null);
+                            } else {
+                                setRoomChangeRequest(null);
+                            }
+                        }),
 
-                // Fetch student documents
-                const docRes = await fetch('/api/documents', { cache: 'no-store' });
-                const docData = await docRes.json();
-                if (docData.documents) setMyDocuments(docData.documents);
+                    // Fetch Student Documents
+                    fetch('/api/documents', { cache: 'no-store' })
+                        .then(res => res.json())
+                        .then(data => { if (data.documents) setMyDocuments(data.documents); }),
 
-                // Fetch Notifications
-                const notifRes = await fetch(`/api/notifications?userId=${user.id}`, { cache: 'no-store' });
-                const notifData = await notifRes.json();
-                if (notifData.notifications) {
-                    setNotifications(notifData.notifications);
-                    setUnreadNotificationsCount(notifData.notifications.filter((n: any) => !n.is_read).length);
-                }
+                    // Fetch Notifications
+                    fetch(`/api/notifications?userId=${user.id}`, { cache: 'no-store' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.notifications) {
+                                setNotifications(data.notifications);
+                                setUnreadNotificationsCount(data.notifications.filter((n: any) => !n.is_read).length);
+                            }
+                        })
+                );
             }
 
-            // Fetch All Room Change Requests (Admin & Superadmin)
+            // Admin & Superadmin-specific fetches
             if (user.role === 'admin' || user.role === 'superadmin') {
-                const rcrRes = await fetch('/api/room-change-requests', { cache: 'no-store' });
-                const rcrData = await rcrRes.json();
-                if (rcrData.success) {
-                    setRoomChangeRequests(rcrData.requests || []);
-                }
+                fetchTasks.push(
+                    // Fetch All Room Change Requests
+                    fetch('/api/room-change-requests', { cache: 'no-store' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                setRoomChangeRequests(data.requests || []);
+                            }
+                        })
+                );
             }
 
-            // Fetch Sports (active only for students, all for context)
-            const sportsRes = await fetch('/api/sports?admin=true', { cache: 'no-store' });
-            const sportsData = await sportsRes.json();
-            if (sportsData.sports) {
-                setAllSports(sportsData.sports);
-                setSports(sportsData.sports.filter((s: Sport) => s.isActive));
-            }
+            // Execute all fetch requests concurrently
+            await Promise.allSettled(fetchTasks);
 
         } catch (error) {
             console.error("Failed to fetch data", error);
