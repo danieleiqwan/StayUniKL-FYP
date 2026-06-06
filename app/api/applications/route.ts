@@ -103,7 +103,8 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid input', details: validation.error.format() }, { status: 400 });
         }
 
-        const { studentId, roomType, stayDuration, durationType, totalPrice, floorId, roomId, bedId, paymentMethod } = validation.data;
+        const { studentId, stayDuration, durationType, totalPrice, floorId, roomId, bedId, paymentMethod } = validation.data;
+        let roomType = validation.data.roomType; // will be overridden server-side
         const semesterFee = 600.00; // Fixed fee per policy
         
         // Fetch student name and gender from DB
@@ -170,15 +171,27 @@ export async function POST(request: Request) {
             }, { status: 400 });
         }
 
-        // --- GENDER VALIDATION ---
-        // 2. Fetch room gender
-        const [roomRows]: any = await pool.query('SELECT gender FROM rooms WHERE id = ?', [roomId]);
+        // --- ROOM VALIDATION & ROOM TYPE DERIVATION ---
+        // 2. Fetch room gender AND type from DB to derive the correct roomType label
+        const [roomRows]: any = await pool.query(
+            'SELECT gender, room_type, (SELECT COUNT(*) FROM beds WHERE room_id = r.id) AS bed_count FROM rooms r WHERE r.id = ?',
+            [roomId]
+        );
         if (roomRows.length === 0) {
             return NextResponse.json({ error: 'Room not found' }, { status: 404 });
         }
         const roomGender = roomRows[0].gender;
 
-        // 3. Compare
+        // Derive application roomType label from actual DB room type (never trust client)
+        const dbRoomType: string = roomRows[0].room_type || '';
+        const bedCount: number = parseInt(roomRows[0].bed_count || '1', 10);
+        const roomTypeLabelMap: Record<string, string> = { Single: 'Single', Double: 'Shared (2)', Triple: 'Shared (4)' };
+        const derivedRoomType = roomTypeLabelMap[dbRoomType] ??
+            (bedCount === 1 ? 'Single' : bedCount === 2 ? 'Shared (2)' : 'Shared (4)');
+        // Override the client-supplied roomType with the server-derived accurate label
+        roomType = derivedRoomType;
+
+        // 3. Gender compare
         if (studentGender !== roomGender) {
             return NextResponse.json({ 
                 error: `Gender Mismatch: You (${studentGender}) cannot apply for a ${roomGender} room.` 

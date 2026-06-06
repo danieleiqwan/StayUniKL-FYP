@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context/AuthContext';
-import { useData, Room, Bed } from '@/context/DataContext';
+import { useData, Room, Bed, Application } from '@/context/DataContext';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import QRCode from 'react-qr-code';
@@ -251,8 +251,20 @@ export default function ApplyPage() {
         if (!selectedFloor || !selectedRoom || !selectedBed) return;
         setIsSubmitting(true);
         setError(null);
+
+        // Derive the room type label from the actual room's type (bed count)
+        const roomTypeMap: Record<string, Application['roomType']> = {
+            'Single': 'Single',
+            'Double': 'Shared (2)',
+            'Triple': 'Shared (4)',
+        };
+        const derivedRoomType: Application['roomType'] =
+            roomTypeMap[selectedRoom.roomType] ??
+            (selectedRoom.beds.length === 1 ? 'Single' :
+             selectedRoom.beds.length === 2 ? 'Shared (2)' : 'Shared (4)');
+
         const result: any = await createApplication({
-            roomType: 'Shared (4)',
+            roomType: derivedRoomType,
             floorId: selectedFloor,
             roomId: selectedRoom.id,
             bedId: selectedBed.id,
