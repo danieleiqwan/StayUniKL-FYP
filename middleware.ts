@@ -59,8 +59,10 @@ export async function middleware(request: NextRequest) {
     const isSuperAdminPath = (pathname.startsWith('/superadmin') || pathname.startsWith('/api/superadmin')) && 
                              !pathname.includes('/api/superadmin/bootstrap') && 
                              !pathname.includes('/api/superadmin/migrate');
-    const isAdminPath = (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) && !isSuperAdminPath;
-    const isDashboardPath = pathname.startsWith('/dashboard') || pathname.startsWith('/api/applications') || pathname.startsWith('/api/complaints') || pathname.startsWith('/api/court') || pathname.startsWith('/api/student');
+    // Public read-only admin endpoints that students also need access to
+    const isPublicAdminReadEndpoint = pathname === '/api/admin/application-sessions';
+    const isAdminPath = (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) && !isSuperAdminPath && !isPublicAdminReadEndpoint;
+    const isDashboardPath = pathname.startsWith('/dashboard') || pathname.startsWith('/api/applications') || pathname.startsWith('/api/complaints') || pathname.startsWith('/api/court') || pathname.startsWith('/api/student') || pathname.startsWith('/api/student-classification') || isPublicAdminReadEndpoint;
     const isAuthPath = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/forgot-password') || pathname.startsWith('/reset-password');
 
     // 2. Allow if not a protected path
@@ -179,6 +181,7 @@ export const config = {
         '/api/complaints/:path*',
         '/api/court/:path*',
         '/api/student/:path*',
+        '/api/student-classification',
         '/login',
         '/register',
         '/forgot-password',
