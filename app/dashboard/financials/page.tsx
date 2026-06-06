@@ -158,10 +158,12 @@ function FinancialsContent() {
                         </div>
                         <div>
                             <h3 className="font-black text-slate-900 dark:text-white uppercase text-sm">
-                                {isInstallment ? `Installment ${(nextInstallment as any)?.installment_no}/4 Due` : 'Hostel Fee Payment Required'}
+                                {isInstallment 
+                                    ? `Installment ${(nextInstallment as any)?.installment_no}/${(nextInstallment as any)?.installment_total || 4} Due` 
+                                    : 'Hostel Fee Payment Required'}
                             </h3>
                             <p className="text-sm text-slate-600 dark:text-slate-400">
-                                RM {isInstallment ? '150.00' : '600.00'} due to {isInstallment ? 'keep your stay active' : 'confirm your room'}.
+                                RM {Number(nextInstallment?.amount || appInvoice?.amount || 0).toFixed(2)} due to {isInstallment ? 'keep your stay active' : 'confirm your room'}.
                             </p>
                         </div>
                     </div>
