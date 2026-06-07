@@ -64,14 +64,13 @@ The implementation of StayUniKL offers substantial practical and theoretical con
 ---
 
 ## 1.6 Project Organization
-This thesis report is structured into six sequential chapters as follows:
+This thesis report is structured into five sequential chapters as follows:
 
 * **Chapter 1: Introduction** defines the study background, problem statement, objectives, scope, and project significance.
 * **Chapter 2: Literature Review** analyzes existing accommodation systems, web architectures, QR code authentication, RBAC theories, and database transactional management, supported by peer-reviewed academic papers.
-* **Chapter 3: Methodology** outlines the software development life cycle (SDLC) selected, requirement analysis techniques, and the technical development environment.
-* **Chapter 4: System Analysis and Design** presents the architectural layouts, context diagrams, use cases, entity-relationship diagrams (ERD), and database schemas.
-* **Chapter 5: System Implementation and Testing** details the codebase implementation of key modules and discusses functional, integration, and User Acceptance Test results.
-* **Chapter 6: Conclusion and Future Work** summarizes the project outcomes, discusses developmental limitations, and outlines future enhancements.
+* **Chapter 3: Methodology** outlines the software development life cycle (SDLC) selected, requirement analysis techniques, technical development environment, architectural layouts, context diagrams, use cases, entity-relationship diagrams (ERD), database schemas, and security design.
+* **Chapter 4: Result and Discussion** presents the system implementation results, codebase modules, testing results (functional and integration), and User Acceptance Testing (UAT) analysis.
+* **Chapter 5: Conclusion and Future Work** summarizes the project outcomes, discusses developmental achievements and limitations, and outlines future enhancements.
 
 ---
 

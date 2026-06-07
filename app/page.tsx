@@ -158,15 +158,15 @@ export default function LandingPage() {
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden bg-[#fafafa] dark:bg-[#080715]">
         {/* Background Gradients & Halftone Pattern */}
         <div className="absolute inset-0 opacity-[0.05] dark:opacity-[0.1] pointer-events-none" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23000000'/%3E%3C/svg%3E")`,
-            backgroundSize: '20px 20px'
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23000000'/%3E%3C/svg%3E")`,
+          backgroundSize: '20px 20px'
         }}></div>
         <div className="absolute top-0 right-0 -z-10 w-[800px] h-[800px] bg-orange-500/10 dark:bg-orange-500/5 rounded-full blur-[120px] -mr-[300px] -mt-[300px] transition-colors"></div>
         <div className="absolute bottom-0 left-0 -z-10 w-[600px] h-[600px] bg-[#141235]/10 dark:bg-[#141235]/20 rounded-full blur-[100px] -ml-[200px] -mb-[200px] transition-colors"></div>
 
         <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 items-center gap-16">
-            <div className="text-center lg:text-left space-y-8">
+          <div className="grid lg:grid-cols-5 items-center gap-16">
+            <div className="text-center lg:text-left space-y-8 lg:col-span-2">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 dark:bg-orange-900/30 border border-orange-100 dark:border-orange-800 text-[#F26C22] text-xs font-bold uppercase tracking-widest animate-in fade-in slide-in-from-bottom-4 duration-1000">
                 <Sparkles className="h-4 w-4" /> The New Standard of Student Living
               </div>
@@ -194,16 +194,15 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="relative hidden lg:block animate-in fade-in zoom-in-95 duration-1000 delay-300">
+            <div className="relative hidden lg:block animate-in fade-in zoom-in-95 duration-1000 delay-300 lg:col-span-3">
               {/* Main Card Container - Removed overflow-hidden to allow stats to float outside */}
               <div className="relative z-10 bg-white/80 dark:bg-[#111827]/80 backdrop-blur-3xl p-4 rounded-[3rem] shadow-[0_30px_60px_rgba(20,18,53,0.1)] dark:shadow-[0_30px_60px_rgba(0,0,0,0.5)] border border-slate-100 dark:border-slate-800 transition-colors flex items-center justify-center min-h-[600px]">
-                
-                {/* Mascot Wrapper with its own overflow control if needed */}
-                <div className="relative flex items-center justify-center w-full h-full overflow-visible">
+
+                <div className="relative w-full h-full overflow-hidden rounded-[2.5rem]">
                   <img
-                    src="/mascot.png"
-                    alt="UniKL Mascot"
-                    className="w-[140%] h-auto object-contain drop-shadow-[0_40px_80px_rgba(0,0,0,0.7)] filter contrast-[1.05] brightness-105 hover:scale-105 transition-transform duration-700 ease-out"
+                    src="/hostel-image.jpg"
+                    alt="UniKL Hostel"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 ease-out"
                   />
                 </div>
 
@@ -214,7 +213,7 @@ export default function LandingPage() {
                       <CheckCircle2 className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="text-2xl font-black text-slate-900 dark:text-white">1,200+</p>
+                      <p className="text-2xl font-black text-slate-900 dark:text-white">100+</p>
                       <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Available Rooms</p>
                     </div>
                   </div>
@@ -310,12 +309,12 @@ export default function LandingPage() {
             <div className="lg:w-1/2 relative">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-4 pt-12">
-                  <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-64 w-full object-cover shadow-2xl" alt="Gym" />
-                  <img src="https://images.unsplash.com/photo-1521566652839-697aa473761a?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover shadow-2xl" alt="Study" />
+                  <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover shadow-2xl" alt="Gym" />
+                  <img src="/study.jpg?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover" alt="Study" />
                 </div>
                 <div className="space-y-4">
-                  <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover shadow-2xl" alt="Laundry" />
-                  <img src="https://images.unsplash.com/photo-1544105422-76233f392c10?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-64 w-full object-cover shadow-2xl" alt="Court" />
+                  <img src="/laundry.jpg?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover shadow-2xl" alt="Laundry" />
+                  <img src="/multipurpose-court.jpg?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover shadow-2xl" alt="Court" />
                 </div>
               </div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-32 w-32 bg-[#F26C22] rounded-full blur-3xl opacity-20"></div>

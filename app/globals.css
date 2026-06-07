@@ -124,7 +124,7 @@ body {
   align-items: center;
   overflow: visible;
   z-index: 0;
-  box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
 }
 
 /* The subtle dotted pattern over the dark blue background */
@@ -137,7 +137,7 @@ body {
   border-top-left-radius: inherit;
   border-bottom-left-radius: inherit;
   overflow: hidden;
-  background-image: radial-gradient(rgba(255,255,255,0.2) 2px, transparent 2px);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 2px, transparent 2px);
   background-size: 20px 20px;
   opacity: 0.5;
   /* Fades the dots from the bottom-right upwards */
@@ -162,11 +162,13 @@ body {
   .right-side {
     display: none;
   }
+
   .left-side {
     width: 100%;
     padding: 2rem;
     align-items: center;
   }
+
   .left-pattern {
     width: 100%;
   }
