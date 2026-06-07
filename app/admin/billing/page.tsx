@@ -110,22 +110,24 @@ export default function AdminBillingPage() {
         if (!silent) setLoading(true);
         else setIsRefreshing(true);
         try {
-            // Fetch all invoices (admin)
-            const invRes = await fetch('/api/billing/invoices?all=true');
-            const invData = await invRes.json();
+            // Fetch everything in parallel to prevent request waterfalls
+            const [invRes, payRes, semRes, settingsRes] = await Promise.all([
+                fetch('/api/billing/invoices?all=true'),
+                fetch('/api/payments?userId=admin'),
+                fetch('/api/semesters'),
+                fetch('/api/admin/settings/hostel-billing')
+            ]);
+
+            const [invData, payData, semData, settingsData] = await Promise.all([
+                invRes.json(),
+                payRes.json(),
+                semRes.json(),
+                settingsRes.json()
+            ]);
+
             if (invData.invoices) setInvoices(invData.invoices);
-            // Fetch payments
-            const payRes = await fetch('/api/payments?userId=admin');
-            const payData = await payRes.json();
             if (payData.payments) setPayments(payData.payments);
-
-            // Fetch semesters for filtering
-            const semRes = await fetch('/api/semesters');
-            const semData = await semRes.json();
             if (semData.semesters) setSemesterList(semData.semesters);
-
-            const settingsRes = await fetch('/api/admin/settings/hostel-billing');
-            const settingsData = await settingsRes.json();
             if (settingsData.gracePeriodDays) {
                 setGracePeriodDays(settingsData.gracePeriodDays);
                 setMinGrace(settingsData.minGracePeriodDays ?? 7);

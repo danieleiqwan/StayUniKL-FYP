@@ -9,9 +9,6 @@ export const dynamic = 'force-dynamic';
 // GET: Fetch invoices
 export async function GET(request: Request) {
     try {
-        await markOverdueInvoicesWithGrace();
-        await notifyOverdueInstallments();
-
         const { searchParams } = new URL(request.url);
         const userId = searchParams.get('userId');
         const statusFilter = searchParams.get('status'); // optional filter
