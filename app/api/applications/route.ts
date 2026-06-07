@@ -78,6 +78,7 @@ export async function GET(request: Request) {
             paymentStatus: row.payment_status,
             date: row.date,
             checkInDate: row.check_in_date,
+            checkOutDate: row.check_out_date,
             cancellationReason: row.cancellation_reason,
         }));
 
@@ -169,6 +170,27 @@ export async function POST(request: Request) {
                 error: 'Active application exists', 
                 message: 'You already have an active application or stay. Please manage your existing application in the dashboard.' 
             }, { status: 400 });
+        }
+
+        // 1b. CHECK IF STUDENT HAS CHECKED OUT IN THE CURRENT SEMESTER
+        const [activeSemRows]: any = await pool.query(
+            'SELECT start_date, end_date FROM semesters WHERE is_active = 1 LIMIT 1'
+        );
+        if (activeSemRows.length > 0) {
+            const activeSem = activeSemRows[0];
+            const [checkedOut]: any = await pool.query(
+                `SELECT id FROM applications 
+                 WHERE student_id = ? 
+                   AND status = 'Checked out' 
+                   AND check_out_date >= ?`,
+                [studentId, activeSem.start_date]
+            );
+            if (checkedOut.length > 0) {
+                return NextResponse.json({
+                    error: 'Reapplication Forbidden',
+                    message: 'You have already checked out of your room for the current active semester. Reapplication within the same semester is not permitted.'
+                }, { status: 403 });
+            }
         }
 
         // --- ROOM VALIDATION & ROOM TYPE DERIVATION ---

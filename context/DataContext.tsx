@@ -20,6 +20,7 @@ export interface Application {
     date: string;
     cancellationReason?: string;
     checkInDate?: string;
+    checkOutDate?: string;
     paymentMethod?: 'Full Payment' | 'Installment Plan';
     paymentStatus?: 'Pending' | 'Partially Paid' | 'Fully Paid' | 'Overdue';
 }

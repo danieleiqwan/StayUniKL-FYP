@@ -44,6 +44,7 @@ export default function ApplyPage() {
     // Session & Classification state
     const [session, setSession] = useState<AppSession | null | 'loading'>('loading');
     const [studentType, setStudentType] = useState<'new' | 'returning' | null>(null);
+    const [hasCheckedOutThisSemester, setHasCheckedOutThisSemester] = useState(false);
 
     // QR Check-out states
     const [checkoutQR, setCheckoutQR] = useState<string | null>(null);
@@ -83,8 +84,14 @@ export default function ApplyPage() {
         // Fetch student type
         fetch('/api/student-classification')
             .then(r => r.json())
-            .then(d => setStudentType(d.studentType ?? 'new'))
-            .catch(() => setStudentType('new'));
+            .then(d => {
+                setStudentType(d.studentType ?? 'new');
+                setHasCheckedOutThisSemester(!!d.hasCheckedOutThisSemester);
+            })
+            .catch(() => {
+                setStudentType('new');
+                setHasCheckedOutThisSemester(false);
+            });
     }, [user]);
 
     const allowedFloors = user ? getAvailableFloors(user.gender) : [];
@@ -330,14 +337,17 @@ export default function ApplyPage() {
             )}
 
             {/* Phase 4: Combined Blocked State */}
-            {session !== 'loading' && (!isSessionOpen || !isEligible) && (
+            {session !== 'loading' && (!isSessionOpen || !isEligible || hasCheckedOutThisSemester) && (
                 <div className="bg-white dark:bg-slate-900 rounded-3xl border border-red-200 dark:border-red-800/50 shadow-sm p-12 text-center">
                     <div className="mx-auto h-20 w-20 rounded-3xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-6">
                         <Lock className="h-9 w-9 text-red-500" />
                     </div>
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Access Denied</h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-                        Applications are currently closed or not available for your category.
+                        {hasCheckedOutThisSemester 
+                            ? 'You have already checked out of your room for the current active semester. Reapplication within the same semester is not permitted.'
+                            : 'Applications are currently closed or not available for your category.'
+                        }
                     </p>
                     <p className="mt-4 text-xs font-black uppercase tracking-widest text-slate-400">
                         Detected Category: {studentType === 'returning' ? 'Returning Student' : 'New Student'}
@@ -346,7 +356,7 @@ export default function ApplyPage() {
             )}
 
             {/* Open session info banner */}
-            {session !== 'loading' && isSessionOpen && isEligible && (
+            {session !== 'loading' && isSessionOpen && isEligible && !hasCheckedOutThisSemester && (
                 <div className="flex flex-wrap items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl">
                     <UserCheck className="h-5 w-5 text-emerald-600 shrink-0" />
                     <div className="flex-1 min-w-0">
@@ -363,7 +373,7 @@ export default function ApplyPage() {
             )}
 
             {/* Application form — only shown when eligible */}
-            {session !== 'loading' && isSessionOpen && isEligible && (
+            {session !== 'loading' && isSessionOpen && isEligible && !hasCheckedOutThisSemester && (
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
 
                 {/* Progress */}
