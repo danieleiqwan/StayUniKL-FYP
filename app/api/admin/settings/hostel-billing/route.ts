@@ -34,7 +34,7 @@ export async function PATCH(request: Request) {
 
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: 'UPDATE_HOSTEL_BILLING_SETTINGS',
             entityType: 'Settings',
             entityId: 'hostel_billing',

@@ -443,7 +443,7 @@ try {
         // Audit Log using actual admin ID
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: 'UPDATE_APPLICATION_STATUS',
             entityType: 'Application',
             entityId: id,

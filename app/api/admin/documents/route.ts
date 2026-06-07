@@ -45,7 +45,7 @@ export async function PUT(request: Request) {
 
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: `DOCUMENT_${status.toUpperCase()}`,
             entityType: 'Document',
             entityId: id,

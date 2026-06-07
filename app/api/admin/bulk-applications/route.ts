@@ -126,7 +126,7 @@ export async function PUT(request: Request) {
                 // 5. Audit Log
                 await logAction({
                     actorId: admin.id,
-                    actorName: admin.name,
+                    actorName: admin.email,
                     action: 'BULK_UPDATE_APPLICATION_STATUS',
                     entityType: 'Application',
                     entityId: id,

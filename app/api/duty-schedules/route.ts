@@ -123,7 +123,7 @@ export async function POST(request: Request) {
 
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: 'CREATE_DUTY_SCHEDULE_RANGE',
             entityType: 'DutySchedule',
             entityId: String(newIds[0]),
@@ -190,7 +190,7 @@ export async function PUT(request: Request) {
 
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: 'UPDATE_DUTY_SCHEDULE',
             entityType: 'DutySchedule',
             entityId: String(id),
@@ -221,7 +221,7 @@ export async function DELETE(request: Request) {
         if (rows.length > 0) {
             await logAction({
                 actorId: admin.id,
-                actorName: admin.name,
+                actorName: admin.email,
                 action: 'DELETE_DUTY_SCHEDULE',
                 entityType: 'DutySchedule',
                 entityId: String(id),

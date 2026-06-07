@@ -26,9 +26,6 @@
   --color-accent: var(--color-brand-orange);
 }
 
-html {
-  scroll-behavior: smooth;
-}
 
 body {
   background: var(--background);

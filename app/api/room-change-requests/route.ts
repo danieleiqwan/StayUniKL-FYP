@@ -224,7 +224,7 @@ export async function PUT(request: Request) {
                     `UPDATE room_change_requests 
                      SET status = ?, new_room_id = ?, new_bed_id = ?, admin_notes = ?, reviewed_by = ?, reviewed_at = NOW()
                      WHERE id = ?`,
-                    [status, newRoomId, newBedId, adminNotes, admin.name, id]
+                    [status, newRoomId, newBedId, adminNotes, admin.email, id]
                 );
 
                 // 2. Fetch student info
@@ -249,7 +249,7 @@ export async function PUT(request: Request) {
                     // Audit & Notification (Outside transaction for performance, or inside if strict)
                     await logAction({
                         actorId: admin.id,
-                        actorName: admin.name,
+                        actorName: admin.email,
                         action: 'APPROVE_ROOM_CHANGE',
                         entityType: 'RoomChangeRequest',
                         entityId: id,
@@ -279,7 +279,7 @@ export async function PUT(request: Request) {
                 `UPDATE room_change_requests 
                  SET status = ?, waitlist_position = ?, admin_notes = ?, reviewed_by = ?, reviewed_at = NOW()
                  WHERE id = ?`,
-                [status, waitlistPosition, adminNotes, admin.name, id]
+                [status, waitlistPosition, adminNotes, admin.email, id]
             );
 
             // Fetch student ID for notification
@@ -300,7 +300,7 @@ export async function PUT(request: Request) {
                 `UPDATE room_change_requests 
                  SET status = ?, admin_notes = ?, reviewed_by = ?, reviewed_at = NOW()
                  WHERE id = ?`,
-                [status, adminNotes, admin.name, id]
+                [status, adminNotes, admin.email, id]
             );
 
             // Fetch student ID for notification

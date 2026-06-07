@@ -83,7 +83,7 @@ export async function POST(request: Request) {
 
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: 'CREATE_ANNOUNCEMENT',
             entityType: 'Announcement',
             entityId: id,
@@ -110,7 +110,7 @@ export async function PUT(request: Request) {
 
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: is_active ? 'ACTIVATE_ANNOUNCEMENT' : 'DEACTIVATE_ANNOUNCEMENT',
             entityType: 'Announcement',
             entityId: id,
@@ -149,7 +149,7 @@ export async function DELETE(request: Request) {
 
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: 'DELETE_ANNOUNCEMENT',
             entityType: 'Announcement',
             entityId: id,

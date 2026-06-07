@@ -101,7 +101,7 @@ export async function POST(request: Request) {
             // 4. Log Action
             await logAction({
                 actorId: admin.id,
-                actorName: admin.name,
+                actorName: admin.email,
                 action: 'MANUAL_BED_ASSIGNMENT',
                 entityType: 'Application',
                 entityId: appId,

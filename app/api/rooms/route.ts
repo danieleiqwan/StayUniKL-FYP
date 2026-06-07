@@ -185,7 +185,7 @@ export async function POST(request: Request) {
         // Audit log
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: 'CREATE_ROOM',
             entityType: 'Room',
             entityId: String(roomId),
@@ -224,7 +224,7 @@ export async function PUT(request: Request) {
 
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: 'UPDATE_ROOM_STATUS',
             entityType: 'Room',
             entityId: roomId,
@@ -281,7 +281,7 @@ export async function PATCH(request: Request) {
 
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: 'UPDATE_FLOOR_GENDER',
             entityType: 'Floor',
             entityId: String(floorId),
@@ -334,7 +334,7 @@ export async function DELETE(request: Request) {
 
             await logAction({
                 actorId: admin.id,
-                actorName: admin.name,
+                actorName: admin.email,
                 action: 'DELETE_ROOM',
                 entityType: 'Room',
                 entityId: String(roomId),
@@ -373,7 +373,7 @@ export async function DELETE(request: Request) {
 
             await logAction({
                 actorId: admin.id,
-                actorName: admin.name,
+                actorName: admin.email,
                 action: 'DELETE_FLOOR',
                 entityType: 'Floor',
                 entityId: String(floorId),

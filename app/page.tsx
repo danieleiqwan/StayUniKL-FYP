@@ -161,8 +161,8 @@ export default function LandingPage() {
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23000000'/%3E%3C/svg%3E")`,
           backgroundSize: '20px 20px'
         }}></div>
-        <div className="absolute top-0 right-0 -z-10 w-[800px] h-[800px] bg-orange-500/10 dark:bg-orange-500/5 rounded-full blur-[120px] -mr-[300px] -mt-[300px] transition-colors"></div>
-        <div className="absolute bottom-0 left-0 -z-10 w-[600px] h-[600px] bg-[#141235]/10 dark:bg-[#141235]/20 rounded-full blur-[100px] -ml-[200px] -mb-[200px] transition-colors"></div>
+        <div className="absolute top-0 right-0 -z-10 w-[800px] h-[800px] bg-orange-500/10 dark:bg-orange-500/5 rounded-full blur-[120px] -mr-[300px] -mt-[300px] transition-colors pointer-events-none transform-gpu"></div>
+        <div className="absolute bottom-0 left-0 -z-10 w-[600px] h-[600px] bg-[#141235]/10 dark:bg-[#141235]/20 rounded-full blur-[100px] -ml-[200px] -mb-[200px] transition-colors pointer-events-none transform-gpu"></div>
 
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid lg:grid-cols-5 items-center gap-16">
@@ -309,15 +309,15 @@ export default function LandingPage() {
             <div className="lg:w-1/2 relative">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-4 pt-12">
-                  <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover shadow-2xl" alt="Gym" />
-                  <img src="/study.jpg?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover" alt="Study" />
+                  <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover shadow-2xl transform-gpu" alt="Gym" />
+                  <img src="/study.jpg?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover transform-gpu" alt="Study" />
                 </div>
                 <div className="space-y-4">
-                  <img src="/laundry.jpg?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover shadow-2xl" alt="Laundry" />
-                  <img src="/multipurpose-court.jpg?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover shadow-2xl" alt="Court" />
+                  <img src="/laundry.jpg?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover shadow-2xl transform-gpu" alt="Laundry" />
+                  <img src="/multipurpose-court.jpg?auto=format&fit=crop&q=80&w=600" className="rounded-3xl h-80 w-full object-cover shadow-2xl transform-gpu" alt="Court" />
                 </div>
               </div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-32 w-32 bg-[#F26C22] rounded-full blur-3xl opacity-20"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-32 w-32 bg-[#F26C22] rounded-full blur-3xl opacity-20 pointer-events-none transform-gpu"></div>
             </div>
 
             <div className="lg:w-1/2 space-y-10">

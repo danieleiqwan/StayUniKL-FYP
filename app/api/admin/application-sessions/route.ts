@@ -87,7 +87,7 @@ export async function POST(request: Request) {
 
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: 'CREATE_APPLICATION_SESSION',
             entityType: 'ApplicationSession',
             entityId: id,
@@ -116,7 +116,7 @@ export async function DELETE(request: Request) {
 
         await logAction({
             actorId: admin.id,
-            actorName: admin.name,
+            actorName: admin.email,
             action: 'DELETE_APPLICATION_SESSION',
             entityType: 'ApplicationSession',
             entityId: id,
