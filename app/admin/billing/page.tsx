@@ -41,13 +41,13 @@ interface Payment {
 
 function StatusBadge({ status }: { status: string }) {
     const map: Record<string, { label: string; className: string }> = {
-        Paid:      { label: 'Paid',     className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
-        Unpaid:    { label: 'Pending',  className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
-        Overdue:   { label: 'Overdue',  className: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' },
-        Cancelled: { label: 'Cancelled',className: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' },
-        Success:   { label: 'Success',  className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
-        Failed:    { label: 'Failed',   className: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' },
-        Pending:   { label: 'Pending',  className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+        Paid: { label: 'Paid', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+        Unpaid: { label: 'Pending', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+        Overdue: { label: 'Overdue', className: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' },
+        Cancelled: { label: 'Cancelled', className: 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' },
+        Success: { label: 'Success', className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+        Failed: { label: 'Failed', className: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' },
+        Pending: { label: 'Pending', className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
     };
     const cfg = map[status] || map['Unpaid'];
     return (
@@ -73,7 +73,6 @@ export default function AdminBillingPage() {
     const [billingLog, setBillingLog] = useState<string[] | null>(null);
     const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [isSyncing, setIsSyncing] = useState(false);
     const [semesterList, setSemesterList] = useState<any[]>([]);
     const [selectedSemester, setSelectedSemester] = useState<string>('all');
     const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -85,7 +84,7 @@ export default function AdminBillingPage() {
     const [newInvoice, setNewInvoice] = useState({
         userId: '', type: 'Hostel Fee', description: '', amount: '', dueDate: ''
     });
-    const [verifiedUser, setVerifiedUser] = useState<{name: string, email: string, gender: string} | null>(null);
+    const [verifiedUser, setVerifiedUser] = useState<{ name: string, email: string, gender: string } | null>(null);
     const [verifying, setVerifying] = useState(false);
 
     const handleVerifyStudent = async () => {
@@ -142,7 +141,7 @@ export default function AdminBillingPage() {
         }
     }, []);
 
-    useEffect(() => { 
+    useEffect(() => {
         if (user && (user.role === 'admin' || user.role === 'superadmin')) {
             fetchData();
             // Auto-poll every 30 seconds to catch new payments
@@ -188,24 +187,6 @@ export default function AdminBillingPage() {
             }
         } finally {
             setRunningBilling(false);
-        }
-    };
-
-    const handleSyncBilling = async () => {
-        setIsSyncing(true);
-        try {
-            const res = await fetch('/api/admin/billing/sync', { method: 'POST' });
-            const data = await res.json();
-            if (data.success) {
-                alert(data.message);
-                await fetchData();
-            } else {
-                alert(data.error || 'Sync failed.');
-            }
-        } catch (err) {
-            alert('Failed to connect to sync API.');
-        } finally {
-            setIsSyncing(false);
         }
     };
 
@@ -260,8 +241,8 @@ export default function AdminBillingPage() {
 
     const filtered = invoices.filter(i => {
         const matchesStatus = statusFilter === 'All' || i.status === statusFilter;
-        const matchesSearch = !searchQuery || 
-            i.student_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        const matchesSearch = !searchQuery ||
+            i.student_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             i.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             i.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             i.student_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -284,14 +265,14 @@ export default function AdminBillingPage() {
         paid: g.items.filter(i => i.status === 'Paid').length,
         overdue: g.items.some(i => i.status === 'Overdue'),
     })).filter(g => {
-        return !searchQuery || 
-            g.student?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        return !searchQuery ||
+            g.student?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             g.appId?.toLowerCase().includes(searchQuery.toLowerCase());
     });
 
     const filteredPayments = payments.filter(p => {
-        return !searchQuery || 
-            p.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        return !searchQuery ||
+            p.user_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             p.reference_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             p.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             p.method?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -300,7 +281,7 @@ export default function AdminBillingPage() {
     // Filtered stats by semester
     const currentSemesterData = semesterList.find(s => s.id === selectedSemester);
     const statsInvoices = (selectedSemester === 'all' || !currentSemesterData)
-        ? invoices 
+        ? invoices
         : invoices.filter(i => {
             const date = new Date(i.created_at);
             return date >= new Date(currentSemesterData.start_date) && date <= new Date(currentSemesterData.end_date);
@@ -351,369 +332,359 @@ export default function AdminBillingPage() {
     return (
         <div className="max-w-[1400px] mx-auto px-10 py-12 space-y-10">
 
-                {/* Reorganized Page Header */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100 dark:border-indigo-900/30">
-                                <Banknote className="h-5 w-5" />
-                            </div>
-                            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
-                                Financial Management
-                            </h1>
-                        </div>
-                        <p className="text-slate-500 dark:text-slate-400 font-medium ml-1 flex items-center gap-2">
-                            Track invoices and payments across all students.
-                            {lastRefreshed && (
-                                <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-full text-[10px] font-bold text-slate-400">
-                                    <Clock className="h-3 w-3" />
-                                    {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                            )}
-                        </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                        {/* Period Selector */}
-                        <div className="flex items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 rounded-2xl shadow-sm h-12">
-                            <Calendar className="h-4 w-4 text-slate-400 ml-2" />
-                            <select 
-                                value={selectedSemester}
-                                onChange={(e) => setSelectedSemester(e.target.value)}
-                                className="bg-transparent border-none text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 outline-none pr-4 cursor-pointer"
-                            >
-                                <option value="all">All-Time Revenue</option>
-                                {semesterList.map(sem => (
-                                    <option key={sem.id} value={sem.id}>{sem.name}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex flex-wrap items-center gap-2">
-                            <button
-                                onClick={() => fetchData(false)}
-                                disabled={loading || isRefreshing}
-                                className="h-12 w-12 sm:w-auto sm:px-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-60"
-                                title="Refresh Data"
-                            >
-                                <RefreshCw className={cn("h-4 w-4", (loading || isRefreshing) && "animate-spin")} />
-                                <span className="hidden sm:inline">Refresh</span>
-                            </button>
-
-                            <button
-                                onClick={handleSyncBilling}
-                                disabled={isSyncing}
-                                className="h-12 w-12 sm:w-auto sm:px-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all disabled:opacity-60"
-                                title="Sync Payments"
-                            >
-                                <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
-                                <span className="hidden sm:inline">Sync</span>
-                            </button>
-
-                            <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mx-1 hidden md:block"></div>
-
-                            <button
-                                onClick={handleRunAutoBilling}
-                                disabled={runningBilling}
-                                className="h-12 px-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-white bg-slate-900 dark:bg-slate-800 hover:bg-[#F26C22] rounded-2xl shadow-lg transition-all disabled:opacity-60"
-                            >
-                                <Zap className={cn("h-4 w-4", runningBilling && "animate-pulse")} />
-                                <span>Billing Sync</span>
-                            </button>
-
-                            <Link
-                                href="/admin/finances/create-invoice"
-                                className="h-12 px-5 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-white bg-[#F26C22] hover:bg-[#d65a16] rounded-2xl shadow-lg shadow-orange-500/20 transition-all active:scale-95"
-                            >
-                                <Plus className="h-4 w-4" />
-                                <span>Invoice</span>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Hostel billing policy */}
-                <div className="mb-6 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-widest mb-1">UniKL Hostel Policy</p>
-                        <p className="text-sm font-bold text-slate-800 dark:text-white">Fixed RM600/semester · Full pay or 4× RM150 installments</p>
-                        <p className="text-xs text-slate-500 mt-1">Grace period before invoices become overdue</p>
-                    </div>
+            {/* Reorganized Page Header */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                        <input
-                            type="number"
-                            min={minGrace}
-                            max={maxGrace}
-                            value={gracePeriodDays}
-                            onChange={(e) => setGracePeriodDays(Number(e.target.value))}
-                            className="w-20 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-center font-black text-sm"
-                        />
-                        <span className="text-xs font-bold text-slate-500">days ({minGrace}–{maxGrace})</span>
-                        <button
-                            onClick={handleSaveGracePeriod}
-                            disabled={savingGrace}
-                            className="h-11 px-4 bg-[#F26C22] text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-[#d65a16] disabled:opacity-50"
-                        >
-                            {savingGrace ? 'Saving…' : 'Save'}
-                        </button>
+                        <div className="h-10 w-10 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm border border-indigo-100 dark:border-indigo-900/30">
+                            <Banknote className="h-5 w-5" />
+                        </div>
+                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+                            Financial Management
+                        </h1>
                     </div>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium ml-1 flex items-center gap-2">
+                        Track invoices and payments across all students.
+                        {lastRefreshed && (
+                            <span className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded-full text-[10px] font-bold text-slate-400">
+                                <Clock className="h-3 w-3" />
+                                {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        )}
+                    </p>
                 </div>
 
-                {/* Billing Log */}
-                {billingLog && (
-                    <div className="mb-6 bg-slate-900 text-green-400 rounded-2xl p-5 font-mono text-xs space-y-1 border border-slate-700 relative">
-                        <button onClick={() => setBillingLog(null)} className="absolute top-3 right-3 text-slate-500 hover:text-white">
-                            <X className="h-4 w-4" />
-                        </button>
-                        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mb-2">Auto-Billing Log</p>
-                        {billingLog.map((line, i) => <p key={i}>{'>'} {line}</p>)}
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Period Selector */}
+                    <div className="flex items-center gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-1.5 rounded-2xl shadow-sm h-12">
+                        <Calendar className="h-4 w-4 text-slate-400 ml-2" />
+                        <select
+                            value={selectedSemester}
+                            onChange={(e) => setSelectedSemester(e.target.value)}
+                            className="bg-transparent border-none text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 outline-none pr-4 cursor-pointer"
+                        >
+                            <option value="all">All-Time Revenue</option>
+                            {semesterList.map(sem => (
+                                <option key={sem.id} value={sem.id}>{sem.name}</option>
+                            ))}
+                        </select>
                     </div>
-                )}
 
-                {/* Stats */}
-                <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-                    {statCards.map((s, i) => (
-                        <div key={i} className={cn("rounded-2xl p-5 border border-transparent", s.bg)}>
-                            <div className="flex items-center justify-between mb-3">
-                                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{s.label}</p>
-                                <div className={cn("opacity-60", s.color)}>{s.icon}</div>
-                            </div>
-                            <p className={cn("text-xl font-black", s.color)}>{s.value}</p>
-                            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{s.sub}</p>
+                    {/* Action Buttons */}
+                    <div className="flex flex-wrap items-center gap-2">
+                        <button
+                            onClick={() => fetchData(false)}
+                            disabled={loading || isRefreshing}
+                            className="h-12 w-12 sm:w-auto sm:px-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-60"
+                            title="Refresh Data"
+                        >
+                            <RefreshCw className={cn("h-4 w-4", (loading || isRefreshing) && "animate-spin")} />
+                            <span className="hidden sm:inline">Refresh</span>
+                        </button>
+
+                        <div className="h-10 w-[1px] bg-slate-200 dark:bg-slate-800 mx-1 hidden md:block"></div>
+
+                        <button
+                            onClick={handleRunAutoBilling}
+                            disabled={runningBilling}
+                            className="h-12 px-4 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-white bg-slate-900 dark:bg-slate-800 hover:bg-[#F26C22] rounded-2xl shadow-lg transition-all disabled:opacity-60"
+                        >
+                            <Zap className={cn("h-4 w-4", runningBilling && "animate-pulse")} />
+                            <span>Billing Sync</span>
+                        </button>
+
+                        <Link
+                            href="/admin/finances/create-invoice"
+                            className="h-12 px-5 flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest text-white bg-[#F26C22] hover:bg-[#d65a16] rounded-2xl shadow-lg shadow-orange-500/20 transition-all active:scale-95"
+                        >
+                            <Plus className="h-4 w-4" />
+                            <span>Invoice</span>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+            {/* Hostel billing policy */}
+            <div className="mb-6 bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-widest mb-1">UniKL Hostel Policy</p>
+                    <p className="text-sm font-bold text-slate-800 dark:text-white">Fixed RM600/semester · Full pay or 4× RM150 installments</p>
+                    <p className="text-xs text-slate-500 mt-1">Grace period before invoices become overdue</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <input
+                        type="number"
+                        min={minGrace}
+                        max={maxGrace}
+                        value={gracePeriodDays}
+                        onChange={(e) => setGracePeriodDays(Number(e.target.value))}
+                        className="w-20 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-center font-black text-sm"
+                    />
+                    <span className="text-xs font-bold text-slate-500">days ({minGrace}–{maxGrace})</span>
+                    <button
+                        onClick={handleSaveGracePeriod}
+                        disabled={savingGrace}
+                        className="h-11 px-4 bg-[#F26C22] text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-[#d65a16] disabled:opacity-50"
+                    >
+                        {savingGrace ? 'Saving…' : 'Save'}
+                    </button>
+                </div>
+            </div>
+
+            {/* Billing Log */}
+            {billingLog && (
+                <div className="mb-6 bg-slate-900 text-green-400 rounded-2xl p-5 font-mono text-xs space-y-1 border border-slate-700 relative">
+                    <button onClick={() => setBillingLog(null)} className="absolute top-3 right-3 text-slate-500 hover:text-white">
+                        <X className="h-4 w-4" />
+                    </button>
+                    <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] mb-2">Auto-Billing Log</p>
+                    {billingLog.map((line, i) => <p key={i}>{'>'} {line}</p>)}
+                </div>
+            )}
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+                {statCards.map((s, i) => (
+                    <div key={i} className={cn("rounded-2xl p-5 border border-transparent", s.bg)}>
+                        <div className="flex items-center justify-between mb-3">
+                            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{s.label}</p>
+                            <div className={cn("opacity-60", s.color)}>{s.icon}</div>
                         </div>
+                        <p className={cn("text-xl font-black", s.color)}>{s.value}</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{s.sub}</p>
+                    </div>
+                ))}
+            </div>
+
+            {/* Tabs */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+                <div className="flex border-b border-slate-200 dark:border-slate-800">
+                    {(['invoices', 'installments', 'transactions'] as const).map(tab => (
+                        <button
+                            key={tab}
+                            onClick={() => setActiveTab(tab)}
+                            className={cn(
+                                "px-6 py-4 font-black text-sm capitalize transition-all tracking-wide",
+                                activeTab === tab
+                                    ? "bg-[#F26C22] text-white"
+                                    : "text-slate-400 hover:text-[#F26C22] hover:bg-slate-50 dark:hover:bg-slate-800"
+                            )}
+                        >
+                            {tab === 'invoices' ? 'Invoice Ledger' : tab === 'installments' ? 'Installment Plans' : 'Transaction History'}
+                        </button>
                     ))}
                 </div>
 
-                {/* Tabs */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-                    <div className="flex border-b border-slate-200 dark:border-slate-800">
-                        {(['invoices', 'installments', 'transactions'] as const).map(tab => (
+                <div className="p-6">
+                    {/* Search Filter Bar */}
+                    <div className="relative mb-6">
+                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                            <Search className="h-4 w-4 text-slate-400" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search by student name, student ID, invoice ID, reference ID or plan details..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            className="w-full pl-12 pr-10 py-3 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-[#F26C22] focus:border-[#F26C22] outline-none transition-all text-xs font-bold text-slate-800 dark:text-white"
+                        />
+                        {searchQuery && (
                             <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                className={cn(
-                                    "px-6 py-4 font-black text-sm capitalize transition-all tracking-wide",
-                                    activeTab === tab
-                                        ? "bg-[#F26C22] text-white"
-                                        : "text-slate-400 hover:text-[#F26C22] hover:bg-slate-50 dark:hover:bg-slate-800"
-                                )}
+                                onClick={() => setSearchQuery('')}
+                                className="absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
                             >
-                                {tab === 'invoices' ? 'Invoice Ledger' : tab === 'installments' ? 'Installment Plans' : 'Transaction History'}
+                                <X className="h-4 w-4" />
                             </button>
-                        ))}
+                        )}
                     </div>
 
-                    <div className="p-6">
-                        {/* Search Filter Bar */}
-                        <div className="relative mb-6">
-                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                                <Search className="h-4 w-4 text-slate-400" />
+                    {/* ─── Invoice Ledger ─── */}
+                    {activeTab === 'invoices' && (
+                        <div>
+                            {/* Status Filter */}
+                            <div className="flex items-center gap-2 mb-6 flex-wrap">
+                                <Filter className="h-4 w-4 text-slate-400" />
+                                {statusFilters.map(f => (
+                                    <button
+                                        key={f}
+                                        onClick={() => setStatusFilter(f)}
+                                        className={cn(
+                                            "px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
+                                            statusFilter === f
+                                                ? "bg-[#F26C22] text-white"
+                                                : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                        )}
+                                    >
+                                        {f === 'Unpaid' ? 'Pending' : f}
+                                        {f !== 'All' && (
+                                            <span className="ml-1 opacity-60">
+                                                ({invoices.filter(i => i.status === f).length})
+                                            </span>
+                                        )}
+                                    </button>
+                                ))}
+                                <span className="ml-auto text-xs text-slate-400 font-bold">{filtered.length} record(s)</span>
                             </div>
-                            <input
-                                type="text"
-                                placeholder="Search by student name, student ID, invoice ID, reference ID or plan details..."
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-10 py-3 bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-2 focus:ring-[#F26C22] focus:border-[#F26C22] outline-none transition-all text-xs font-bold text-slate-800 dark:text-white"
-                            />
-                            {searchQuery && (
-                                <button 
-                                    onClick={() => setSearchQuery('')}
-                                    className="absolute inset-y-0 right-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
+
+                            {loading ? (
+                                <div className="py-16 text-center">
+                                    <RefreshCw className="h-6 w-6 animate-spin text-[#F26C22] mx-auto mb-3" />
+                                    <p className="text-sm text-slate-400">Loading invoices...</p>
+                                </div>
+                            ) : filtered.length === 0 ? (
+                                <div className="py-16 text-center">
+                                    <FileText className="h-10 w-10 text-slate-200 dark:text-slate-700 mx-auto mb-3" />
+                                    <p className="font-bold text-slate-900 dark:text-white">No invoices found</p>
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-800">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                                {['Invoice ID', 'Student', 'Description', 'Amount', 'Due Date', 'Status', 'Action'].map(h => (
+                                                    <th key={h} className="px-5 py-3.5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+                                            {filtered.map(inv => (
+                                                <tr key={inv.id} className={cn(
+                                                    "transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40",
+                                                    inv.status === 'Overdue' && "bg-rose-50/30 dark:bg-rose-900/5"
+                                                )}>
+                                                    <td className="px-5 py-4 font-mono text-xs text-slate-500 dark:text-slate-400 max-w-[140px]">
+                                                        <span className="truncate block">{inv.id}</span>
+                                                    </td>
+                                                    <td className="px-5 py-4">
+                                                        <p className="font-bold text-slate-800 dark:text-white text-xs">{inv.student_name || inv.user_id}</p>
+                                                        {inv.student_email && <p className="text-[10px] text-slate-400">{inv.student_email}</p>}
+                                                    </td>
+                                                    <td className="px-5 py-4">
+                                                        <p className="font-bold text-slate-700 dark:text-slate-300 text-xs">{inv.description || inv.type}</p>
+                                                        <p className="text-[10px] text-slate-400">{new Date(inv.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                                                    </td>
+                                                    <td className="px-5 py-4 font-black text-slate-900 dark:text-white">RM {Number(inv.amount).toFixed(2)}</td>
+                                                    <td className="px-5 py-4 text-xs text-slate-600 dark:text-slate-400">
+                                                        {inv.due_date ? new Date(inv.due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                                                    </td>
+                                                    <td className="px-5 py-4"><StatusBadge status={inv.status} /></td>
+                                                    <td className="px-5 py-4">
+                                                        {(inv.status === 'Unpaid' || inv.status === 'Overdue') && (
+                                                            <button
+                                                                onClick={() => handleMarkPaid(inv.id)}
+                                                                className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-xl hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-all"
+                                                            >
+                                                                Mark Paid
+                                                            </button>
+                                                        )}
+                                                        {inv.status === 'Paid' && (
+                                                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-1">
+                                                                <CheckCircle2 className="h-3.5 w-3.5" /> Settled
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             )}
                         </div>
+                    )}
 
-                        {/* ─── Invoice Ledger ─── */}
-                        {activeTab === 'invoices' && (
-                            <div>
-                                {/* Status Filter */}
-                                <div className="flex items-center gap-2 mb-6 flex-wrap">
-                                    <Filter className="h-4 w-4 text-slate-400" />
-                                    {statusFilters.map(f => (
-                                        <button
-                                            key={f}
-                                            onClick={() => setStatusFilter(f)}
-                                            className={cn(
-                                                "px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all",
-                                                statusFilter === f
-                                                    ? "bg-[#F26C22] text-white"
-                                                    : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700"
-                                            )}
-                                        >
-                                            {f === 'Unpaid' ? 'Pending' : f}
-                                            {f !== 'All' && (
-                                                <span className="ml-1 opacity-60">
-                                                    ({invoices.filter(i => i.status === f).length})
-                                                </span>
-                                            )}
-                                        </button>
-                                    ))}
-                                    <span className="ml-auto text-xs text-slate-400 font-bold">{filtered.length} record(s)</span>
-                                </div>
-
-                                {loading ? (
-                                    <div className="py-16 text-center">
-                                        <RefreshCw className="h-6 w-6 animate-spin text-[#F26C22] mx-auto mb-3" />
-                                        <p className="text-sm text-slate-400">Loading invoices...</p>
-                                    </div>
-                                ) : filtered.length === 0 ? (
-                                    <div className="py-16 text-center">
-                                        <FileText className="h-10 w-10 text-slate-200 dark:text-slate-700 mx-auto mb-3" />
-                                        <p className="font-bold text-slate-900 dark:text-white">No invoices found</p>
-                                    </div>
-                                ) : (
-                                    <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-800">
-                                        <table className="w-full text-sm">
-                                            <thead>
-                                                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                                                    {['Invoice ID', 'Student', 'Description', 'Amount', 'Due Date', 'Status', 'Action'].map(h => (
-                                                        <th key={h} className="px-5 py-3.5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
-                                                    ))}
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                                                {filtered.map(inv => (
-                                                    <tr key={inv.id} className={cn(
-                                                        "transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40",
-                                                        inv.status === 'Overdue' && "bg-rose-50/30 dark:bg-rose-900/5"
-                                                    )}>
-                                                        <td className="px-5 py-4 font-mono text-xs text-slate-500 dark:text-slate-400 max-w-[140px]">
-                                                            <span className="truncate block">{inv.id}</span>
-                                                        </td>
-                                                        <td className="px-5 py-4">
-                                                            <p className="font-bold text-slate-800 dark:text-white text-xs">{inv.student_name || inv.user_id}</p>
-                                                            {inv.student_email && <p className="text-[10px] text-slate-400">{inv.student_email}</p>}
-                                                        </td>
-                                                        <td className="px-5 py-4">
-                                                            <p className="font-bold text-slate-700 dark:text-slate-300 text-xs">{inv.description || inv.type}</p>
-                                                            <p className="text-[10px] text-slate-400">{new Date(inv.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-                                                        </td>
-                                                        <td className="px-5 py-4 font-black text-slate-900 dark:text-white">RM {Number(inv.amount).toFixed(2)}</td>
-                                                        <td className="px-5 py-4 text-xs text-slate-600 dark:text-slate-400">
-                                                            {inv.due_date ? new Date(inv.due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
-                                                        </td>
-                                                        <td className="px-5 py-4"><StatusBadge status={inv.status} /></td>
-                                                        <td className="px-5 py-4">
-                                                            {(inv.status === 'Unpaid' || inv.status === 'Overdue') && (
-                                                                <button
-                                                                    onClick={() => handleMarkPaid(inv.id)}
-                                                                    className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-xl hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-all"
-                                                                >
-                                                                    Mark Paid
-                                                                </button>
-                                                            )}
-                                                            {inv.status === 'Paid' && (
-                                                                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-black flex items-center gap-1">
-                                                                    <CheckCircle2 className="h-3.5 w-3.5" /> Settled
-                                                                </span>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {activeTab === 'installments' && (
-                            <div className="space-y-4">
-                                {installmentGroups.length === 0 ? (
-                                    <div className="py-16 text-center text-slate-400 text-sm">No active installment plans yet.</div>
-                                ) : (
-                                    installmentGroups.map(group => (
-                                        <div key={group.appId} className={cn(
-                                            "rounded-2xl border p-5",
-                                            group.overdue
-                                                ? "border-rose-200 dark:border-rose-800 bg-rose-50/30 dark:bg-rose-900/10"
-                                                : "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30"
-                                        )}>
-                                            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                                                <div>
-                                                    <p className="font-black text-slate-900 dark:text-white text-sm">{group.student}</p>
-                                                    <p className="text-[10px] font-mono text-slate-400">{group.appId}</p>
+                    {activeTab === 'installments' && (
+                        <div className="space-y-4">
+                            {installmentGroups.length === 0 ? (
+                                <div className="py-16 text-center text-slate-400 text-sm">No active installment plans yet.</div>
+                            ) : (
+                                installmentGroups.map(group => (
+                                    <div key={group.appId} className={cn(
+                                        "rounded-2xl border p-5",
+                                        group.overdue
+                                            ? "border-rose-200 dark:border-rose-800 bg-rose-50/30 dark:bg-rose-900/10"
+                                            : "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30"
+                                    )}>
+                                        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                                            <div>
+                                                <p className="font-black text-slate-900 dark:text-white text-sm">{group.student}</p>
+                                                <p className="text-[10px] font-mono text-slate-400">{group.appId}</p>
+                                            </div>
+                                            <span className="text-sm font-black text-[#F26C22]">{group.paid}/4 paid</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                            {group.items.map(inv => (
+                                                <div key={inv.id} className="rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-3 text-center">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase">#{inv.installment_no}</p>
+                                                    <p className="font-black text-slate-900 dark:text-white my-1">RM 150</p>
+                                                    <StatusBadge status={inv.status} />
+                                                    {inv.paid_at && (
+                                                        <p className="text-[9px] text-slate-400 mt-1">
+                                                            {new Date(inv.paid_at).toLocaleDateString('en-GB')}
+                                                        </p>
+                                                    )}
                                                 </div>
-                                                <span className="text-sm font-black text-[#F26C22]">{group.paid}/4 paid</span>
-                                            </div>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                {group.items.map(inv => (
-                                                    <div key={inv.id} className="rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-3 text-center">
-                                                        <p className="text-[10px] font-black text-slate-400 uppercase">#{inv.installment_no}</p>
-                                                        <p className="font-black text-slate-900 dark:text-white my-1">RM 150</p>
-                                                        <StatusBadge status={inv.status} />
-                                                        {inv.paid_at && (
-                                                            <p className="text-[9px] text-slate-400 mt-1">
-                                                                {new Date(inv.paid_at).toLocaleDateString('en-GB')}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
+                                            ))}
                                         </div>
-                                    ))
-                                )}
-                            </div>
-                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
 
-                        {/* ─── Transaction History ─── */}
-                        {activeTab === 'transactions' && (
-                            <div>
-                                {loading ? (
-                                    <div className="py-16 text-center">
-                                        <RefreshCw className="h-6 w-6 animate-spin text-[#F26C22] mx-auto mb-3" />
-                                        <p className="text-sm text-slate-400">Loading transactions...</p>
+                    {/* ─── Transaction History ─── */}
+                    {activeTab === 'transactions' && (
+                        <div>
+                            {loading ? (
+                                <div className="py-16 text-center">
+                                    <RefreshCw className="h-6 w-6 animate-spin text-[#F26C22] mx-auto mb-3" />
+                                    <p className="text-sm text-slate-400">Loading transactions...</p>
+                                </div>
+                            ) : filteredPayments.length === 0 ? (
+                                <div className="py-16 text-center">
+                                    <div className="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                        <CreditCard className="h-8 w-8 text-slate-400" />
                                     </div>
-                                ) : filteredPayments.length === 0 ? (
-                                    <div className="py-16 text-center">
-                                        <div className="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <CreditCard className="h-8 w-8 text-slate-400" />
-                                        </div>
-                                        <h4 className="font-black text-slate-900 dark:text-white mb-1">No Transactions Found</h4>
-                                        <p className="text-slate-500 text-sm max-w-xs mx-auto">
-                                            Payment records will appear here after students settle their invoices.
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-800">
-                                        <table className="w-full text-sm">
-                                            <thead>
-                                                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                                                    {['Transaction ID', 'Student', 'Ref / Invoice', 'Amount', 'Date', 'Method', 'Status'].map(h => (
-                                                        <th key={h} className="px-5 py-3.5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
-                                                    ))}
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                                                {filteredPayments.map(pay => (
-                                                    <tr key={pay.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                                                        <td className="px-5 py-4 font-mono text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[120px]">{pay.id}</td>
-                                                        <td className="px-5 py-4 text-xs font-bold text-slate-800 dark:text-white">{pay.user_id}</td>
-                                                        <td className="px-5 py-4 text-[10px] font-mono text-slate-400">
-                                                            {pay.reference_id}
-                                                            {pay.invoice_id && <div className="text-blue-500 font-bold mt-0.5">INV: {pay.invoice_id}</div>}
-                                                        </td>
-                                                        <td className="px-5 py-4 font-black text-slate-900 dark:text-white">RM {Number(pay.amount).toFixed(2)}</td>
-                                                        <td className="px-6 py-4 text-[11px] text-slate-500">
-                                                            {new Date(pay.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                            <div className="text-[10px] opacity-60">{new Date(pay.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>
-                                                        </td>
-                                                        <td className="px-5 py-4 text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{pay.method}</td>
-                                                        <td className="px-5 py-4"><StatusBadge status={pay.status} /></td>
-                                                    </tr>
+                                    <h4 className="font-black text-slate-900 dark:text-white mb-1">No Transactions Found</h4>
+                                    <p className="text-slate-500 text-sm max-w-xs mx-auto">
+                                        Payment records will appear here after students settle their invoices.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-800">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                                {['Transaction ID', 'Student', 'Ref / Invoice', 'Amount', 'Date', 'Method', 'Status'].map(h => (
+                                                    <th key={h} className="px-5 py-3.5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
                                                 ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+                                            {filteredPayments.map(pay => (
+                                                <tr key={pay.id} className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                                                    <td className="px-5 py-4 font-mono text-[10px] text-slate-500 dark:text-slate-400 truncate max-w-[120px]">{pay.id}</td>
+                                                    <td className="px-5 py-4 text-xs font-bold text-slate-800 dark:text-white">{pay.user_id}</td>
+                                                    <td className="px-5 py-4 text-[10px] font-mono text-slate-400">
+                                                        {pay.reference_id}
+                                                        {pay.invoice_id && <div className="text-blue-500 font-bold mt-0.5">INV: {pay.invoice_id}</div>}
+                                                    </td>
+                                                    <td className="px-5 py-4 font-black text-slate-900 dark:text-white">RM {Number(pay.amount).toFixed(2)}</td>
+                                                    <td className="px-6 py-4 text-[11px] text-slate-500">
+                                                        {new Date(pay.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                        <div className="text-[10px] opacity-60">{new Date(pay.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>
+                                                    </td>
+                                                    <td className="px-5 py-4 text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{pay.method}</td>
+                                                    <td className="px-5 py-4"><StatusBadge status={pay.status} /></td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
+            </div>
 
             {/* Create Invoice Modal */}
             {showCreate && (
@@ -777,7 +748,7 @@ export default function AdminBillingPage() {
                                                 placeholder="e.g. STU-12345"
                                                 className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white font-bold outline-none focus:border-[#F26C22] transition-all"
                                             />
-                                            <button 
+                                            <button
                                                 onClick={handleVerifyStudent}
                                                 disabled={verifying || !newInvoice.userId}
                                                 className="px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-all border border-slate-200 dark:border-slate-700"
@@ -852,7 +823,7 @@ export default function AdminBillingPage() {
                             >
                                 {showConfirm ? 'Go Back' : 'Cancel'}
                             </button>
-                             <button
+                            <button
                                 onClick={handleCreateInvoice}
                                 disabled={creating || !verifiedUser}
                                 className={cn(
