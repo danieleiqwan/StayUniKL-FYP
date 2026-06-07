@@ -40,6 +40,7 @@ export default function AdminDutiesPage() {
     const [saving, setSaving] = useState(false);
     const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -132,11 +133,54 @@ export default function AdminDutiesPage() {
                 setMsg({ type: 'error', text: data.error });
                 return;
             }
+            // Remove from selected list if deleted
+            setSelectedIds(prev => prev.filter(x => x !== id));
             await fetchDuties();
         } catch {
             setMsg({ type: 'error', text: 'Failed to delete duty schedule.' });
         } finally {
             setDeletingId(null);
+        }
+    };
+
+    const toggleSelect = (id: number) => {
+        setSelectedIds(prev => 
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.length === duties.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(duties.map(d => d.id));
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedIds.length === 0) return;
+        if (!window.confirm(`Are you sure you want to delete the ${selectedIds.length} selected duty schedules?`)) return;
+        
+        setSaving(true);
+        setMsg(null);
+        try {
+            const idsParam = selectedIds.join(',');
+            const res = await fetch(`/api/duty-schedules?ids=${idsParam}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (!res.ok) {
+                setMsg({ type: 'error', text: data.error || 'Failed to delete selected schedules.' });
+                return;
+            }
+            setMsg({ 
+                type: 'success', 
+                text: `Successfully deleted ${data.deletedCount || selectedIds.length} duty schedules.` 
+            });
+            setSelectedIds([]);
+            await fetchDuties();
+        } catch {
+            setMsg({ type: 'error', text: 'Failed to delete selected duty schedules.' });
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -177,9 +221,35 @@ export default function AdminDutiesPage() {
 
             {/* Duty List Grid */}
             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
-                <div className="p-6 border-b border-slate-50 dark:border-slate-800">
-                    <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Active Duty Schedules</h2>
-                    <p className="text-xs text-slate-400 mt-0.5">{duties.length} shifts scheduled</p>
+                <div className="p-6 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between min-h-[85px]">
+                    {selectedIds.length > 0 ? (
+                        <div className="flex items-center justify-between w-full">
+                            <div className="flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+                                <p className="text-sm font-black text-rose-500 uppercase tracking-widest">{selectedIds.length} Selected</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button 
+                                    onClick={() => setSelectedIds([])}
+                                    className="text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all uppercase tracking-widest"
+                                >
+                                    Clear
+                                </button>
+                                <button 
+                                    onClick={handleBulkDelete}
+                                    disabled={saving || deletingId !== null}
+                                    className="flex items-center gap-2 px-4 py-2 bg-rose-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-rose-600 transition-all shadow-md shadow-rose-500/10 disabled:opacity-50"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5" /> Delete Selected
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Active Duty Schedules</h2>
+                            <p className="text-xs text-slate-400 mt-0.5">{duties.length} shifts scheduled</p>
+                        </div>
+                    )}
                 </div>
 
                 {loading ? (
@@ -198,6 +268,14 @@ export default function AdminDutiesPage() {
                         <table className="w-full">
                             <thead>
                                 <tr className="bg-slate-50 dark:bg-slate-800/50">
+                                    <th className="px-6 py-4 w-12 text-left">
+                                        <input
+                                            type="checkbox"
+                                            checked={duties.length > 0 && selectedIds.length === duties.length}
+                                            onChange={toggleSelectAll}
+                                            className="h-4 w-4 rounded border-slate-350 dark:border-slate-700 text-[#F26C22] focus:ring-[#F26C22] dark:focus:ring-orange-900/20 cursor-pointer bg-white dark:bg-slate-800 focus:outline-none"
+                                        />
+                                    </th>
                                     <th className="text-left px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</th>
                                     <th className="text-left px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Role</th>
                                     <th className="text-left px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Floor</th>
@@ -210,9 +288,23 @@ export default function AdminDutiesPage() {
                             <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                                 {duties.map((duty) => {
                                     const isSRC = duty.role === 'SRC';
+                                    const isSelected = selectedIds.includes(duty.id);
                                     
                                     return (
-                                        <tr key={duty.id} className="transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                                        <tr 
+                                            key={duty.id} 
+                                            className={`transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-800/30 ${
+                                                isSelected ? 'bg-orange-50/20 dark:bg-orange-950/10' : ''
+                                            }`}
+                                        >
+                                            <td className="px-6 py-4 w-12">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isSelected}
+                                                    onChange={() => toggleSelect(duty.id)}
+                                                    className="h-4 w-4 rounded border-slate-350 dark:border-slate-700 text-[#F26C22] focus:ring-[#F26C22] dark:focus:ring-orange-900/20 cursor-pointer bg-white dark:bg-slate-800 focus:outline-none"
+                                                />
+                                            </td>
                                             <td className="px-6 py-4">
                                                 <p className="font-black text-slate-900 dark:text-white text-sm">{duty.name}</p>
                                             </td>

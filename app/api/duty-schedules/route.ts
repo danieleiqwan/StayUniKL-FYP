@@ -204,32 +204,39 @@ export async function PUT(request: Request) {
     }
 }
 
-// DELETE: Delete a duty schedule (admin only)
+// DELETE: Delete single or multiple duty schedules (admin only)
 export async function DELETE(request: Request) {
     try {
         const admin = await isAdmin();
         if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
         const { searchParams } = new URL(request.url);
-        const id = searchParams.get('id');
-        if (!id) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+        const idParam = searchParams.get('id') || searchParams.get('ids');
+        if (!idParam) return NextResponse.json({ error: 'ID is required' }, { status: 400 });
 
-        const [rows]: any = await pool.query('SELECT name, role FROM duty_schedules WHERE id = ?', [id]);
+        const ids = idParam.split(',').map(id => parseInt(id.trim(), 10)).filter(id => !isNaN(id));
+        if (ids.length === 0) return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 });
+
+        const [rows]: any = await pool.query('SELECT id, name, role FROM duty_schedules WHERE id IN (?)', [ids]);
         
-        await pool.query('DELETE FROM duty_schedules WHERE id = ?', [id]);
+        if (rows.length === 0) {
+            return NextResponse.json({ error: 'No schedules found to delete' }, { status: 404 });
+        }
 
-        if (rows.length > 0) {
+        await pool.query('DELETE FROM duty_schedules WHERE id IN (?)', [ids]);
+
+        for (const row of rows) {
             await logAction({
                 actorId: admin.id,
                 actorName: admin.email,
                 action: 'DELETE_DUTY_SCHEDULE',
                 entityType: 'DutySchedule',
-                entityId: String(id),
-                details: { name: rows[0].name, role: rows[0].role }
+                entityId: String(row.id),
+                details: { name: row.name, role: row.role, bulk: ids.length > 1 }
             });
         }
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true, deletedCount: rows.length });
     } catch (error: any) {
         console.error('[Duty Schedules DELETE]', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
