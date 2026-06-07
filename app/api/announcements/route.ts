@@ -13,7 +13,7 @@ export async function GET(request: Request) {
         let query: string;
         let params: any[] = [];
 
-        if (user.role === 'admin') {
+        if (user.role === 'admin' || user.role === 'superadmin') {
             query = `SELECT * FROM announcements ORDER BY created_at DESC`;
         } else {
             // Students only see active, non-expired announcements
@@ -72,9 +72,9 @@ export async function POST(request: Request) {
         // Fan out to all students as in-app notification if requested
         if (sendNotification) {
             const notifType = priority === 'urgent' ? 'error' : priority === 'important' ? 'warning' : 'info';
-            await createSystemNotification({ 
-                title, 
-                message, 
+            await createSystemNotification({
+                title,
+                message,
                 type: notifType,
                 relatedEntityId: id,
                 relatedEntityType: 'Announcement'
@@ -107,7 +107,7 @@ export async function PUT(request: Request) {
         const { id, is_active } = body;
 
         await pool.query('UPDATE announcements SET is_active = ? WHERE id = ?', [is_active ? 1 : 0, id]);
-        
+
         await logAction({
             actorId: admin.id,
             actorName: admin.name,
@@ -116,7 +116,7 @@ export async function PUT(request: Request) {
             entityId: id,
             details: {}
         });
-        
+
         return NextResponse.json({ success: true });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
@@ -137,16 +137,16 @@ export async function DELETE(request: Request) {
         const [rows]: any = await pool.query('SELECT title, message FROM announcements WHERE id = ?', [id]);
         if (rows.length > 0) {
             const { title, message } = rows[0];
-            
+
             // Delete notifications linked directly by ID (for future announcements)
             await pool.query('DELETE FROM notifications WHERE related_entity_id = ?', [id]);
-            
+
             // Delete notifications linked by exact title and message (for past announcements)
             await pool.query('DELETE FROM notifications WHERE title = ? AND message = ?', [title, message]);
         }
 
         await pool.query('DELETE FROM announcements WHERE id = ?', [id]);
-        
+
         await logAction({
             actorId: admin.id,
             actorName: admin.name,
@@ -155,7 +155,7 @@ export async function DELETE(request: Request) {
             entityId: id,
             details: rows.length > 0 ? { title: rows[0].title } : {}
         });
-        
+
         return NextResponse.json({ success: true });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
