@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import PhoneInput from '@/components/ui/PhoneInput';
 import {
     User, Lock, Bell, Mail, ShieldCheck,
     CheckCircle2, ChevronRight, AlertCircle, Save,
@@ -44,7 +45,7 @@ export default function SettingsHub() {
 
     const handleAccountSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         // Mandatory field validation
         if (!accountForm.address || !accountForm.emergencyContact1Name || !accountForm.emergencyContact1Phone || !accountForm.emergencyContact1Relation) {
             setMsg({ type: 'error', text: 'All identity and emergency contact fields are mandatory.' });
@@ -221,13 +222,10 @@ export default function SettingsHub() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Phone Number</label>
-                                            <input
-                                                type="text"
-                                                placeholder="e.g. +60123456789"
+                                            <PhoneInput
+                                                label="Phone Number"
                                                 value={accountForm.phoneNumber}
-                                                onChange={e => setAccountForm({ ...accountForm, phoneNumber: e.target.value })}
-                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
+                                                onChange={(val) => setAccountForm({ ...accountForm, phoneNumber: val })}
                                             />
                                         </div>
                                     </div>
@@ -278,23 +276,23 @@ export default function SettingsHub() {
                                     {/* Emergency Contacts */}
                                     <div className="pt-6 border-t border-slate-50 dark:border-slate-800 space-y-8">
                                         <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest ml-1 transition-colors">Emergency Contacts (Parent/Guardian)</h3>
-                                        
+
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                                             {/* Contact 1 */}
                                             <div className="space-y-4">
                                                 <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em]">Contact #1 (Mandatory)</p>
                                                 <div className="space-y-2">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name <span className="text-rose-500">*</span></label>
-                                                    <input 
-                                                        type="text" 
+                                                    <input
+                                                        type="text"
                                                         value={accountForm.emergencyContact1Name}
                                                         onChange={(e) => setAccountForm({ ...accountForm, emergencyContact1Name: e.target.value })}
-                                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 dark:text-white transition-all" 
+                                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 dark:text-white transition-all"
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship to Student <span className="text-rose-500">*</span></label>
-                                                    <select 
+                                                    <select
                                                         value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact1Relation) ? accountForm.emergencyContact1Relation : (accountForm.emergencyContact1Relation ? 'Other' : '')}
                                                         onChange={(e) => {
                                                             const val = e.target.value;
@@ -316,8 +314,8 @@ export default function SettingsHub() {
                                                 {(!['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact1Relation) || accountForm.emergencyContact1Relation === '') && (
                                                     <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
                                                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Specify Relationship</label>
-                                                        <input 
-                                                            type="text" 
+                                                        <input
+                                                            type="text"
                                                             placeholder="e.g. Grandfather, Uncle"
                                                             value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact1Relation) ? '' : accountForm.emergencyContact1Relation}
                                                             onChange={(e) => setAccountForm({ ...accountForm, emergencyContact1Relation: e.target.value })}
@@ -327,12 +325,11 @@ export default function SettingsHub() {
                                                 )}
 
                                                 <div className="space-y-2">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number <span className="text-rose-500">*</span></label>
-                                                    <input 
-                                                        type="text" 
+                                                    <PhoneInput
+                                                        label="Phone Number"
+                                                        required
                                                         value={accountForm.emergencyContact1Phone}
-                                                        onChange={(e) => setAccountForm({ ...accountForm, emergencyContact1Phone: e.target.value })}
-                                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 dark:text-white transition-all" 
+                                                        onChange={(val) => setAccountForm({ ...accountForm, emergencyContact1Phone: val })}
                                                     />
                                                 </div>
                                             </div>
@@ -342,16 +339,16 @@ export default function SettingsHub() {
                                                 <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em]">Contact #2</p>
                                                 <div className="space-y-2">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
-                                                    <input 
-                                                        type="text" 
+                                                    <input
+                                                        type="text"
                                                         value={accountForm.emergencyContact2Name}
                                                         onChange={(e) => setAccountForm({ ...accountForm, emergencyContact2Name: e.target.value })}
-                                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 dark:text-white transition-all" 
+                                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 dark:text-white transition-all"
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship to Student</label>
-                                                    <select 
+                                                    <select
                                                         value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact2Relation) ? accountForm.emergencyContact2Relation : (accountForm.emergencyContact2Relation ? 'Other' : '')}
                                                         onChange={(e) => {
                                                             const val = e.target.value;
@@ -373,8 +370,8 @@ export default function SettingsHub() {
                                                 {(!['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact2Relation) || accountForm.emergencyContact2Relation === '') && (
                                                     <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
                                                         <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Specify Relationship</label>
-                                                        <input 
-                                                            type="text" 
+                                                        <input
+                                                            type="text"
                                                             placeholder="e.g. Grandfather, Uncle"
                                                             value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact2Relation) ? '' : accountForm.emergencyContact2Relation}
                                                             onChange={(e) => setAccountForm({ ...accountForm, emergencyContact2Relation: e.target.value })}
@@ -384,12 +381,10 @@ export default function SettingsHub() {
                                                 )}
 
                                                 <div className="space-y-2">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
-                                                    <input 
-                                                        type="text" 
+                                                    <PhoneInput
+                                                        label="Phone Number"
                                                         value={accountForm.emergencyContact2Phone}
-                                                        onChange={(e) => setAccountForm({ ...accountForm, emergencyContact2Phone: e.target.value })}
-                                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 dark:text-white transition-all" 
+                                                        onChange={(val) => setAccountForm({ ...accountForm, emergencyContact2Phone: val })}
                                                     />
                                                 </div>
                                             </div>
