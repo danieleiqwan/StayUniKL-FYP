@@ -82,7 +82,7 @@ export async function GET(request: Request) {
             studentName: b.student_name,
             sport: b.sport,
             date: b.date instanceof Date
-                ? b.date.toLocaleDateString('en-CA')
+                ? b.date.toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' })
                 : String(b.date).split('T')[0],
             timeSlot: b.time_slot,
             status: b.status,
@@ -291,7 +291,7 @@ export async function POST(request: Request) {
                 const sem = semesterRows[0];
                 const semName = sem.name;
                 const endDateStr = sem.end_date instanceof Date
-                    ? sem.end_date.toLocaleDateString('en-CA')
+                    ? sem.end_date.toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' })
                     : String(sem.end_date).split('T')[0];
 
                 const [y, m, d] = endDateStr.split('-').map(Number);

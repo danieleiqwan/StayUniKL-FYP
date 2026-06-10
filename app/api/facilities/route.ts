@@ -38,7 +38,7 @@ export async function GET(request: Request) {
             sport: b.sport,
             // Normalize date to YYYY-MM-DD in local time (fixes UTC offset date shift for UTC+8 Malaysia)
             date: b.date instanceof Date
-                ? b.date.toLocaleDateString('en-CA')
+                ? b.date.toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' })
                 : String(b.date).split('T')[0],
             timeSlot: b.time_slot,
             status: b.status,
