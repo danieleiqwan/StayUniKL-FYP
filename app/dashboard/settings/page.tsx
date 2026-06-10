@@ -340,51 +340,58 @@ export default function SettingsHub() {
                                 <form onSubmit={handleAccountSubmit} className="space-y-10 animate-in slide-in-from-bottom-2 duration-500">
                                     {/* Core Credentials */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {/* Full Name */}
+                                        {/* Full Name (Read-only) */}
                                         <div className="space-y-2">
                                             <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">
                                                 Full Name <span className="text-rose-500">*</span>
                                             </label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={accountForm.name}
-                                                placeholder="e.g. Ahmad bin Abdullah"
-                                                onChange={e => setAndClear('name', onlyLetters(maxLen(e.target.value, 100)))}
-                                                className={inputClass('name')}
-                                            />
-                                            {errors.name && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.name}</p>}
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={accountForm.name}
+                                                    readOnly
+                                                    tabIndex={-1}
+                                                    className="w-full bg-slate-100 dark:bg-slate-700/50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed select-all"
+                                                />
+                                                <div className="absolute inset-0 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-700 pointer-events-none"></div>
+                                            </div>
+                                            <p className="text-[10px] text-slate-400 ml-1 italic">Set during registration — cannot be changed</p>
                                         </div>
 
-                                        {/* Email */}
+                                        {/* Email (Read-only) */}
                                         <div className="space-y-2">
                                             <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">
                                                 UniKL Email <span className="text-rose-500">*</span>
                                             </label>
-                                            <input
-                                                type="email"
-                                                required
-                                                value={accountForm.email}
-                                                placeholder="e.g. name@unikl.edu.my"
-                                                onChange={e => setAndClear('email', maxLen(e.target.value, 100))}
-                                                className={inputClass('email')}
-                                            />
-                                            {errors.email && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.email}</p>}
+                                            <div className="relative">
+                                                <input
+                                                    type="email"
+                                                    value={accountForm.email}
+                                                    readOnly
+                                                    tabIndex={-1}
+                                                    className="w-full bg-slate-100 dark:bg-slate-700/50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed select-all"
+                                                />
+                                                <div className="absolute inset-0 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-700 pointer-events-none"></div>
+                                            </div>
+                                            <p className="text-[10px] text-slate-400 ml-1 italic">Set during registration — cannot be changed</p>
                                         </div>
 
-                                        {/* Student ID */}
+                                        {/* Student ID (Read-only) */}
                                         <div className="space-y-2">
                                             <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">
                                                 Student ID
                                             </label>
-                                            <input
-                                                type="text"
-                                                placeholder="e.g. 5200123456789"
-                                                value={accountForm.studentId}
-                                                onChange={e => setAndClear('studentId', onlyAlphanumericDash(maxLen(e.target.value, 20)))}
-                                                className={inputClass('studentId')}
-                                            />
-                                            {errors.studentId && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.studentId}</p>}
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={accountForm.studentId}
+                                                    readOnly
+                                                    tabIndex={-1}
+                                                    className="w-full bg-slate-100 dark:bg-slate-700/50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed select-all"
+                                                />
+                                                <div className="absolute inset-0 rounded-2xl ring-1 ring-slate-200 dark:ring-slate-700 pointer-events-none"></div>
+                                            </div>
+                                            <p className="text-[10px] text-slate-400 ml-1 italic">Set during registration — cannot be changed</p>
                                         </div>
 
                                         {/* Phone Number */}
