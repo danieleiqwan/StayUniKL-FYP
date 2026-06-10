@@ -5,8 +5,8 @@ import { useData } from '@/context/DataContext';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-    CheckCircle2, ChevronRight, ChevronLeft, CalendarDays, 
+import {
+    CheckCircle2, ChevronRight, ChevronLeft, CalendarDays,
     Clock, Trophy, Feather, CircleDot, Circle, Volleyball,
     Lock, Home as HomeIcon, AlertTriangle, Info, Dumbbell,
     Table2, Swords, Bike, Target, Waves
@@ -117,9 +117,17 @@ export default function CourtBookingPage() {
 
     const getSlotStatus = (time: string) => {
         const slotKey = `${selectedDate}T${time}`;
-        
-        // 1. Check if the slot is in the past (only for today)
-        const today = new Date().toISOString().split('T')[0];
+
+        // 1. Check if already booked (exclude Cancelled/Rejected — those slots are free again)
+        const booked = courtBookings.find(b => {
+            if (!b.date) return false;
+            const bDateString = new Date(b.date).toLocaleDateString('en-CA');
+            return bDateString === selectedDate && b.timeSlot === time && b.status !== 'Rejected' && b.status !== 'Cancelled';
+        });
+        if (booked) return { status: 'booked', sport: booked.sport };
+
+        // 2. Check if the slot is in the past (only for today)
+        const today = new Date().toLocaleDateString('en-CA');
         if (selectedDate === today) {
             const currentHour = new Date().getHours();
             const slotHour = parseInt(time.split(':')[0]);
@@ -128,23 +136,15 @@ export default function CourtBookingPage() {
             }
         }
 
-        // 2. Check if blocked by admin
+        // 3. Check if blocked by admin
         if (courtSettings.blockedSlots.includes(slotKey)) return { status: 'blocked', sport: null };
-        
-        // 3. Check if already booked (exclude Cancelled — those slots are free again)
-        const booking = courtBookings.find(b => {
-             if (!b.date) return false;
-             const bDateString = new Date(b.date).toLocaleDateString('en-CA');
-             return bDateString === selectedDate && b.timeSlot === time && b.status !== 'Rejected' && b.status !== 'Cancelled';
-        });
-        if (booking) return { status: 'booked', sport: booking.sport };
-        
+
         return { status: 'available', sport: null };
     };
 
     const handleBooking = async () => {
         if (!selectedSport || !selectedDate || !selectedSlot) return;
-        
+
         // Final frontend check before submission
         const { status } = getSlotStatus(selectedSlot);
         if (status !== 'available') {
@@ -212,7 +212,7 @@ export default function CourtBookingPage() {
     const getDateStatus = (testDate: string) => {
         const todayStr = new Date().toLocaleDateString('en-CA');
         const now = new Date();
-        
+
         // 1. Basic past date check
         const dObj = new Date(testDate);
         dObj.setHours(23, 59, 59, 999);
@@ -234,8 +234,8 @@ export default function CourtBookingPage() {
 
             // Rule 2: Semester Boundary Restriction (bookingDate <= activeSemesterEndDate) - Admin exempt
             if (activeSemester && activeSemester.end_date) {
-                const semesterEndDateStr = activeSemester.end_date.includes('T') 
-                    ? activeSemester.end_date.split('T')[0] 
+                const semesterEndDateStr = activeSemester.end_date.includes('T')
+                    ? activeSemester.end_date.split('T')[0]
                     : activeSemester.end_date;
                 if (testDate > semesterEndDateStr) {
                     return 'disabled';
@@ -245,9 +245,9 @@ export default function CourtBookingPage() {
 
         // Only mark as 'my_booking' if it's an active (non-cancelled, non-rejected) booking
         const myB = courtBookings.some(b => {
-             if (!b.date) return false;
-             const bDateString = new Date(b.date).toLocaleDateString('en-CA');
-             return bDateString === testDate && b.status !== 'Rejected' && b.status !== 'Cancelled' && b.studentId === user.id;
+            if (!b.date) return false;
+            const bDateString = new Date(b.date).toLocaleDateString('en-CA');
+            return bDateString === testDate && b.status !== 'Rejected' && b.status !== 'Cancelled' && b.studentId === user.id;
         });
         if (myB) return 'my_booking';
 
@@ -294,7 +294,7 @@ export default function CourtBookingPage() {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="space-y-3">
                         <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight italic">Access <span className="text-[#F26C22]">Restricted</span></h1>
                         <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -317,11 +317,10 @@ export default function CourtBookingPage() {
 
     const StepIndicator = ({ num, label, current }: { num: number, label: string, current: number }) => (
         <div className="flex flex-col items-center">
-            <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold text-sm mb-2 transition-colors ${
-                current > num ? 'bg-emerald-500 text-white' : 
-                current === num ? 'bg-[#F26C22] text-white ring-4 ring-orange-50 dark:ring-orange-900/30' : 
-                'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600'
-            }`}>
+            <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold text-sm mb-2 transition-colors ${current > num ? 'bg-emerald-500 text-white' :
+                current === num ? 'bg-[#F26C22] text-white ring-4 ring-orange-50 dark:ring-orange-900/30' :
+                    'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600'
+                }`}>
                 {current > num ? <CheckCircle2 className="h-5 w-5" /> : num}
             </div>
             <span className={`text-xs font-bold transition-colors ${current === num ? 'text-[#F26C22] dark:text-orange-400' : 'text-slate-400 dark:text-slate-600'}`}>{label}</span>
@@ -331,19 +330,19 @@ export default function CourtBookingPage() {
     // Calculate Weekly Limit Remaining
     const getWeeklyQuotaInfo = () => {
         if (!user || !courtBookings) return { count: 0, range: '' };
-        
+
         const now = new Date();
-        const dayOfWeek = now.getDay(); 
+        const dayOfWeek = now.getDay();
         const distanceToMonday = (dayOfWeek + 6) % 7;
-        
+
         const monday = new Date(now);
         monday.setDate(now.getDate() - distanceToMonday);
         monday.setHours(0, 0, 0, 0);
-        
+
         const sunday = new Date(monday);
         sunday.setDate(monday.getDate() + 6);
         sunday.setHours(23, 59, 59, 999);
-        
+
         const weekDates = [];
         for (let i = 0; i < 7; i++) {
             const d = new Date(monday);
@@ -363,7 +362,7 @@ export default function CourtBookingPage() {
         }).length;
 
         const range = `${monday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} - ${sunday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`;
-        
+
         return { count, range };
     };
 
@@ -411,9 +410,9 @@ export default function CourtBookingPage() {
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
                 <div className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 p-8 flex justify-between items-center relative max-w-xl mx-auto transition-colors">
                     <div className="absolute top-[48px] left-[10%] right-[10%] h-1 bg-slate-100 dark:bg-slate-800 -z-10 rounded-full"></div>
-                    <div className="absolute top-[48px] left-[10%] h-1 bg-[#F26C22] -z-10 rounded-full transition-all duration-500" 
-                         style={{ width: `${((step - 1) / 2) * 80}%` }}></div>
-                    
+                    <div className="absolute top-[48px] left-[10%] h-1 bg-[#F26C22] -z-10 rounded-full transition-all duration-500"
+                        style={{ width: `${((step - 1) / 2) * 80}%` }}></div>
+
                     <StepIndicator num={1} label="Sport" current={step} />
                     <StepIndicator num={2} label="Date" current={step} />
                     <StepIndicator num={3} label="Confirm" current={step} />
@@ -421,7 +420,7 @@ export default function CourtBookingPage() {
 
                 <div className="p-8">
                     <div className="min-h-[300px]">
-                        
+
                         {/* Step 1: Select Sport */}
                         {step === 1 && (
                             <div className="animate-in fade-in zoom-in-95 duration-300">
@@ -442,9 +441,8 @@ export default function CourtBookingPage() {
                                             <button
                                                 key={s.id}
                                                 onClick={() => setSelectedSport(s.name)}
-                                                className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center justify-center gap-3 ${
-                                                    isSelected ? theme.active : `border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 ${theme.idle}`
-                                                }`}
+                                                className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center justify-center gap-3 ${isSelected ? theme.active : `border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 ${theme.idle}`
+                                                    }`}
                                             >
                                                 <SportIcon className={`h-12 w-12 mb-2 ${isSelected ? '' : 'text-slate-400 dark:text-slate-600'}`} strokeWidth={1.5} />
                                                 <span className={`text-lg font-bold ${isSelected ? '' : 'text-slate-700 dark:text-slate-300'}`}>{s.name}</span>
@@ -458,7 +456,7 @@ export default function CourtBookingPage() {
                         {/* Step 2: Date & Time Selection */}
                         {step === 2 && (
                             <div className="animate-in fade-in zoom-in-95 duration-300 max-w-4xl mx-auto">
-                                
+
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                     {/* Left: Custom Calendar (Based on reference image) */}
                                     <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm p-6 max-w-[380px] mx-auto lg:mx-0 w-full transition-colors">
@@ -472,7 +470,7 @@ export default function CourtBookingPage() {
                                         </div>
 
                                         <div className="grid grid-cols-7 mb-2">
-                                            {['S','M','T','W','T','F','S'].map((day, i) => (
+                                            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
                                                 <div key={i} className="text-center font-bold text-xs text-slate-900 dark:text-white mb-2">{day}</div>
                                             ))}
                                         </div>
@@ -482,7 +480,7 @@ export default function CourtBookingPage() {
                                                 const status = getDateStatus(calDay.dateStr);
                                                 const isSelected = selectedDate === calDay.dateStr;
                                                 const isDisabled = status.startsWith('disabled');
-                                                
+
                                                 let bgColor = "bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-600 border border-slate-100 dark:border-slate-800";
                                                 if (calDay.isCurrentMonth && !isDisabled) {
                                                     if (status === 'available') bgColor = "bg-[#BFE9C9] dark:bg-emerald-900/40 text-slate-900 dark:text-emerald-200 border-[#A2D3AF] dark:border-emerald-800";
@@ -513,7 +511,7 @@ export default function CourtBookingPage() {
                                                 }
 
                                                 return (
-                                                    <button 
+                                                    <button
                                                         key={idx}
                                                         disabled={isDisabled || status === 'booked' || !calDay.isCurrentMonth}
                                                         onClick={() => {
@@ -521,11 +519,9 @@ export default function CourtBookingPage() {
                                                             setSelectedSlot(null);
                                                         }}
                                                         title={tooltipText || undefined}
-                                                        className={`aspect-square rounded-lg flex items-center justify-center text-sm font-semibold transition-all ${bgColor} ${
-                                                            isSelected ? 'ring-2 ring-offset-2 dark:ring-offset-slate-900 ring-[#F26C22] scale-105 shadow-sm' : 'hover:opacity-80'
-                                                        } ${
-                                                            (isDisabled || status === 'booked' || !calDay.isCurrentMonth) ? 'cursor-not-allowed' : 'cursor-pointer'
-                                                        }`}
+                                                        className={`aspect-square rounded-lg flex items-center justify-center text-sm font-semibold transition-all ${bgColor} ${isSelected ? 'ring-2 ring-offset-2 dark:ring-offset-slate-900 ring-[#F26C22] scale-105 shadow-sm' : 'hover:opacity-80'
+                                                            } ${(isDisabled || status === 'booked' || !calDay.isCurrentMonth) ? 'cursor-not-allowed' : 'cursor-pointer'
+                                                            }`}
                                                     >
                                                         {calDay.day}
                                                     </button>
@@ -570,21 +566,20 @@ export default function CourtBookingPage() {
                                                         const { status, sport } = getSlotStatus(slot);
                                                         const isSelected = selectedSlot === slot;
                                                         const isUnavailable = status !== 'available';
-                                                        
+
                                                         return (
                                                             <button
                                                                 key={slot}
                                                                 disabled={isUnavailable}
                                                                 onClick={() => setSelectedSlot(slot)}
-                                                                className={`relative rounded-2xl py-4 border-2 transition-all flex flex-col items-center justify-center overflow-hidden ${
-                                                                    isSelected
+                                                                className={`relative rounded-2xl py-4 border-2 transition-all flex flex-col items-center justify-center overflow-hidden ${isSelected
                                                                     ? 'border-[#F26C22] bg-orange-50 dark:bg-orange-900/20 text-[#F26C22] dark:text-orange-400 ring-4 ring-orange-50 dark:ring-orange-900/10 font-bold'
                                                                     : status === 'blocked' || status === 'past'
                                                                         ? 'border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-60'
                                                                         : status === 'booked'
                                                                             ? 'border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
                                                                             : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-[#F26C22]/40 dark:hover:border-orange-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold'
-                                                                }`}
+                                                                    }`}
                                                             >
                                                                 {status === 'booked' && (
                                                                     <div className="absolute top-0 right-0">
@@ -593,7 +588,7 @@ export default function CourtBookingPage() {
                                                                 )}
 
                                                                 <span className={isUnavailable && status !== 'available' ? "opacity-50" : ""}>{slot}</span>
-                                                                
+
                                                                 {status === 'booked' && (
                                                                     <div className="flex items-center gap-1 mt-1 opacity-50">
                                                                         <div className="h-1 w-1 rounded-full bg-slate-400"></div>
