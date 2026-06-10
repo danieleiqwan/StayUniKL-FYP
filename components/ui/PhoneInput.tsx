@@ -198,12 +198,11 @@ export default function PhoneInput({
             }
         }
 
-        // Strip non-digit characters except leading +
-        const cleaned = raw.startsWith('+')
-            ? '+' + stripNonDigits(raw.slice(1))
-            : stripNonDigits(raw);
+        // Strip non-digit characters
+        const cleaned = stripNonDigits(raw);
 
-        onChange(cleaned);
+        // Prepend the dial code to form the full number
+        onChange(`${selectedCountry.dial}${cleaned}`);
     };
 
     return (
