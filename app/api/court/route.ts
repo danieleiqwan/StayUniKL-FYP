@@ -81,8 +81,8 @@ export async function GET(request: Request) {
             studentId: b.official_id || b.student_id,
             studentName: b.student_name,
             sport: b.sport,
-            date: b.date instanceof Date 
-                ? b.date.toISOString().split('T')[0] 
+            date: b.date instanceof Date
+                ? b.date.toLocaleDateString('en-CA')
                 : String(b.date).split('T')[0],
             timeSlot: b.time_slot,
             status: b.status,
@@ -121,7 +121,7 @@ export async function POST(request: Request) {
         // Check if update settings or create booking
         if (body.action === 'update_settings') {
             if (!isUserAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-            
+
             const validation = settingsUpdateSchema.safeParse(body);
             if (!validation.success) {
                 return NextResponse.json({ error: 'Invalid settings data', details: validation.error.format() }, { status: 400 });
@@ -147,28 +147,28 @@ export async function POST(request: Request) {
 
         if (body.action === 'update_status') {
             if (!isUserAdmin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-            
+
             const validation = statusUpdateSchema.safeParse(body);
             if (!validation.success) {
                 return NextResponse.json({ error: 'Invalid status data', details: validation.error.format() }, { status: 400 });
             }
 
             const { status, id } = validation.data;
-            
+
             // 1. Fetch booking info to notify the student
             const [rows]: any = await pool.query('SELECT student_id, sport, date, time_slot FROM court_bookings WHERE id = ?', [id]);
-            
+
             if (rows.length > 0) {
                 const booking = rows[0];
                 const studentId = booking.student_id;
                 const dateStr = new Date(booking.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-                
+
                 // 2. Update status
                 await pool.query('UPDATE court_bookings SET status = ? WHERE id = ?', [status, id]);
 
                 // 3. Send notification
                 const title = status === 'Approved' ? 'Booking Accepted' : 'Booking Rejected';
-                const message = status === 'Approved' 
+                const message = status === 'Approved'
                     ? `Good news! Your ${booking.sport} booking for ${dateStr} at ${booking.time_slot} has been approved.`
                     : `Unfortunately, your ${booking.sport} booking for ${dateStr} at ${booking.time_slot} was not accepted.`;
                 const type = status === 'Approved' ? 'success' : 'error';
@@ -205,10 +205,10 @@ export async function POST(request: Request) {
         const validation = bookingSchema.safeParse(body);
         if (!validation.success) {
             const formattedErrors = validation.error.format();
-            return NextResponse.json({ 
-                error: 'Invalid booking data', 
+            return NextResponse.json({
+                error: 'Invalid booking data',
                 details: formattedErrors,
-                message: 'Please check your sport, date, and time slot selection.' 
+                message: 'Please check your sport, date, and time slot selection.'
             }, { status: 400 });
         }
 
@@ -230,8 +230,8 @@ export async function POST(request: Request) {
             );
 
             if (appRows.length === 0) {
-                return NextResponse.json({ 
-                    error: 'Access Denied: You must have an approved room application or active tenancy to book facilities.' 
+                return NextResponse.json({
+                    error: 'Access Denied: You must have an approved room application or active tenancy to book facilities.'
                 }, { status: 403 });
             }
 
@@ -240,8 +240,8 @@ export async function POST(request: Request) {
             if (banRows.length > 0 && banRows[0].court_ban_until) {
                 const banDate = new Date(banRows[0].court_ban_until);
                 if (banDate > getKLDate()) {
-                    return NextResponse.json({ 
-                        error: `Your court booking privileges are suspended until ${banDate.toLocaleDateString()} due to multiple no-shows.` 
+                    return NextResponse.json({
+                        error: `Your court booking privileges are suspended until ${banDate.toLocaleDateString()} due to multiple no-shows.`
                     }, { status: 403 });
                 }
             }
@@ -253,8 +253,8 @@ export async function POST(request: Request) {
             );
 
             if (overdueRows.length > 0) {
-                return NextResponse.json({ 
-                    error: 'Booking Blocked: You have one or more overdue invoices. Please settle your outstanding payments in the Financials section before booking facilities.' 
+                return NextResponse.json({
+                    error: 'Booking Blocked: You have one or more overdue invoices. Please settle your outstanding payments in the Financials section before booking facilities.'
                 }, { status: 403 });
             }
             // -----------------------------
@@ -277,8 +277,8 @@ export async function POST(request: Request) {
             const currentMonthEnd = new Date(nowKL.getFullYear(), nowKL.getMonth() + 1, 0, 23, 59, 59, 999);
 
             if (requestDate > currentMonthEnd) {
-                return NextResponse.json({ 
-                    error: 'Monthly Booking Window Restriction: You can only book courts within the current active month.' 
+                return NextResponse.json({
+                    error: 'Monthly Booking Window Restriction: You can only book courts within the current active month.'
                 }, { status: 400 });
             }
 
@@ -290,17 +290,17 @@ export async function POST(request: Request) {
             if (semesterRows.length > 0) {
                 const sem = semesterRows[0];
                 const semName = sem.name;
-                const endDateStr = sem.end_date instanceof Date 
-                    ? sem.end_date.toISOString().split('T')[0] 
+                const endDateStr = sem.end_date instanceof Date
+                    ? sem.end_date.toLocaleDateString('en-CA')
                     : String(sem.end_date).split('T')[0];
-                
+
                 const [y, m, d] = endDateStr.split('-').map(Number);
                 const activeSemesterEndDate = new Date(y, m - 1, d, 23, 59, 59, 999);
 
                 if (requestDate > activeSemesterEndDate) {
                     const semEndStr = activeSemesterEndDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-                    return NextResponse.json({ 
-                        error: `Semester Boundary Restriction: Your booking date (${requestDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}) exceeds the active semester (${semName}) end date of ${semEndStr}. Bookings are not allowed beyond the active semester.` 
+                    return NextResponse.json({
+                        error: `Semester Boundary Restriction: Your booking date (${requestDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}) exceeds the active semester (${semName}) end date of ${semEndStr}. Bookings are not allowed beyond the active semester.`
                     }, { status: 400 });
                 }
             }
@@ -331,8 +331,8 @@ export async function POST(request: Request) {
 
                 if (dailyCount[0].count >= 2) {
                     await connection.rollback();
-                    return NextResponse.json({ 
-                        error: 'Daily Limit Exceeded: You can only make up to 2 court bookings per day.' 
+                    return NextResponse.json({
+                        error: 'Daily Limit Exceeded: You can only make up to 2 court bookings per day.'
                     }, { status: 400 });
                 }
 
@@ -344,8 +344,8 @@ export async function POST(request: Request) {
 
                 if (weeklyCount[0].count >= 5) {
                     await connection.rollback();
-                    return NextResponse.json({ 
-                        error: 'Weekly Limit Exceeded: You can only make up to 5 court bookings per week (Sun-Sat).' 
+                    return NextResponse.json({
+                        error: 'Weekly Limit Exceeded: You can only make up to 5 court bookings per week (Sun-Sat).'
                     }, { status: 400 });
                 }
             }

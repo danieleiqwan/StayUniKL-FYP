@@ -36,9 +36,9 @@ export async function GET(request: Request) {
             studentId: b.student_id,
             studentName: b.student_name,
             sport: b.sport,
-            // Normalize date to YYYY-MM-DD string — MySQL returns Date objects, not strings
+            // Normalize date to YYYY-MM-DD in local time (fixes UTC offset date shift for UTC+8 Malaysia)
             date: b.date instanceof Date
-                ? b.date.toISOString().split('T')[0]
+                ? b.date.toLocaleDateString('en-CA')
                 : String(b.date).split('T')[0],
             timeSlot: b.time_slot,
             status: b.status,
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
         if (body.action === 'update_settings') {
             const dbKey = body.key === 'court' ? 'main' : body.key;
             const newSettings = body.settings;
-            
+
             // Get previous settings to see what changed
             const [oldSettingsRows]: any = await pool.query('SELECT setting_value FROM court_settings WHERE setting_key = ?', [dbKey]);
             const oldSettings = oldSettingsRows.length > 0 ? JSON.parse(oldSettingsRows[0].setting_value) : {};
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
                 // Fetch all future bookings for this facility
                 // Court manages 'Badminton', 'Table Tennis', 'Basketball'
                 const sports = body.key === 'court' ? ['Badminton', 'Table Tennis', 'Basketball'] : [];
-                
+
                 if (sports.length > 0) {
                     const [conflicts]: any = await pool.query(
                         'SELECT id, student_id, sport, date, time_slot FROM court_bookings WHERE sport IN (?) AND date >= CURDATE() AND status IN ("Pending", "Approved")',
@@ -129,16 +129,16 @@ export async function POST(request: Request) {
                     type: 'success'
                 });
             }
-            
+
             // Handle specific BLOCKED SLOTS
             else if (newSettings.blockedSlots && newSettings.blockedSlots.length > 0) {
                 // Find slots that are newly blocked
                 const newlyBlocked = newSettings.blockedSlots.filter((s: string) => !oldSettings.blockedSlots?.includes(s));
-                
+
                 for (const slot of newlyBlocked) {
                     // slot format: "2024-05-20T10:00"
                     const [datePart, timePart] = slot.split('T');
-                    
+
                     const [conflicts]: any = await pool.query(
                         'SELECT id, student_id, sport, date, time_slot FROM court_bookings WHERE date = ? AND time_slot = ? AND status IN ("Pending", "Approved")',
                         [datePart, timePart]
@@ -165,21 +165,21 @@ export async function POST(request: Request) {
         // Update Booking Status (Court only for now)
         if (body.action === 'update_status') {
             const { id, status } = body;
-            
+
             // 1. Fetch booking info to notify the student
             const [rows]: any = await pool.query('SELECT student_id, sport, date, time_slot FROM court_bookings WHERE id = ?', [id]);
-            
+
             if (rows.length > 0) {
                 const booking = rows[0];
                 const studentId = booking.student_id;
                 const dateStr = new Date(booking.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-                
+
                 // 2. Update status
                 await pool.query('UPDATE court_bookings SET status = ? WHERE id = ?', [status, id]);
 
                 // 3. Send notification
                 const title = status === 'Approved' ? 'Booking Accepted' : 'Booking Rejected';
-                const message = status === 'Approved' 
+                const message = status === 'Approved'
                     ? `Good news! Your ${booking.sport} booking for ${dateStr} at ${booking.time_slot} has been approved.`
                     : `Unfortunately, your ${booking.sport} booking for ${dateStr} at ${booking.time_slot} was not accepted.`;
                 const type = status === 'Approved' ? 'success' : 'error';
