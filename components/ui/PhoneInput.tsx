@@ -213,23 +213,23 @@ export default function PhoneInput({
                     {label} {required && <span className="text-rose-500">*</span>}
                 </label>
             )}
-            <div className="relative flex items-center">
+            <div className="relative flex items-center w-full min-w-0">
                 {/* Country Selector Button */}
-                <div ref={dropdownRef} className="relative">
+                <div ref={dropdownRef} className="relative shrink-0">
                     <button
                         type="button"
                         disabled={disabled}
                         onClick={() => setIsOpen(!isOpen)}
-                        className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 border-none rounded-l-2xl py-4 pl-4 pr-2.5 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all h-full shrink-0"
+                        className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800 border-none rounded-l-2xl py-4 pl-3 pr-2 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all h-full shrink-0"
                     >
-                        <span className="text-lg leading-none">{selectedCountry.flag}</span>
-                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{selectedCountry.dial}</span>
-                        <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                        <span className="text-base leading-none">{selectedCountry.flag}</span>
+                        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">{selectedCountry.dial}</span>
+                        <ChevronDown className={`h-3 w-3 text-slate-400 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     {/* Dropdown */}
                     {isOpen && (
-                        <div className="absolute top-full left-0 mt-1 w-72 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden">
+                        <div className="absolute top-full left-0 mt-1 w-[280px] max-w-[90vw] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden">
                             {/* Search */}
                             <div className="p-3 border-b border-slate-100 dark:border-slate-800">
                                 <div className="relative">
@@ -256,8 +256,8 @@ export default function PhoneInput({
                                             type="button"
                                             onClick={() => handleCountrySelect(country)}
                                             className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isSelected
-                                                    ? 'bg-orange-50 dark:bg-orange-900/20 text-slate-900 dark:text-white'
-                                                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                                                ? 'bg-orange-50 dark:bg-orange-900/20 text-slate-900 dark:text-white'
+                                                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50'
                                                 }`}
                                         >
                                             <span className="text-lg leading-none shrink-0">{country.flag}</span>
@@ -282,12 +282,9 @@ export default function PhoneInput({
                     value={localNumber}
                     onChange={handlePhoneChange}
                     placeholder={placeholder}
-                    className="flex-1 bg-slate-50 dark:bg-slate-800 border-none rounded-r-2xl py-4 px-4 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
+                    className="flex-1 min-w-0 bg-slate-50 dark:bg-slate-800 border-none rounded-r-2xl py-4 px-3 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
                 />
             </div>
-            <p className="text-[10px] text-slate-400 ml-1">
-                Dial code: <span className="font-bold">{selectedCountry.dial}</span> | Full: <span className="font-bold">{selectedCountry.dial}{localNumber || '...'}</span>
-            </p>
         </div>
     );
 }
