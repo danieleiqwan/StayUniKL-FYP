@@ -9,11 +9,66 @@ import {
     Settings as SettingsIcon, LogOut, Moon, Globe, Palette
 } from 'lucide-react';
 
+// --- Validation Helpers ---
+function onlyLetters(value: string): string {
+    return value.replace(/[^a-zA-Z\s\-'.]/g, '');
+}
+
+function onlyDigits(value: string): string {
+    return value.replace(/\D/g, '');
+}
+
+function onlyAlphanumericDash(value: string): string {
+    return value.replace(/[^a-zA-Z0-9\-]/g, '');
+}
+
+function maxLen(value: string, max: number): string {
+    return value.slice(0, max);
+}
+
+function validEmail(email: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validPostcode(postcode: string): boolean {
+    return /^\d{5}$/.test(postcode);
+}
+
+function validName(name: string): boolean {
+    return name.trim().length >= 2;
+}
+
+function numberHasDigits(val: string): boolean {
+    // For PhoneInput: value includes dial code, e.g. "+60123456789"
+    // Strip dial code and check if there are digits
+    const digits = val.replace(/\D/g, '');
+    return digits.length >= 8; // at least 8 digits (after country code)
+}
+
+// --- Error type per field ---
+interface FieldErrors {
+    name?: string;
+    email?: string;
+    studentId?: string;
+    phoneNumber?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    postcode?: string;
+    emergencyContact1Name?: string;
+    emergencyContact1Relation?: string;
+    emergencyContact1Phone?: string;
+    emergencyContact2Name?: string;
+    emergencyContact2Relation?: string;
+    emergencyContact2Phone?: string;
+}
+
 export default function SettingsHub() {
     const { user, updateProfile, logout } = useAuth();
     const [activeTab, setActiveTab] = useState('account');
     const [isSaving, setIsSaving] = useState(false);
     const [msg, setMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [errors, setErrors] = useState<FieldErrors>({});
 
     const [accountForm, setAccountForm] = useState({
         name: user?.name || '',
@@ -39,14 +94,104 @@ export default function SettingsHub() {
         confirm: ''
     });
 
+    // --- Validation function ---
+    const validateForm = (): boolean => {
+        const errs: FieldErrors = {};
 
+        // Full Name: letters only, min 2 chars
+        if (!accountForm.name.trim()) {
+            errs.name = 'Full name is required.';
+        } else if (!validName(accountForm.name)) {
+            errs.name = 'Name must be at least 2 characters.';
+        }
+
+        // Email
+        if (!accountForm.email.trim()) {
+            errs.email = 'Email is required.';
+        } else if (!validEmail(accountForm.email)) {
+            errs.email = 'Enter a valid email address (e.g. name@unikl.edu.my).';
+        }
+
+        // Student ID: alphanumeric + hyphens, allow empty though
+        if (accountForm.studentId && !/^[a-zA-Z0-9\-]+$/.test(accountForm.studentId)) {
+            errs.studentId = 'Student ID can only contain letters, numbers, and hyphens.';
+        }
+
+        // Phone Number: must have at least 8 digits
+        if (!numberHasDigits(accountForm.phoneNumber)) {
+            errs.phoneNumber = 'Enter a valid phone number with at least 8 digits.';
+        }
+
+        // Address
+        if (!accountForm.address.trim()) {
+            errs.address = 'Street address is required.';
+        }
+
+        // City: letters only
+        if (accountForm.city && !/^[a-zA-Z\s\-'.]+$/.test(accountForm.city)) {
+            errs.city = 'City can only contain letters.';
+        }
+
+        // State: letters only
+        if (accountForm.state && !/^[a-zA-Z\s\-'.]+$/.test(accountForm.state)) {
+            errs.state = 'State can only contain letters.';
+        }
+
+        // Postcode: exactly 5 digits
+        if (accountForm.postcode && !validPostcode(accountForm.postcode)) {
+            errs.postcode = 'Postcode must be exactly 5 digits (e.g. 50200).';
+        }
+
+        // Emergency Contact 1 Name
+        if (!accountForm.emergencyContact1Name.trim()) {
+            errs.emergencyContact1Name = 'Emergency contact name is required.';
+        } else if (!validName(accountForm.emergencyContact1Name)) {
+            errs.emergencyContact1Name = 'Name must be at least 2 characters.';
+        }
+
+        // Emergency Contact 1 Relation
+        if (!accountForm.emergencyContact1Relation) {
+            errs.emergencyContact1Relation = 'Relationship is required.';
+        }
+
+        // Emergency Contact 1 Phone
+        if (!numberHasDigits(accountForm.emergencyContact1Phone)) {
+            errs.emergencyContact1Phone = 'Enter a valid phone number with at least 8 digits.';
+        }
+
+        // Emergency Contact 2 Name (optional but if filled, validate)
+        if (accountForm.emergencyContact2Name && !validName(accountForm.emergencyContact2Name)) {
+            errs.emergencyContact2Name = 'Name must be at least 2 characters.';
+        }
+
+        // Emergency Contact 2 Phone (optional but if contact name given, phone must be given)
+        if (accountForm.emergencyContact2Name && !numberHasDigits(accountForm.emergencyContact2Phone)) {
+            errs.emergencyContact2Phone = 'Enter a valid phone number if a contact name is provided.';
+        }
+
+        setErrors(errs);
+        return Object.keys(errs).length === 0;
+    };
+
+    // --- Error helper for input border color ---
+    const inputClass = (field: keyof FieldErrors, extra = '') => {
+        const hasErr = errors[field];
+        return `w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none transition-all ${hasErr ? 'ring-4 ring-rose-200 dark:ring-rose-900/30' : 'focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20'} ${extra}`;
+    };
 
     if (!user) return null;
 
     const handleAccountSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Mandatory field validation
+        // Run validation
+        if (!validateForm()) {
+            setMsg({ type: 'error', text: 'Please fix the highlighted errors before saving.' });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        // Legacy mandatory field check
         if (!accountForm.address || !accountForm.emergencyContact1Name || !accountForm.emergencyContact1Phone || !accountForm.emergencyContact1Relation) {
             setMsg({ type: 'error', text: 'All identity and emergency contact fields are mandatory.' });
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -65,6 +210,7 @@ export default function SettingsHub() {
             if (data.success) {
                 updateProfile(accountForm);
                 setMsg({ type: 'success', text: 'Identity records updated successfully!' });
+                setErrors({});
             } else {
                 setMsg({ type: 'error', text: data.error || 'Update failed.' });
             }
@@ -124,14 +270,20 @@ export default function SettingsHub() {
         }
     };
 
-
-
     const tabs = [
         { id: 'account', label: 'Edit Identity', icon: User, desc: 'Update your official records and contact information' },
         { id: 'security', label: 'Security & Access', icon: Lock, desc: 'Manage your password and active sessions' },
     ];
 
     const ActiveIcon = tabs.find(t => t.id === activeTab)?.icon || SettingsIcon;
+
+    // Clear individual field error on change
+    const setAndClear = (field: keyof FieldErrors, value: any) => {
+        setAccountForm(prev => ({ ...prev, [field]: value }));
+        if (errors[field]) {
+            setErrors(prev => ({ ...prev, [field]: undefined }));
+        }
+    };
 
     return (
         <div className="max-w-6xl mx-auto py-8 animate-in fade-in duration-500">
@@ -143,7 +295,6 @@ export default function SettingsHub() {
             </div>
 
             <div className="flex flex-col lg:flex-row gap-8">
-                {/* Control Sidebar */}
                 <aside className="lg:w-72 flex-shrink-0">
                     <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-4 shadow-sm border border-slate-100 dark:border-slate-800 sticky top-8 transition-colors">
                         {tabs.map((tab) => {
@@ -167,7 +318,6 @@ export default function SettingsHub() {
                     </div>
                 </aside>
 
-                {/* Settings Panel */}
                 <main className="flex-1 min-h-[600px]">
                     <div className="bg-white dark:bg-slate-900 rounded-[3rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
                         <div className="p-10 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center transition-colors">
@@ -186,47 +336,65 @@ export default function SettingsHub() {
 
                         <div className="p-10">
 
-                            {/* Account Identity Section (EDITABLE) */}
                             {activeTab === 'account' && (
                                 <form onSubmit={handleAccountSubmit} className="space-y-10 animate-in slide-in-from-bottom-2 duration-500">
                                     {/* Core Credentials */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Full Name */}
                                         <div className="space-y-2">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Full Name</label>
+                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">
+                                                Full Name <span className="text-rose-500">*</span>
+                                            </label>
                                             <input
                                                 type="text"
                                                 required
                                                 value={accountForm.name}
-                                                onChange={e => setAccountForm({ ...accountForm, name: e.target.value })}
-                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
+                                                placeholder="e.g. Ahmad bin Abdullah"
+                                                onChange={e => setAndClear('name', onlyLetters(maxLen(e.target.value, 100)))}
+                                                className={inputClass('name')}
                                             />
+                                            {errors.name && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.name}</p>}
                                         </div>
+
+                                        {/* Email */}
                                         <div className="space-y-2">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">UniKL Email</label>
+                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">
+                                                UniKL Email <span className="text-rose-500">*</span>
+                                            </label>
                                             <input
                                                 type="email"
                                                 required
                                                 value={accountForm.email}
-                                                onChange={e => setAccountForm({ ...accountForm, email: e.target.value })}
-                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
+                                                placeholder="e.g. name@unikl.edu.my"
+                                                onChange={e => setAndClear('email', maxLen(e.target.value, 100))}
+                                                className={inputClass('email')}
                                             />
+                                            {errors.email && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.email}</p>}
                                         </div>
+
+                                        {/* Student ID */}
                                         <div className="space-y-2">
-                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Student ID</label>
+                                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">
+                                                Student ID
+                                            </label>
                                             <input
                                                 type="text"
-                                                placeholder="Enter your Student ID"
+                                                placeholder="e.g. 5200123456789"
                                                 value={accountForm.studentId}
-                                                onChange={e => setAccountForm({ ...accountForm, studentId: e.target.value })}
-                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
+                                                onChange={e => setAndClear('studentId', onlyAlphanumericDash(maxLen(e.target.value, 20)))}
+                                                className={inputClass('studentId')}
                                             />
+                                            {errors.studentId && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.studentId}</p>}
                                         </div>
+
+                                        {/* Phone Number */}
                                         <div className="space-y-2">
                                             <PhoneInput
                                                 label="Phone Number"
                                                 value={accountForm.phoneNumber}
-                                                onChange={(val) => setAccountForm({ ...accountForm, phoneNumber: val })}
+                                                onChange={(val) => setAndClear('phoneNumber', val)}
                                             />
+                                            {errors.phoneNumber && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.phoneNumber}</p>}
                                         </div>
                                     </div>
 
@@ -234,41 +402,59 @@ export default function SettingsHub() {
                                     <div className="pt-6 border-t border-slate-50 dark:border-slate-800 space-y-6">
                                         <h3 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest ml-1 transition-colors">Hometown Address</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            {/* Street Address */}
                                             <div className="md:col-span-3 space-y-2">
-                                                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Street Address <span className="text-rose-500">*</span></label>
+                                                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">
+                                                    Street Address <span className="text-rose-500">*</span>
+                                                </label>
                                                 <textarea
                                                     rows={2}
                                                     value={accountForm.address}
-                                                    onChange={e => setAccountForm({ ...accountForm, address: e.target.value })}
-                                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all resize-none"
+                                                    onChange={e => setAndClear('address', maxLen(e.target.value, 200))}
+                                                    className={`${inputClass('address')} resize-none`}
+                                                    placeholder="e.g. No. 123, Jalan Example"
                                                 />
+                                                {errors.address && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.address}</p>}
                                             </div>
+
+                                            {/* City */}
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">City</label>
                                                 <input
                                                     type="text"
                                                     value={accountForm.city}
-                                                    onChange={e => setAccountForm({ ...accountForm, city: e.target.value })}
-                                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
+                                                    placeholder="e.g. Kuala Lumpur"
+                                                    onChange={e => setAndClear('city', onlyLetters(maxLen(e.target.value, 50)))}
+                                                    className={inputClass('city')}
                                                 />
+                                                {errors.city && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.city}</p>}
                                             </div>
+
+                                            {/* State */}
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">State</label>
                                                 <input
                                                     type="text"
                                                     value={accountForm.state}
-                                                    onChange={e => setAccountForm({ ...accountForm, state: e.target.value })}
-                                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
+                                                    placeholder="e.g. Wilayah Persekutuan"
+                                                    onChange={e => setAndClear('state', onlyLetters(maxLen(e.target.value, 50)))}
+                                                    className={inputClass('state')}
                                                 />
+                                                {errors.state && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.state}</p>}
                                             </div>
+
+                                            {/* Postcode */}
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1 transition-colors">Postcode</label>
                                                 <input
                                                     type="text"
                                                     value={accountForm.postcode}
-                                                    onChange={e => setAccountForm({ ...accountForm, postcode: e.target.value })}
-                                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-800 dark:text-white outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 transition-all"
+                                                    placeholder="e.g. 50200"
+                                                    maxLength={5}
+                                                    onChange={e => setAndClear('postcode', onlyDigits(maxLen(e.target.value, 5)))}
+                                                    className={inputClass('postcode')}
                                                 />
+                                                {errors.postcode && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.postcode}</p>}
                                             </div>
                                         </div>
                                     </div>
@@ -282,23 +468,29 @@ export default function SettingsHub() {
                                             <div className="space-y-4">
                                                 <p className="text-[10px] font-black text-[#F26C22] uppercase tracking-[0.2em]">Contact #1 (Mandatory)</p>
                                                 <div className="space-y-2">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name <span className="text-rose-500">*</span></label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                                                        Full Name <span className="text-rose-500">*</span>
+                                                    </label>
                                                     <input
                                                         type="text"
                                                         value={accountForm.emergencyContact1Name}
-                                                        onChange={(e) => setAccountForm({ ...accountForm, emergencyContact1Name: e.target.value })}
-                                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 dark:text-white transition-all"
+                                                        placeholder="e.g. Parent's name"
+                                                        onChange={e => setAndClear('emergencyContact1Name', onlyLetters(maxLen(e.target.value, 100)))}
+                                                        className={`w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none transition-all dark:text-white ${errors.emergencyContact1Name ? 'ring-4 ring-rose-200 dark:ring-rose-900/30' : 'focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20'}`}
                                                     />
+                                                    {errors.emergencyContact1Name && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.emergencyContact1Name}</p>}
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship to Student <span className="text-rose-500">*</span></label>
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                                                        Relationship to Student <span className="text-rose-500">*</span>
+                                                    </label>
                                                     <select
                                                         value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact1Relation) ? accountForm.emergencyContact1Relation : (accountForm.emergencyContact1Relation ? 'Other' : '')}
                                                         onChange={(e) => {
                                                             const val = e.target.value;
-                                                            setAccountForm({ ...accountForm, emergencyContact1Relation: val === 'Other' ? '' : val });
+                                                            setAndClear('emergencyContact1Relation', val === 'Other' ? '' : val);
                                                         }}
-                                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 dark:text-white transition-all appearance-none cursor-pointer"
+                                                        className={`w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none transition-all dark:text-white appearance-none cursor-pointer ${errors.emergencyContact1Relation ? 'ring-4 ring-rose-200 dark:ring-rose-900/30' : 'focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20'}`}
                                                     >
                                                         <option value="" disabled>Select Relationship</option>
                                                         <option value="Father">Father</option>
@@ -309,6 +501,7 @@ export default function SettingsHub() {
                                                         <option value="Spouse">Spouse</option>
                                                         <option value="Other">Other (Please specify)</option>
                                                     </select>
+                                                    {errors.emergencyContact1Relation && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.emergencyContact1Relation}</p>}
                                                 </div>
 
                                                 {(!['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact1Relation) || accountForm.emergencyContact1Relation === '') && (
@@ -318,7 +511,7 @@ export default function SettingsHub() {
                                                             type="text"
                                                             placeholder="e.g. Grandfather, Uncle"
                                                             value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact1Relation) ? '' : accountForm.emergencyContact1Relation}
-                                                            onChange={(e) => setAccountForm({ ...accountForm, emergencyContact1Relation: e.target.value })}
+                                                            onChange={(e) => setAndClear('emergencyContact1Relation', e.target.value)}
                                                             className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 dark:text-white transition-all"
                                                         />
                                                     </div>
@@ -329,8 +522,9 @@ export default function SettingsHub() {
                                                         label="Phone Number"
                                                         required
                                                         value={accountForm.emergencyContact1Phone}
-                                                        onChange={(val) => setAccountForm({ ...accountForm, emergencyContact1Phone: val })}
+                                                        onChange={(val) => setAndClear('emergencyContact1Phone', val)}
                                                     />
+                                                    {errors.emergencyContact1Phone && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.emergencyContact1Phone}</p>}
                                                 </div>
                                             </div>
 
@@ -342,9 +536,11 @@ export default function SettingsHub() {
                                                     <input
                                                         type="text"
                                                         value={accountForm.emergencyContact2Name}
-                                                        onChange={(e) => setAccountForm({ ...accountForm, emergencyContact2Name: e.target.value })}
-                                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 dark:text-white transition-all"
+                                                        placeholder="e.g. Another contact's name"
+                                                        onChange={e => setAndClear('emergencyContact2Name', onlyLetters(maxLen(e.target.value, 100)))}
+                                                        className={`w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none transition-all dark:text-white ${errors.emergencyContact2Name ? 'ring-4 ring-rose-200 dark:ring-rose-900/30' : 'focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20'}`}
                                                     />
+                                                    {errors.emergencyContact2Name && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.emergencyContact2Name}</p>}
                                                 </div>
                                                 <div className="space-y-2">
                                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Relationship to Student</label>
@@ -352,9 +548,9 @@ export default function SettingsHub() {
                                                         value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact2Relation) ? accountForm.emergencyContact2Relation : (accountForm.emergencyContact2Relation ? 'Other' : '')}
                                                         onChange={(e) => {
                                                             const val = e.target.value;
-                                                            setAccountForm({ ...accountForm, emergencyContact2Relation: val === 'Other' ? '' : val });
+                                                            setAndClear('emergencyContact2Relation', val === 'Other' ? '' : val);
                                                         }}
-                                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 dark:text-white transition-all appearance-none cursor-pointer"
+                                                        className={`w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none transition-all dark:text-white appearance-none cursor-pointer ${errors.emergencyContact2Relation ? 'ring-4 ring-rose-200 dark:ring-rose-900/30' : 'focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20'}`}
                                                     >
                                                         <option value="" disabled>Select Relationship</option>
                                                         <option value="Father">Father</option>
@@ -365,6 +561,7 @@ export default function SettingsHub() {
                                                         <option value="Spouse">Spouse</option>
                                                         <option value="Other">Other (Please specify)</option>
                                                     </select>
+                                                    {errors.emergencyContact2Relation && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.emergencyContact2Relation}</p>}
                                                 </div>
 
                                                 {(!['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact2Relation) || accountForm.emergencyContact2Relation === '') && (
@@ -374,7 +571,7 @@ export default function SettingsHub() {
                                                             type="text"
                                                             placeholder="e.g. Grandfather, Uncle"
                                                             value={['Father', 'Mother', 'Guardian', 'Sibling', 'Relative', 'Spouse'].includes(accountForm.emergencyContact2Relation) ? '' : accountForm.emergencyContact2Relation}
-                                                            onChange={(e) => setAccountForm({ ...accountForm, emergencyContact2Relation: e.target.value })}
+                                                            onChange={(e) => setAndClear('emergencyContact2Relation', e.target.value)}
                                                             className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-orange-50 dark:focus:ring-orange-900/20 dark:text-white transition-all"
                                                         />
                                                     </div>
@@ -384,8 +581,9 @@ export default function SettingsHub() {
                                                     <PhoneInput
                                                         label="Phone Number"
                                                         value={accountForm.emergencyContact2Phone}
-                                                        onChange={(val) => setAccountForm({ ...accountForm, emergencyContact2Phone: val })}
+                                                        onChange={(val) => setAndClear('emergencyContact2Phone', val)}
                                                     />
+                                                    {errors.emergencyContact2Phone && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.emergencyContact2Phone}</p>}
                                                 </div>
                                             </div>
                                         </div>
@@ -445,9 +643,6 @@ export default function SettingsHub() {
                                     </button>
                                 </form>
                             )}
-
-
-
 
                             {/* Status Message Footer */}
                             {msg && (
