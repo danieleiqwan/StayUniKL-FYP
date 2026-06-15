@@ -14,7 +14,7 @@ import PredictiveMaintenance from '@/components/admin/PredictiveMaintenance';
 import WaitlistOpportunities from '@/components/admin/WaitlistOpportunities';
 import FacilityAnalytics from '@/components/admin/FacilityAnalytics';
 import SportManagement from '@/components/admin/SportManagement';
-import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight, Bell, Wrench, Zap, DollarSign, Megaphone, CalendarDays, Users, CheckSquare, Square, Check, Trash2, CalendarClock, Plus, X, Pencil } from 'lucide-react';
+import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight, Bell, Wrench, Zap, DollarSign, Megaphone, CalendarDays, Users, CheckSquare, Square, Check, Trash2, CalendarClock, Plus, X, Pencil, Search, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 
 export default function AdminDashboardPage() {
     return (
@@ -54,6 +54,40 @@ function AdminDashboard() {
     const [sessionSubmitting, setSessionSubmitting] = useState(false);
     const [editingSession, setEditingSession] = useState<any>(null);
     const [editForm, setEditForm] = useState({ name: '', semesterType: 'Long', intakeBatch: '', eligibility: 'Both', startDate: '', endDate: '' });
+    const [sessionFilters, setSessionFilters] = useState({ search: '', status: '', semesterType: '', eligibility: '', sortBy: 'newest' });
+
+    const filteredSessions = useMemo(() => {
+        let result = [...sessions];
+        // Search filter
+        if (sessionFilters.search) {
+            const q = sessionFilters.search.toLowerCase();
+            result = result.filter((s: any) =>
+                s.name.toLowerCase().includes(q) ||
+                s.intake_batch.toLowerCase().includes(q)
+            );
+        }
+        // Status filter
+        if (sessionFilters.status) {
+            result = result.filter((s: any) => s.status === sessionFilters.status);
+        }
+        // Semester type filter
+        if (sessionFilters.semesterType) {
+            result = result.filter((s: any) => s.semester_type === sessionFilters.semesterType);
+        }
+        // Eligibility filter
+        if (sessionFilters.eligibility) {
+            result = result.filter((s: any) => s.eligibility === sessionFilters.eligibility);
+        }
+        // Sort
+        if (sessionFilters.sortBy === 'oldest') {
+            result.sort((a: any, b: any) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+        } else if (sessionFilters.sortBy === 'name') {
+            result.sort((a: any, b: any) => a.name.localeCompare(b.name));
+        } else {
+            result.sort((a: any, b: any) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+        }
+        return result;
+    }, [sessions, sessionFilters]);
 
     const fetchSessions = async () => {
         setSessionsLoading(true);
@@ -1314,6 +1348,123 @@ function AdminDashboard() {
                             </button>
                         </div>
 
+                        {/* Session Filters */}
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm space-y-4">
+                            {/* Search */}
+                            <div className="relative">
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by session name or intake batch..."
+                                    value={sessionFilters.search}
+                                    onChange={e => setSessionFilters(p => ({ ...p, search: e.target.value }))}
+                                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F26C22]/50 transition-all"
+                                />
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+                                {/* Status pills */}
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</span>
+                                    <div className="flex gap-1">
+                                        {['', 'Open', 'Upcoming', 'Closed'].map(v => (
+                                            <button key={v}
+                                                onClick={() => setSessionFilters(p => ({ ...p, status: v }))}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                    sessionFilters.status === v
+                                                        ? 'bg-[#F26C22] text-white shadow-sm'
+                                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                                }`}
+                                            >
+                                                {v || 'All'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Separator */}
+                                <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+
+                                {/* Semester Type pills */}
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Semester</span>
+                                    <div className="flex gap-1">
+                                        {['', 'Long', 'Short'].map(v => (
+                                            <button key={v}
+                                                onClick={() => setSessionFilters(p => ({ ...p, semesterType: v }))}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                    sessionFilters.semesterType === v
+                                                        ? 'bg-[#F26C22] text-white shadow-sm'
+                                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                                }`}
+                                            >
+                                                {v || 'All'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Separator */}
+                                <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+
+                                {/* Eligibility pills */}
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Eligibility</span>
+                                    <div className="flex gap-1">
+                                        {['', 'Both', 'New Students Only', 'Returning Students Only'].map(v => (
+                                            <button key={v}
+                                                onClick={() => setSessionFilters(p => ({ ...p, eligibility: v }))}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                    sessionFilters.eligibility === v
+                                                        ? 'bg-[#F26C22] text-white shadow-sm'
+                                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                                }`}
+                                            >
+                                                {v || 'All'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Separator */}
+                                <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+
+                                {/* Sort */}
+                                <div className="flex items-center gap-2">
+                                    <ArrowUpDown className="h-3.5 w-3.5 text-slate-400" />
+                                    <select
+                                        value={sessionFilters.sortBy}
+                                        onChange={e => setSessionFilters(p => ({ ...p, sortBy: e.target.value }))}
+                                        className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-none focus:ring-2 focus:ring-[#F26C22]/50 cursor-pointer"
+                                    >
+                                        <option value="newest">Newest First</option>
+                                        <option value="oldest">Oldest First</option>
+                                        <option value="name">Name A–Z</option>
+                                    </select>
+                                </div>
+
+                                {/* Clear filters */}
+                                {(sessionFilters.search || sessionFilters.status || sessionFilters.semesterType || sessionFilters.eligibility || sessionFilters.sortBy !== 'newest') && (
+                                    <button
+                                        onClick={() => setSessionFilters({ search: '', status: '', semesterType: '', eligibility: '', sortBy: 'newest' })}
+                                        className="text-[10px] font-bold text-[#F26C22] hover:underline ml-auto"
+                                    >
+                                        Clear All
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Active filter count */}
+                            {(() => {
+                                const count = [sessionFilters.search, sessionFilters.status, sessionFilters.semesterType, sessionFilters.eligibility].filter(Boolean).length;
+                                return count > 0 ? (
+                                    <div className="text-[10px] font-bold text-slate-400">
+                                        Showing {filteredSessions.length} of {sessions.length} session{sessions.length !== 1 ? 's' : ''} · {count} filter{count !== 1 ? 's' : ''} active
+                                    </div>
+                                ) : null;
+                            })()}
+                        </div>
+
                         {/* Create session form */}
                         {showSessionForm && (
                             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm p-8 space-y-6">
@@ -1441,9 +1592,21 @@ function AdminDashboard() {
                                 <p className="text-slate-500 font-bold">No sessions created yet.</p>
                                 <p className="text-slate-400 text-sm mt-1">Click "New Session" to open an application window for students.</p>
                             </div>
+                        ) : filteredSessions.length === 0 ? (
+                            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-12 text-center">
+                                <Search className="h-12 w-12 text-slate-200 dark:text-slate-700 mx-auto mb-4" />
+                                <p className="text-slate-500 font-bold">No sessions match your filters.</p>
+                                <p className="text-slate-400 text-sm mt-1">Try adjusting your search or filter criteria.</p>
+                                <button
+                                    onClick={() => setSessionFilters({ search: '', status: '', semesterType: '', eligibility: '', sortBy: 'newest' })}
+                                    className="mt-4 text-xs font-bold text-[#F26C22] hover:underline"
+                                >
+                                    Clear All Filters
+                                </button>
+                            </div>
                         ) : (
                             <div className="space-y-4">
-                                {sessions.map((s: any) => {
+                                {filteredSessions.map((s: any) => {
                                     const statusColor = s.status === 'Open' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50' :
                                         s.status === 'Upcoming' ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/50' :
                                         'text-slate-500 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700';
