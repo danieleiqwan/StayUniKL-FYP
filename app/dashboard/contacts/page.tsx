@@ -11,6 +11,7 @@ import {
     Clock, 
     MapPin, 
     Search,
+    ChevronLeft,
     ChevronRight,
     ArrowRight,
     HelpCircle,
@@ -89,6 +90,8 @@ export default function ContactsPage() {
     const [loading, setLoading] = useState(true);
     const [selectedRole, setSelectedRole] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState<string>('');
+    const [scope, setScope] = useState<'week' | 'all'>('week');
+    const [currentWeekStart, setCurrentWeekStart] = useState<Date>(() => getStartOfWeek(new Date()));
 
     useEffect(() => {
         fetch('/api/duty-schedules')
@@ -102,6 +105,56 @@ export default function ContactsPage() {
             .finally(() => setLoading(false));
     }, []);
 
+    // Helper to get start of week (Monday)
+    function getStartOfWeek(date: Date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(d.setDate(diff));
+        monday.setHours(0, 0, 0, 0);
+        return monday;
+    }
+
+    const handlePrevWeek = () => {
+        setCurrentWeekStart(prev => {
+            const next = new Date(prev);
+            next.setDate(prev.getDate() - 7);
+            return next;
+        });
+    };
+
+    const handleNextWeek = () => {
+        setCurrentWeekStart(prev => {
+            const next = new Date(prev);
+            next.setDate(prev.getDate() + 7);
+            return next;
+        });
+    };
+
+    const formatWeekRange = (start: Date) => {
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short' };
+        return `${start.toLocaleDateString('en-GB', options)} - ${end.toLocaleDateString('en-GB', options)}`;
+    };
+
+    const getDayDate = (dayIndex: number) => {
+        const weekStart = new Date(currentWeekStart);
+        const offset = dayIndex === 0 ? 6 : dayIndex - 1;
+        const dayDate = new Date(weekStart);
+        dayDate.setDate(weekStart.getDate() + offset);
+        return dayDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    };
+
+    const isToday = (dayIndex: number) => {
+        const today = new Date();
+        const weekStart = new Date(currentWeekStart);
+        const offset = dayIndex === 0 ? 6 : dayIndex - 1;
+        const dayDate = new Date(weekStart);
+        dayDate.setDate(weekStart.getDate() + offset);
+        return today.toDateString() === dayDate.toDateString();
+    };
+
     // Filter logic
     const filteredDuties = duties.filter(d => {
         const matchesRole = selectedRole === 'all' || d.role === selectedRole;
@@ -114,9 +167,40 @@ export default function ContactsPage() {
     // Helper to get duties on a specific day of the week
     const getDutiesForDay = (dayIndex: number) => {
         return filteredDuties.filter(d => {
-            const date = new Date(d.duty_date);
-            return date.getDay() === dayIndex;
+            const dutyDate = new Date(d.duty_date);
+            dutyDate.setHours(0, 0, 0, 0);
+
+            // First verify it's the correct day of the week
+            if (dutyDate.getDay() !== dayIndex) return false;
+
+            // If scope is week, verify it's within the selected week range
+            if (scope === 'week') {
+                const weekStart = new Date(currentWeekStart);
+                const weekEnd = new Date(currentWeekStart);
+                weekEnd.setDate(weekStart.getDate() + 6);
+                weekEnd.setHours(23, 59, 59, 999);
+                return dutyDate >= weekStart && dutyDate <= weekEnd;
+            }
+            return true;
         });
+    };
+
+    // Helper to group duties by date (for All History view)
+    const getGroupedDuties = () => {
+        const groups: Record<string, DutySchedule[]> = {};
+        filteredDuties.forEach(d => {
+            const dateStr = new Date(d.duty_date).toLocaleDateString('en-GB', {
+                weekday: 'long',
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+            if (!groups[dateStr]) {
+                groups[dateStr] = [];
+            }
+            groups[dateStr].push(d);
+        });
+        return Object.entries(groups); // [ [dateStr, DutySchedule[]], ... ]
     };
 
     return (
@@ -230,6 +314,7 @@ export default function ContactsPage() {
 
                     {/* Filter controls */}
                     <div className="flex flex-wrap items-center gap-3">
+                        {/* Search Bar */}
                         <div className="relative">
                             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                             <input
@@ -241,13 +326,62 @@ export default function ContactsPage() {
                             />
                         </div>
 
+                        {/* Scope Toggle */}
                         <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-1 rounded-xl">
+                            <span className="text-[10px] font-black uppercase text-slate-400 px-2">Scope</span>
+                            <button
+                                onClick={() => setScope('week')}
+                                className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                                    scope === 'week'
+                                        ? 'bg-[#F26C22] text-white shadow-sm shadow-orange-500/10'
+                                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                                }`}
+                            >
+                                Weekly
+                            </button>
+                            <button
+                                onClick={() => setScope('all')}
+                                className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
+                                    scope === 'all'
+                                        ? 'bg-[#F26C22] text-white shadow-sm shadow-orange-500/10'
+                                        : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+                                }`}
+                            >
+                                All History
+                            </button>
+                        </div>
+
+                        {/* Week Navigation (Only when scope is 'week') */}
+                        {scope === 'week' && (
+                            <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-1 rounded-xl">
+                                <button
+                                    onClick={handlePrevWeek}
+                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                                    title="Previous Week"
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                </button>
+                                <span className="text-[10px] font-bold text-slate-700 dark:text-slate-350 px-1 select-none">
+                                    {formatWeekRange(currentWeekStart)}
+                                </span>
+                                <button
+                                    onClick={handleNextWeek}
+                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                                    title="Next Week"
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Role Filter */}
+                        <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-855 p-1 rounded-xl">
                             <span className="text-[10px] font-black uppercase text-slate-400 px-2">Role</span>
                             <button
                                 onClick={() => setSelectedRole('all')}
                                 className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
                                     selectedRole === 'all'
-                                        ? 'bg-[#F26C22] text-white'
+                                        ? 'bg-[#F26C22] text-white shadow-sm shadow-orange-500/10'
                                         : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                                 }`}
                             >
@@ -257,7 +391,7 @@ export default function ContactsPage() {
                                 onClick={() => setSelectedRole('SRC')}
                                 className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
                                     selectedRole === 'SRC'
-                                        ? 'bg-[#F26C22] text-white'
+                                        ? 'bg-[#F26C22] text-white shadow-sm shadow-orange-500/10'
                                         : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                                 }`}
                             >
@@ -267,15 +401,13 @@ export default function ContactsPage() {
                                 onClick={() => setSelectedRole('Fellow')}
                                 className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
                                     selectedRole === 'Fellow'
-                                        ? 'bg-[#F26C22] text-white'
+                                        ? 'bg-[#F26C22] text-white shadow-sm shadow-orange-500/10'
                                         : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
                                 }`}
                             >
                                 Fellow
                             </button>
                         </div>
-
-
                     </div>
                 </div>
 
@@ -285,13 +417,13 @@ export default function ContactsPage() {
                             <div key={i} className="h-16 bg-slate-150 dark:bg-slate-800 rounded-2xl w-full" />
                         ))}
                     </div>
-                ) : (
+                ) : scope === 'week' ? (
                     <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
                         <div className="overflow-x-auto">
                             <table className="w-full border-collapse">
                                 <thead>
                                     <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-850">
-                                        <th className="w-32 px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-100 dark:border-slate-850">
+                                        <th className="w-40 px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-r border-slate-100 dark:border-slate-850">
                                             Day
                                         </th>
                                         <th className="px-6 py-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -302,12 +434,36 @@ export default function ContactsPage() {
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-850">
                                     {DAYS_OF_WEEK.map((day) => {
                                         const dayDuties = getDutiesForDay(day.index);
+                                        const dayIsToday = isToday(day.index);
                                         return (
-                                            <tr key={day.name} className="transition-colors hover:bg-slate-50/30 dark:hover:bg-slate-850/10">
-                                                <td className="px-6 py-5 align-top font-black text-slate-950 dark:text-white text-sm border-r border-slate-100 dark:border-slate-850 bg-slate-50/20 dark:bg-slate-800/10">
-                                                    {day.name}
+                                            <tr key={day.name} className={`transition-colors hover:bg-slate-50/30 dark:hover:bg-slate-850/10 ${
+                                                dayIsToday ? 'bg-orange-500/[0.01] dark:bg-orange-500/[0.005]' : ''
+                                            }`}>
+                                                <td className={`w-40 px-6 py-5 align-top font-black text-sm border-r border-slate-100 dark:border-slate-850 relative ${
+                                                    dayIsToday 
+                                                        ? 'bg-orange-500/[0.03] dark:bg-orange-500/[0.02] text-[#F26C22]' 
+                                                        : 'text-slate-950 dark:text-white bg-slate-50/20 dark:bg-slate-800/10'
+                                                }`}>
+                                                    {dayIsToday && (
+                                                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#F26C22]" />
+                                                    )}
+                                                    <div className="flex flex-wrap items-center gap-1.5">
+                                                        <span>{day.name}</span>
+                                                        {dayIsToday && (
+                                                            <span className="text-[8px] font-black uppercase bg-[#F26C22] text-white px-1.5 py-0.5 rounded tracking-wider">
+                                                                Today
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <span className="block text-[10px] text-slate-400 dark:text-slate-500 font-bold mt-0.5">
+                                                        {getDayDate(day.index)}
+                                                    </span>
                                                     {dayDuties.length > 0 && (
-                                                        <span className="block mt-1.5 text-[9px] font-black uppercase text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full w-max">
+                                                        <span className={`block mt-2 text-[9px] font-black uppercase px-2 py-0.5 rounded-full w-max ${
+                                                            dayIsToday
+                                                                ? 'bg-[#F26C22]/10 text-[#F26C22]'
+                                                                : 'text-orange-500 bg-orange-500/10'
+                                                        }`}>
                                                             {dayDuties.length} {dayDuties.length === 1 ? 'Shift' : 'Shifts'}
                                                         </span>
                                                     )}
@@ -379,6 +535,72 @@ export default function ContactsPage() {
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                ) : (
+                    // All History View: Grouped chronologically by date
+                    <div className="space-y-8">
+                        {getGroupedDuties().length === 0 ? (
+                            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-12 text-center">
+                                <CalendarCheck className="h-10 w-10 text-slate-300 dark:text-slate-750 mx-auto mb-3" />
+                                <p className="text-slate-500 dark:text-slate-400 font-semibold text-sm">
+                                    No duties found matching the search criteria.
+                                </p>
+                            </div>
+                        ) : (
+                            getGroupedDuties().map(([dateStr, dayDuties]) => (
+                                <div key={dateStr} className="space-y-3">
+                                    <h3 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">
+                                        📅 {dateStr}
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {dayDuties.map((duty) => {
+                                            const isSRC = duty.role === 'SRC';
+                                            return (
+                                                <div 
+                                                    key={duty.id} 
+                                                    className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-orange-100 dark:hover:border-orange-950/20 hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+                                                >
+                                                    <div>
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
+                                                                isSRC
+                                                                    ? 'bg-indigo-50 text-indigo-650 dark:bg-indigo-950/30 dark:text-indigo-400 border border-indigo-100/50'
+                                                                    : 'bg-purple-50 text-purple-650 dark:bg-purple-950/30 dark:text-purple-400 border border-purple-100/50'
+                                                            }`}>
+                                                                {duty.role}
+                                                            </span>
+                                                            <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                                                                <Clock className="h-3 w-3" />
+                                                                {duty.start_time.substring(0, 5)} - {duty.end_time.substring(0, 5)}
+                                                            </span>
+                                                        </div>
+                                                        <h4 className="font-black text-slate-900 dark:text-white text-sm">
+                                                            {duty.name}
+                                                        </h4>
+                                                        <div className="mt-2 space-y-1 text-[11px] font-semibold text-slate-500">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <MapPin className="h-3 w-3 text-slate-400 shrink-0" />
+                                                                <span>Floor {duty.floor}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-4 pt-3 border-t border-slate-50 dark:border-slate-800 flex justify-between items-center">
+                                                        <span className="text-[10px] text-slate-400 font-bold">{duty.contact_number}</span>
+                                                        <a 
+                                                            href={`tel:${duty.contact_number.replace(/\s+/g, '')}`}
+                                                            className="py-1 px-3 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white hover:bg-orange-50 dark:hover:bg-orange-950/30 hover:text-[#F26C22] border border-[#f26c22]/10 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1"
+                                                        >
+                                                            <Phone className="h-3 w-3" />
+                                                            Call
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 )}
             </section>
