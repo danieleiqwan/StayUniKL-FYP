@@ -14,7 +14,7 @@ import PredictiveMaintenance from '@/components/admin/PredictiveMaintenance';
 import WaitlistOpportunities from '@/components/admin/WaitlistOpportunities';
 import FacilityAnalytics from '@/components/admin/FacilityAnalytics';
 import SportManagement from '@/components/admin/SportManagement';
-import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight, Bell, Wrench, Zap, DollarSign, Megaphone, CalendarDays, Users, CheckSquare, Square, Check, Trash2, CalendarClock, Plus, X } from 'lucide-react';
+import { Eye, Home, FileText, Clock, CheckCircle, XCircle, ListOrdered, ScanLine, Building2, LayoutDashboard, ChevronRight, Bell, Wrench, Zap, DollarSign, Megaphone, CalendarDays, Users, CheckSquare, Square, Check, Trash2, CalendarClock, Plus, X, Pencil } from 'lucide-react';
 
 export default function AdminDashboardPage() {
     return (
@@ -52,6 +52,8 @@ function AdminDashboard() {
     const [showSessionForm, setShowSessionForm] = useState(false);
     const [sessionForm, setSessionForm] = useState({ name: '', semesterType: 'Long', intakeBatch: '', eligibility: 'Both', startDate: '', endDate: '' });
     const [sessionSubmitting, setSessionSubmitting] = useState(false);
+    const [editingSession, setEditingSession] = useState<any>(null);
+    const [editForm, setEditForm] = useState({ name: '', semesterType: 'Long', intakeBatch: '', eligibility: 'Both', startDate: '', endDate: '' });
 
     const fetchSessions = async () => {
         setSessionsLoading(true);
@@ -92,6 +94,49 @@ function AdminDashboard() {
         if (!confirm('Are you sure you want to delete this session?')) return;
         await fetch(`/api/admin/application-sessions?id=${id}`, { method: 'DELETE' });
         fetchSessions();
+    };
+
+    const openEditSession = (session: any) => {
+        // Convert DB datetime to datetime-local format (YYYY-MM-DDTHH:mm)
+        const toLocalInput = (d: string) => {
+            const dt = new Date(d);
+            const y = dt.getFullYear();
+            const m = String(dt.getMonth() + 1).padStart(2, '0');
+            const day = String(dt.getDate()).padStart(2, '0');
+            const h = String(dt.getHours()).padStart(2, '0');
+            const min = String(dt.getMinutes()).padStart(2, '0');
+            return `${y}-${m}-${day}T${h}:${min}`;
+        };
+        setEditForm({
+            name: session.name,
+            semesterType: session.semester_type,
+            intakeBatch: session.intake_batch,
+            eligibility: session.eligibility,
+            startDate: toLocalInput(session.start_date),
+            endDate: toLocalInput(session.end_date),
+        });
+        setEditingSession(session);
+    };
+
+    const handleEditSession = async () => {
+        if (!editingSession) return;
+        if (!editForm.name || !editForm.intakeBatch || !editForm.startDate || !editForm.endDate) {
+            alert('Please fill in all required fields.'); return;
+        }
+        setSessionSubmitting(true);
+        const res = await fetch('/api/admin/application-sessions', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: editingSession.id, ...editForm }),
+        });
+        const data = await res.json();
+        setSessionSubmitting(false);
+        if (res.ok) {
+            setEditingSession(null);
+            fetchSessions();
+        } else {
+            alert('Error: ' + (data.error || 'Failed to update session'));
+        }
     };
 
     const [courtSubTab, setCourtSubTab] = useState<'bookings' | 'settings' | 'schedule' | 'sports'>('bookings');
@@ -1327,6 +1372,66 @@ function AdminDashboard() {
                             </div>
                         )}
 
+                        {/* Edit session modal */}
+                        {editingSession && (
+                            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setEditingSession(null)}>
+                                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-8 space-y-6 w-full max-w-2xl animate-in zoom-in-95 fade-in duration-200" onClick={e => e.stopPropagation()}>
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
+                                            <Pencil className="h-4 w-4 text-[#F26C22]" /> Edit Session
+                                        </h3>
+                                        <button onClick={() => setEditingSession(null)} className="text-slate-400 hover:text-slate-600 transition-colors"><X className="h-5 w-5" /></button>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="sm:col-span-2">
+                                            <label className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-1.5">Session Name *</label>
+                                            <input value={editForm.name} onChange={e => setEditForm(p => ({...p, name: e.target.value}))}
+                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F26C22]/50" />
+                                        </div>
+                                        <div className="sm:col-span-2">
+                                            <label className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-1.5">Semester Type *</label>
+                                            <select value={editForm.semesterType} onChange={e => setEditForm(p => ({...p, semesterType: e.target.value}))}
+                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F26C22]/50">
+                                                <option value="Long">Long Semester</option>
+                                                <option value="Short">Short Semester</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-1.5">Intake Batch *</label>
+                                            <input value={editForm.intakeBatch} onChange={e => setEditForm(p => ({...p, intakeBatch: e.target.value}))}
+                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F26C22]/50" />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-1.5">Eligibility *</label>
+                                            <select value={editForm.eligibility} onChange={e => setEditForm(p => ({...p, eligibility: e.target.value}))}
+                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F26C22]/50">
+                                                <option value="Both">Both (New & Returning)</option>
+                                                <option value="New Students Only">New Students Only</option>
+                                                <option value="Returning Students Only">Returning Students Only</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-1.5">Start Date & Time *</label>
+                                            <input type="datetime-local" value={editForm.startDate} onChange={e => setEditForm(p => ({...p, startDate: e.target.value}))}
+                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F26C22]/50" />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-1.5">End Date & Time *</label>
+                                            <input type="datetime-local" value={editForm.endDate} onChange={e => setEditForm(p => ({...p, endDate: e.target.value}))}
+                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#F26C22]/50" />
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end gap-3 pt-2">
+                                        <button onClick={() => setEditingSession(null)} className="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Cancel</button>
+                                        <button onClick={handleEditSession} disabled={sessionSubmitting}
+                                            className="px-8 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-[#F26C22] text-white hover:bg-orange-600 disabled:opacity-50 transition-all shadow-lg shadow-orange-500/20">
+                                            {sessionSubmitting ? 'Saving...' : 'Save Changes'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Sessions list */}
                         {sessionsLoading ? (
                             <div className="text-center py-12 text-slate-400 text-sm font-bold">Loading sessions…</div>
@@ -1356,10 +1461,16 @@ function AdminDashboard() {
                                                     {new Date(s.start_date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})} → {new Date(s.end_date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'})}
                                                 </p>
                                             </div>
-                                            <button onClick={() => handleDeleteSession(s.id)}
-                                                className="flex items-center gap-1.5 text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 px-3 py-2 rounded-xl transition-all shrink-0">
-                                                <Trash2 className="h-3.5 w-3.5" /> Delete
-                                            </button>
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <button onClick={() => openEditSession(s)}
+                                                    className="flex items-center gap-1.5 text-xs font-bold text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-2 rounded-xl transition-all">
+                                                    <Pencil className="h-3.5 w-3.5" /> Edit
+                                                </button>
+                                                <button onClick={() => handleDeleteSession(s.id)}
+                                                    className="flex items-center gap-1.5 text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 px-3 py-2 rounded-xl transition-all">
+                                                    <Trash2 className="h-3.5 w-3.5" /> Delete
+                                                </button>
+                                            </div>
                                         </div>
                                     );
                                 })}

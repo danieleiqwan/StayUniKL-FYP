@@ -101,6 +101,58 @@ export async function POST(request: Request) {
     }
 }
 
+// PUT: Update an existing session (admin only)
+export async function PUT(request: Request) {
+    try {
+        await ensureTable();
+        const admin = await isAdmin();
+        if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+        const { id, name, semesterType, intakeBatch, eligibility, startDate, endDate } = await request.json();
+        if (!id) return NextResponse.json({ error: 'Session ID is required.' }, { status: 400 });
+
+        // Build dynamic SET clause – only update fields that were provided
+        const updates: string[] = [];
+        const params: any[] = [];
+
+        if (name !== undefined)         { updates.push('name = ?');          params.push(name); }
+        if (semesterType !== undefined)  { updates.push('semester_type = ?'); params.push(semesterType); }
+        if (intakeBatch !== undefined)   { updates.push('intake_batch = ?');  params.push(intakeBatch); }
+        if (eligibility !== undefined)   { updates.push('eligibility = ?');   params.push(eligibility); }
+        if (startDate !== undefined)     { updates.push('start_date = ?');    params.push(startDate); }
+        if (endDate !== undefined)       { updates.push('end_date = ?');      params.push(endDate); }
+
+        if (updates.length === 0) {
+            return NextResponse.json({ error: 'No fields to update.' }, { status: 400 });
+        }
+
+        // Validate date ordering if both dates are present (either from payload or after update)
+        if (startDate && endDate && new Date(endDate) <= new Date(startDate)) {
+            return NextResponse.json({ error: 'End date must be after start date.' }, { status: 400 });
+        }
+
+        params.push(id);
+        await pool.query(
+            `UPDATE application_sessions SET ${updates.join(', ')} WHERE id = ?`,
+            params
+        );
+
+        await logAction({
+            actorId: admin.id,
+            actorName: admin.email,
+            action: 'UPDATE_APPLICATION_SESSION',
+            entityType: 'ApplicationSession',
+            entityId: id,
+            details: { name, semesterType, intakeBatch, eligibility, startDate, endDate },
+        });
+
+        return NextResponse.json({ success: true });
+    } catch (error: any) {
+        console.error('[ApplicationSessions PUT]', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+}
+
 // DELETE: Remove a session (admin only)
 export async function DELETE(request: Request) {
     try {
