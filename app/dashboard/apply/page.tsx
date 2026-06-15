@@ -438,6 +438,9 @@ export default function ApplyPage() {
                                                     : 'border-slate-100 dark:border-slate-800 hover:border-orange-200 hover:bg-slate-50 dark:hover:bg-slate-800/50'
                                                 }`}>
                                                 <span className={`text-lg font-bold ${selectedRoom?.id === room.id ? 'text-[#F26C22]' : 'text-slate-700 dark:text-slate-300'}`}>{room.label}</span>
+                                                <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
+                                                    {room.beds.length === 1 ? 'SINGLE' : `SHARED ${room.beds.length}`}
+                                                </span>
                                                 <span className={`mt-2 text-xs font-bold px-2 py-1 rounded-full ${availableBeds === 0 ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
                                                     {availableBeds} beds left
                                                 </span>
