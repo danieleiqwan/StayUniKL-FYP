@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import AdminFilterBar, { FilterState } from '@/components/admin/AdminFilterBar';
 import StudentDetailModal from '@/components/admin/StudentDetailModal';
+import ScheduleComplaintModal from '@/components/admin/ScheduleComplaintModal';
 import LiveClock from '@/components/admin/LiveClock';
 import RoomAssignmentModal from '@/components/admin/RoomAssignmentModal';
 import PredictiveMaintenance from '@/components/admin/PredictiveMaintenance';
@@ -204,6 +205,9 @@ function AdminDashboard() {
     // Room Change UI State
     const [assignModalOpen, setAssignModalOpen] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState<any>(null);
+
+    // Complaint Schedule UI State
+    const [schedulingComplaint, setSchedulingComplaint] = useState<any | null>(null);
 
     // Bulk Selection State
     const [selectedAppIds, setSelectedAppIds] = useState<string[]>([]);
@@ -860,7 +864,7 @@ function AdminDashboard() {
                                                 }`}>{c.status}</span>
                                                 <div className="flex gap-2 justify-end">
                                                     {c.status === 'Pending' && (<>
-                                                        <button onClick={() => { const d = prompt('Appointment Date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]); if (d) updateComplaint(c.id, 'In Progress', d); }} className="text-[10px] font-black uppercase tracking-widest bg-blue-500 text-white px-3 py-1.5 rounded-xl hover:bg-blue-600 transition-all">Schedule</button>
+                                                        <button onClick={() => setSchedulingComplaint(c)} className="text-[10px] font-black uppercase tracking-widest bg-blue-500 text-white px-3 py-1.5 rounded-xl hover:bg-blue-600 transition-all">Schedule</button>
                                                         <button onClick={() => updateComplaint(c.id, 'Resolved')} className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-3 py-1.5 rounded-xl hover:bg-emerald-600 transition-all">Resolve</button>
                                                     </>)}
                                                     {c.status === 'In Progress' && (
@@ -1662,6 +1666,18 @@ function AdminDashboard() {
                 <StudentDetailModal
                     studentId={selectedStudentId}
                     onClose={() => setSelectedStudentId(null)}
+                />
+
+                {/* Schedule Complaint Modal */}
+                <ScheduleComplaintModal
+                    complaint={schedulingComplaint}
+                    onClose={() => setSchedulingComplaint(null)}
+                    onSchedule={(date) => {
+                        if (schedulingComplaint) {
+                            updateComplaint(schedulingComplaint.id, 'In Progress', date);
+                            setSchedulingComplaint(null);
+                        }
+                    }}
                 />
             </div>
     );

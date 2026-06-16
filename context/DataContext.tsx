@@ -8,10 +8,10 @@ import { useRouter } from 'next/navigation';
 export interface Bed { id: string; label: string; isOccupied: boolean; occupantId?: string; }
 export interface Room { id: string; floorId: number; label: string; beds: Bed[]; gender: 'Male' | 'Female'; roomType: 'Single' | 'Double' | 'Triple'; }
 export interface Application {
-    id: string; studentId: string; studentName: string;
+    id: string; studentId: string; studentName: string; officialId?: string;
     roomType: 'Single' | 'Shared (2)' | 'Shared (4)';
-    status: 'Pending' | 'Payment Pending' | 'Approved' | 'Checked in' | 'Checked out' | 'Cancelled' | 'No show' | 'Rejected';
-    previousStatus?: 'Pending' | 'Payment Pending' | 'Approved' | 'Checked in' | 'Checked out' | 'Cancelled' | 'No show' | 'Rejected';
+    status: 'Pending' | 'Payment Pending' | 'Approved' | 'Approved - Assigned' | 'Approved - Waitlist' | 'Checked in' | 'Checked out' | 'Cancelled' | 'No show' | 'Rejected';
+    previousStatus?: 'Pending' | 'Payment Pending' | 'Approved' | 'Approved - Assigned' | 'Approved - Waitlist' | 'Checked in' | 'Checked out' | 'Cancelled' | 'No show' | 'Rejected';
     gender?: 'Male' | 'Female';
     bedId?: string; floorId?: number; roomId?: string;
     stayDuration?: number;
@@ -25,10 +25,11 @@ export interface Application {
     paymentStatus?: 'Pending' | 'Partially Paid' | 'Fully Paid' | 'Overdue';
 }
 export interface Complaint {
-    id: string; studentId: string; studentName: string;
+    id: string; studentId: string; studentName: string; officialId?: string;
     title: string; description: string;
     status: 'Pending' | 'In Progress' | 'Resolved';
     technicianAppointment?: string; date: string; createdAt?: string;
+    images?: string[];
 }
 export interface CourtBooking {
     id: string; studentId: string; studentName: string;

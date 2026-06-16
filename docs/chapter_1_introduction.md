@@ -1,6 +1,11 @@
 # CHAPTER 1: INTRODUCTION
 
-## 1.1 Background of Study
+## 1.1 Introduction
+This chapter provides a comprehensive overview of the StayUniKL project, a web-based Student Accommodation Management System developed for Universiti Kuala Lumpur, Malaysian Institute of Information Technology (UniKL MIIT). It begins with the background context that motivates the development of this system, followed by the problem statement identifying key operational inefficiencies in the current hostel management workflow. The chapter then outlines the project objectives, defines the scope and boundaries of the system, highlights the significance of the project to its stakeholders, and concludes with the organization of this report.
+
+---
+
+## 1.2 Background of Study
 The rapid evolution of web technologies has fundamentally transformed administrative processes in higher education institutions globally. In recent years, universities have increasingly digitized academic administration, financial auditing, and student registries to enhance efficiency and ensure transparency (Oyeleke et al., 2020). However, auxiliary operations—particularly student accommodation and hostel management—have frequently remained reliant on outdated, fragmented, or manual methodologies. 
 
 At Universiti Kuala Lumpur (UniKL), particularly the Malaysian Institute of Information Technology (UniKL MIIT), hostel accommodation represents a vital component of the student experience. Providing housing for thousands of students requires complex coordination across room allocations, financial tracking, facility bookings, and maintenance operations. Managing these assets manually or through disconnected digital tools (such as Google Forms or static databases) presents substantial administrative bottlenecks. 
@@ -9,7 +14,7 @@ This research introduces **StayUniKL: Student Accommodation Management System**,
 
 ---
 
-## 1.2 Problem Statement
+## 1.3 Problem Statement
 The current hostel management practices at UniKL MIIT are hindered by structural inefficiencies across multiple operational domains:
 
 1. **Fragmented and Manual Processes:** Accommodation requests are handled via disparate channels, such as Google Forms, Excel sheets, and email correspondences. This fragmentation requires administrative staff to manually consolidate applications, cross-reference student details, and verify room vacancies, leading to high administrative overhead and an increased probability of human error.
@@ -20,7 +25,7 @@ The current hostel management practices at UniKL MIIT are hindered by structural
 
 ---
 
-## 1.3 Project Objectives
+## 1.4 Project Objectives
 To resolve these systemic inefficiencies, the development of StayUniKL is guided by the following academic and technical objectives:
 
 1. **Objective 1:** To design and develop a centralized, web-based Student Accommodation Management System that integrates hostel applications, room allocations, and administrative dashboards.
@@ -31,29 +36,29 @@ To resolve these systemic inefficiencies, the development of StayUniKL is guided
 
 ---
 
-## 1.4 Project Scope
+## 1.5 Project Scope
 The scope of StayUniKL is bounded by its target users, core functionalities, and architectural constraints within the UniKL ecosystem:
 
-### 1.4.1 Target Users (Roles)
+### 1.5.1 Target Users (Roles)
 * **Student:** Authenticated users who can apply for rooms, upload payment proofs, view active invoices, book facilities, submit maintenance complaints, and access their check-in QR codes.
 * **System Administrator (Admin):** Staff members who approve/reject applications, manually assign beds via a dynamic Room Matrix, verify billing proofs, resolve maintenance issues, schedule facility blackouts, and generate reports.
 * **Super Admin:** High-level users who manage system configurations, manage student accounts, configure facility rules, and monitor global audit logs.
 
-### 1.4.2 Functional Scope
+### 1.5.2 Functional Scope
 * **Authentication and Role-Based Access Control (RBAC):** Implementing secure JWT authentication stored in HttpOnly cookies to enforce role privileges (`Student`, `Admin`, `Super Admin`) and mitigate Session Hijacking.
 * **Hostel Enrollment Lifecycle:** Automated form submission with gender-matching validation, transaction-safe database locks to prevent bed double-booking, and status flow transitions (Pending $\rightarrow$ Payment Pending $\rightarrow$ Approved $\rightarrow$ Checked In).
 * **QR-Based Check-In/Check-Out:** Dynamic generation of secure QR codes containing encrypted student tenancy payloads, which admins scan using the built-in mobile scanner portal.
 * **Facility Booking & Governance:** A real-time booking grid with a 1-hour slot reservation constraint and an automated cron-job execution that flags "No-Show" bookings and bans violating students.
 * **Complaint and Asset Synchronization:** A reporting portal where room complaints automatically flag the corresponding asset in the room database as "Needs Repair" until marked as resolved.
 
-### 1.4.3 Architectural Constraints
+### 1.5.3 Architectural Constraints
 * Developed as a full-stack JavaScript application using Next.js, React, and TypeScript.
 * MySQL is utilized as the primary relational database, and Cloudinary manages file uploads.
 * External API integrations include Stripe for payment processing and Nodemailer for automated system email notifications.
 
 ---
 
-## 1.5 Significance of Project
+## 1.6 Significance of Project
 The implementation of StayUniKL offers substantial practical and theoretical contributions:
 
 * **For Students:** It provides a seamless, transparent dashboard that simplifies room selection, facility bookings, and maintenance reporting, drastically reducing wait times on check-in day.
@@ -63,7 +68,7 @@ The implementation of StayUniKL offers substantial practical and theoretical con
 
 ---
 
-## 1.6 Project Organization
+## 1.7 Project Organization
 This thesis report is structured into five sequential chapters as follows:
 
 * **Chapter 1: Introduction** defines the study background, problem statement, objectives, scope, and project significance.
