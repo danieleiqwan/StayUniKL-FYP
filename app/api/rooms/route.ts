@@ -48,7 +48,7 @@ export async function GET() {
                         id: bed.id,
                         label: bed.label,
                         status: bed.status,
-                        isOccupied: !!student,
+                        isOccupied: !!student || bed.status === 'Maintenance',
                         occupantName: student?.name || null,
                         occupantId: student?.id || null,
                         occupantStudentId: student?.studentId || null,

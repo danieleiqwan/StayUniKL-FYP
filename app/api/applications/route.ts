@@ -242,7 +242,23 @@ export async function POST(request: Request) {
                 return NextResponse.json({ error: 'Selected bed not found' }, { status: 404 });
             }
 
-            if (beds[0].status !== 'Available') {
+            if (beds[0].status === 'Maintenance') {
+                await connection.rollback();
+                return NextResponse.json({ 
+                    error: 'Bed Unavailable', 
+                    message: 'This bed is currently under maintenance and cannot be selected.' 
+                }, { status: 400 });
+            }
+
+            // Check if there is an active application occupying this bed
+            const [activeAppRows]: any = await connection.query(
+                `SELECT id FROM applications 
+                 WHERE bed_id = ? AND status IN ('Payment Pending', 'Approved', 'Checked in') 
+                 LIMIT 1`,
+                [bedId]
+            );
+
+            if (activeAppRows.length > 0) {
                 await connection.rollback();
                 return NextResponse.json({ 
                     error: 'Bed Unavailable', 
