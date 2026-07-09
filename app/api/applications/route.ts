@@ -125,19 +125,22 @@ export async function POST(request: Request) {
         // Students can only apply when there is an OPEN session AND they meet eligibility.
         if (user.role === 'student') {
             const [sessionRows]: any = await pool.query(
-                `SELECT * FROM application_sessions
-                 WHERE DATE(start_date) <= DATE(NOW()) AND DATE(end_date) >= DATE(NOW())
-                 ORDER BY start_date DESC LIMIT 1`
+                `SELECT * FROM application_sessions ORDER BY start_date DESC`
             ).catch(() => [[]]); // Graceful fallback if table doesn't exist yet
 
-            if (!sessionRows || sessionRows.length === 0) {
+            const today = new Date().toISOString().split('T')[0];
+            const session = sessionRows?.find((s: any) => {
+                const start = new Date(s.start_date).toISOString().split('T')[0];
+                const end = new Date(s.end_date).toISOString().split('T')[0];
+                return today >= start && today <= end;
+            });
+
+            if (!session) {
                 return NextResponse.json({
                     error: 'Applications are currently closed.',
                     message: 'There is no open application session at this time. Please check back when a session is open.'
                 }, { status: 403 });
             }
-
-            const session = sessionRows[0];
 
             // ─── PHASE 2: ELIGIBILITY CHECK ────────────────────────────────────────
             if (session.eligibility !== 'Both') {
