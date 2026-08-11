@@ -105,8 +105,6 @@ ADMIN_EMAIL=admin@stayunikl.edu.my
 
 ## Screenshots
 
-> *Note: Replace the placeholder image URLs below with your project screenshots.*
-
 | Student Dashboard | Accommodation Booking |
 | :---: | :---: |
 | <img width="2544" height="1439" alt="Screenshot 2026-07-10 070506" src="https://github.com/user-attachments/assets/65771bfa-8c81-4641-b740-9e781d70bd2e" /> | <img width="2547" height="1431" alt="Screenshot 2026-07-10 071324" src="https://github.com/user-attachments/assets/c4cc34e8-a722-4fe3-84ae-bf78fe556120" />
