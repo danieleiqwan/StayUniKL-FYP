@@ -109,11 +109,12 @@ ADMIN_EMAIL=admin@stayunikl.edu.my
 
 | Student Dashboard | Accommodation Booking |
 | :---: | :---: |
-| ![Student Dashboard](https://via.placeholder.com/600x350?text=Student+Dashboard) | ![Accommodation Booking](https://via.placeholder.com/600x350?text=Accommodation+Booking) |
+| <img width="2544" height="1439" alt="Screenshot 2026-07-10 070506" src="https://github.com/user-attachments/assets/65771bfa-8c81-4641-b740-9e781d70bd2e" /> | <img width="2547" height="1431" alt="Screenshot 2026-07-10 071324" src="https://github.com/user-attachments/assets/c4cc34e8-a722-4fe3-84ae-bf78fe556120" />
+|
 
 | Admin Control Panel | QR Verification |
 | :---: | :---: |
-| ![Admin Control Panel](https://via.placeholder.com/600x350?text=Admin+Control+Panel) | ![QR Verification](https://via.placeholder.com/600x350?text=QR+Verification) |
+| <img width="2549" height="1237" alt="Screenshot 2026-08-12 060548" src="https://github.com/user-attachments/assets/c2a0f10d-314f-48cd-9ea8-7f7ffabc6d6a" /> | <img width="2545" height="1229" alt="Screenshot 2026-08-12 060622" src="https://github.com/user-attachments/assets/7af8d5d1-d620-435b-b89b-8f612850730b" /> |
 
 ## License
 
